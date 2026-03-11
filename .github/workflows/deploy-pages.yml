@@ -1,0 +1,63 @@
+name: Deploy to GitHub Pages
+
+on:
+  # 当可视化脚本或数据更新时触发
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'scripts/03_vis_*.py'
+      - 'scripts/build_index.py'
+      - 'src/visualization/**'
+      - 'data/sample_data/**'
+  
+  # 允许手动触发
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy plotly tqdm scikit-learn networkx
+
+      - name: Generate visualizations
+        run: |
+          # 使用已有的 sample data 生成可视化
+          python scripts/03_vis_sentiment.py
+          python scripts/03_vis_network.py
+          python scripts/03_vis_meter.py
+          python scripts/03_vis_dynasty.py
+          python scripts/03_vis_author.py
+          python scripts/build_index.py
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: reports/visualizations/
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
