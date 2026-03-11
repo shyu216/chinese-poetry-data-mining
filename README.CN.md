@@ -114,11 +114,7 @@ open reports/visualizations/index.html
 - [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) - 全面的中国古诗词 JSON 数据库
 - [ccpoems](https://github.com/shyu216/ccpoems) - React Native 移动端配套项目
 
-## 👤 作者
-
-**shyu216** - [GitHub](https://github.com/shyu216)
-
-## 📄 开源协议
+##  开源协议
 
 本项目采用 MIT 协议开源 - 详见 [LICENSE](LICENSE) 文件
 

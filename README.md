@@ -114,11 +114,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) - Comprehensive database of Chinese poetry in JSON format
 - [ccpoems](https://github.com/shyu216/ccpoems) - React Native mobile app companion project
 
-## 👤 Author
-
-**shyu216** - [GitHub](https://github.com/shyu216)
-
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
