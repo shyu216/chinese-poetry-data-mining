@@ -3,21 +3,24 @@
 """
 构建可视化索引页面
 为GitHub Pages生成一个美观的导航页
+支持按数据来源（sample/full）分组显示
 """
 
 import sys
+import argparse
 from pathlib import Path
 from datetime import datetime
 
 sys.path.append(str(Path(__file__).parent.parent))
 
 
-def build_index_html(visualizations_dir: Path) -> str:
+def build_index_html(visualizations_dir: Path, data_type: str = 'sample') -> str:
     """
     构建索引HTML
     
     Args:
         visualizations_dir: 可视化文件目录
+        data_type: 数据类型（sample 或 full）
         
     Returns:
         HTML字符串
@@ -47,13 +50,17 @@ def build_index_html(visualizations_dir: Path) -> str:
         elif 'author' in filename:
             categories['author']['files'].append(filename)
     
+    # 数据类型显示名称
+    data_type_display = '采样数据' if data_type == 'sample' else '完整数据'
+    data_type_badge = 'Sample' if data_type == 'sample' else 'Full'
+    
     # 构建HTML
     html = f'''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>中国古代文学时空图谱 - 可视化报告</title>
+    <title>中国古代文学时空图谱 - {data_type_display} - 可视化报告</title>
     <style>
         * {{
             margin: 0;
@@ -88,6 +95,15 @@ def build_index_html(visualizations_dir: Path) -> str:
         .subtitle {{
             font-size: 1.2em;
             opacity: 0.9;
+        }}
+        
+        .data-badge {{
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
         }}
         
         .update-time {{
@@ -185,6 +201,31 @@ def build_index_html(visualizations_dir: Path) -> str:
             opacity: 0.8;
         }}
         
+        .data-switcher {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        
+        .data-switcher a {{
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }}
+        
+        .data-switcher a:hover {{
+            background: rgba(255,255,255,0.3);
+        }}
+        
+        .data-switcher a.active {{
+            background: white;
+            color: #667eea;
+        }}
+        
         @media (max-width: 768px) {{
             h1 {{
                 font-size: 1.8em;
@@ -201,6 +242,7 @@ def build_index_html(visualizations_dir: Path) -> str:
         <header>
             <h1>中国古代文学时空图谱</h1>
             <p class="subtitle">数据挖掘与可视化分析报告</p>
+            <span class="data-badge">{data_type_badge}</span>
             <p class="update-time">更新时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             
             <div class="stats">
@@ -212,6 +254,11 @@ def build_index_html(visualizations_dir: Path) -> str:
                     <span class="stat-number">{len([c for c in categories.values() if c['files']])}</span>
                     <span class="stat-label">分析维度</span>
                 </div>
+            </div>
+            
+            <div class="data-switcher">
+                <a href="../sample/visualizations/index.html" class="{'active' if data_type == 'sample' else ''}">采样数据</a>
+                <a href="../full/visualizations/index.html" class="{'active' if data_type == 'full' else ''}">完整数据</a>
             </div>
         </header>
         
@@ -253,18 +300,25 @@ def build_index_html(visualizations_dir: Path) -> str:
 
 def main():
     """主函数"""
+    parser = argparse.ArgumentParser(description='构建可视化索引页面')
+    parser.add_argument('--data', choices=['sample', 'full'], default='sample',
+                       help='数据类型 (默认: sample)')
+    args = parser.parse_args()
+    
     print("构建可视化索引页面...")
+    print(f"数据类型: {args.data}")
     
     # 设置路径
     project_root = Path(__file__).parent.parent
-    visualizations_dir = project_root / "reports" / "visualizations"
+    visualizations_dir = project_root / "reports" / args.data / "visualizations"
     
     if not visualizations_dir.exists():
         print(f"警告: 可视化目录不存在 {visualizations_dir}")
-        return
+        visualizations_dir.mkdir(parents=True, exist_ok=True)
+        print(f"已创建目录: {visualizations_dir}")
     
     # 构建HTML
-    html_content = build_index_html(visualizations_dir)
+    html_content = build_index_html(visualizations_dir, args.data)
     
     # 保存
     index_path = visualizations_dir / "index.html"

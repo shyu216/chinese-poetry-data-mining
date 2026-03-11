@@ -90,9 +90,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 示例:
-  python serve_visualizations.py              # 自动选择端口
-  python serve_visualizations.py -p 8080      # 指定端口8080
-  python serve_visualizations.py --no-browser # 不自动打开浏览器
+  python 04_serve.py              # 自动选择端口
+  python 04_serve.py -p 8080      # 指定端口8080
+  python 04_serve.py --no-browser # 不自动打开浏览器
         '''
     )
     
