@@ -1,0 +1,826 @@
+{
+  "author_count": 58,
+  "most_positive_authors": [
+    [
+      "鄭谷",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 1.0,
+        "sentiment_std": 0.0,
+        "sentiment_distribution": {
+          "积极": 2
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "羅鄴",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 1.0,
+        "sentiment_std": 0.0,
+        "sentiment_distribution": {
+          "积极": 2
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "嚴粲",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 1.0,
+        "sentiment_std": 0.0,
+        "sentiment_distribution": {
+          "积极": 2
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "蘇泂",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 1.0,
+        "sentiment_std": 0.0,
+        "sentiment_distribution": {
+          "积极": 2
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "劉克莊",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 1.0,
+        "sentiment_std": 0.0,
+        "sentiment_distribution": {
+          "积极": 2
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "王庭珪",
+      {
+        "poem_count": 3,
+        "avg_sentiment": 0.6666666666666666,
+        "sentiment_std": 0.4714045207910317,
+        "sentiment_distribution": {
+          "积极": 2,
+          "中性": 1
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "吴潜",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "积极": 1,
+          "中性": 1
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "朱敦儒",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "积极": 1,
+          "中性": 1
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "李曾伯",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "积极": 1,
+          "中性": 1
+        },
+        "tendency": "积极"
+      }
+    ],
+    [
+      "虞儔",
+      {
+        "poem_count": 2,
+        "avg_sentiment": 0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "中性": 1,
+          "积极": 1
+        },
+        "tendency": "积极"
+      }
+    ]
+  ],
+  "most_negative_authors": [
+    [
+      "陳造",
+      {
+        "poem_count": 4,
+        "avg_sentiment": -0.25,
+        "sentiment_std": 0.4330127018922193,
+        "sentiment_distribution": {
+          "中性": 3,
+          "消极": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "釋正覺",
+      {
+        "poem_count": 4,
+        "avg_sentiment": -0.25,
+        "sentiment_std": 0.4330127018922193,
+        "sentiment_distribution": {
+          "中性": 3,
+          "消极": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "白居易",
+      {
+        "poem_count": 3,
+        "avg_sentiment": -0.3333333333333333,
+        "sentiment_std": 0.4714045207910317,
+        "sentiment_distribution": {
+          "中性": 2,
+          "消极": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "李廌",
+      {
+        "poem_count": 2,
+        "avg_sentiment": -0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "中性": 1,
+          "消极": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "劉應時",
+      {
+        "poem_count": 2,
+        "avg_sentiment": -0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "消极": 1,
+          "中性": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "周必大",
+      {
+        "poem_count": 2,
+        "avg_sentiment": -0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "消极": 1,
+          "中性": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "釋文珦",
+      {
+        "poem_count": 2,
+        "avg_sentiment": -0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "消极": 1,
+          "中性": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "樓鑰",
+      {
+        "poem_count": 2,
+        "avg_sentiment": -0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "消极": 1,
+          "中性": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "錢時",
+      {
+        "poem_count": 2,
+        "avg_sentiment": -0.5,
+        "sentiment_std": 0.5,
+        "sentiment_distribution": {
+          "中性": 1,
+          "消极": 1
+        },
+        "tendency": "消极"
+      }
+    ],
+    [
+      "貫休",
+      {
+        "poem_count": 3,
+        "avg_sentiment": -1.0,
+        "sentiment_std": 0.0,
+        "sentiment_distribution": {
+          "消极": 3
+        },
+        "tendency": "消极"
+      }
+    ]
+  ],
+  "all_authors": {
+    "貫休": {
+      "poem_count": 3,
+      "avg_sentiment": -1.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "消极": 3
+      },
+      "tendency": "消极"
+    },
+    "皎然": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "李商隱": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "杜甫": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 1.0,
+      "sentiment_distribution": {
+        "积极": 1,
+        "消极": 1
+      },
+      "tendency": "中性"
+    },
+    "鄭谷": {
+      "poem_count": 2,
+      "avg_sentiment": 1.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "积极": 2
+      },
+      "tendency": "积极"
+    },
+    "白居易": {
+      "poem_count": 3,
+      "avg_sentiment": -0.3333333333333333,
+      "sentiment_std": 0.4714045207910317,
+      "sentiment_distribution": {
+        "中性": 2,
+        "消极": 1
+      },
+      "tendency": "消极"
+    },
+    "羅鄴": {
+      "poem_count": 2,
+      "avg_sentiment": 1.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "积极": 2
+      },
+      "tendency": "积极"
+    },
+    "贺铸": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "吴潜": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "魏了翁": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "朱敦儒": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "趙蕃": {
+      "poem_count": 4,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.7071067811865476,
+      "sentiment_distribution": {
+        "积极": 1,
+        "消极": 1,
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "項安世": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "張耒": {
+      "poem_count": 5,
+      "avg_sentiment": -0.2,
+      "sentiment_std": 0.4000000000000001,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 4
+      },
+      "tendency": "消极"
+    },
+    "蘇轍": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "李曾伯": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "蘇軾": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 1.0,
+      "sentiment_distribution": {
+        "积极": 1,
+        "消极": 1
+      },
+      "tendency": "中性"
+    },
+    "葛勝仲": {
+      "poem_count": 2,
+      "avg_sentiment": 0.16666666666666666,
+      "sentiment_std": 0.16666666666666666,
+      "sentiment_distribution": {
+        "中性": 1,
+        "积极": 1
+      },
+      "tendency": "积极"
+    },
+    "王炎": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "舒岳祥": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "陸游": {
+      "poem_count": 7,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.5345224838248488,
+      "sentiment_distribution": {
+        "中性": 5,
+        "消极": 1,
+        "积极": 1
+      },
+      "tendency": "中性"
+    },
+    "劉敞": {
+      "poem_count": 4,
+      "avg_sentiment": -0.25,
+      "sentiment_std": 0.4330127018922193,
+      "sentiment_distribution": {
+        "中性": 3,
+        "消极": 1
+      },
+      "tendency": "消极"
+    },
+    "范仲淹": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "梅堯臣": {
+      "poem_count": 3,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.816496580927726,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1,
+        "消极": 1
+      },
+      "tendency": "中性"
+    },
+    "王庭珪": {
+      "poem_count": 3,
+      "avg_sentiment": 0.6666666666666666,
+      "sentiment_std": 0.4714045207910317,
+      "sentiment_distribution": {
+        "积极": 2,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "孔平仲": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "虞儔": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "中性": 1,
+        "积极": 1
+      },
+      "tendency": "积极"
+    },
+    "方一夔": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 1.0,
+      "sentiment_distribution": {
+        "积极": 1,
+        "消极": 1
+      },
+      "tendency": "中性"
+    },
+    "嚴粲": {
+      "poem_count": 2,
+      "avg_sentiment": 1.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "积极": 2
+      },
+      "tendency": "积极"
+    },
+    "呂本中": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "蘇泂": {
+      "poem_count": 2,
+      "avg_sentiment": 1.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "积极": 2
+      },
+      "tendency": "积极"
+    },
+    "王安石": {
+      "poem_count": 3,
+      "avg_sentiment": 0.3333333333333333,
+      "sentiment_std": 0.4714045207910317,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 2
+      },
+      "tendency": "积极"
+    },
+    "方岳": {
+      "poem_count": 2,
+      "avg_sentiment": -0.25,
+      "sentiment_std": 0.25,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 1
+      },
+      "tendency": "消极"
+    },
+    "釋居簡": {
+      "poem_count": 4,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 4
+      },
+      "tendency": "中性"
+    },
+    "陳普": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "王十朋": {
+      "poem_count": 3,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.816496580927726,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 1,
+        "积极": 1
+      },
+      "tendency": "中性"
+    },
+    "楊備": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "中性": 1,
+        "积极": 1
+      },
+      "tendency": "积极"
+    },
+    "李廌": {
+      "poem_count": 2,
+      "avg_sentiment": -0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "中性": 1,
+        "消极": 1
+      },
+      "tendency": "消极"
+    },
+    "陳造": {
+      "poem_count": 4,
+      "avg_sentiment": -0.25,
+      "sentiment_std": 0.4330127018922193,
+      "sentiment_distribution": {
+        "中性": 3,
+        "消极": 1
+      },
+      "tendency": "消极"
+    },
+    "韓淲": {
+      "poem_count": 3,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 3
+      },
+      "tendency": "中性"
+    },
+    "曹勛": {
+      "poem_count": 4,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 4
+      },
+      "tendency": "中性"
+    },
+    "方回": {
+      "poem_count": 4,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.7071067811865476,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 2,
+        "积极": 1
+      },
+      "tendency": "中性"
+    },
+    "周密": {
+      "poem_count": 2,
+      "avg_sentiment": 0.16666666666666666,
+      "sentiment_std": 0.16666666666666666,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "陳杰": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "中性": 1,
+        "积极": 1
+      },
+      "tendency": "积极"
+    },
+    "彭汝礪": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "釋正覺": {
+      "poem_count": 4,
+      "avg_sentiment": -0.25,
+      "sentiment_std": 0.4330127018922193,
+      "sentiment_distribution": {
+        "中性": 3,
+        "消极": 1
+      },
+      "tendency": "消极"
+    },
+    "黄庚": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "劉克莊": {
+      "poem_count": 2,
+      "avg_sentiment": 1.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "积极": 2
+      },
+      "tendency": "积极"
+    },
+    "劉應時": {
+      "poem_count": 2,
+      "avg_sentiment": -0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 1
+      },
+      "tendency": "消极"
+    },
+    "周必大": {
+      "poem_count": 2,
+      "avg_sentiment": -0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 1
+      },
+      "tendency": "消极"
+    },
+    "楊萬里": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    },
+    "釋文珦": {
+      "poem_count": 2,
+      "avg_sentiment": -0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 1
+      },
+      "tendency": "消极"
+    },
+    "陸文圭": {
+      "poem_count": 3,
+      "avg_sentiment": -0.1111111111111111,
+      "sentiment_std": 0.15713484026367722,
+      "sentiment_distribution": {
+        "中性": 2,
+        "消极": 1
+      },
+      "tendency": "消极"
+    },
+    "樓鑰": {
+      "poem_count": 2,
+      "avg_sentiment": -0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "消极": 1,
+        "中性": 1
+      },
+      "tendency": "消极"
+    },
+    "錢時": {
+      "poem_count": 2,
+      "avg_sentiment": -0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "中性": 1,
+        "消极": 1
+      },
+      "tendency": "消极"
+    },
+    "范成大": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 0.0,
+      "sentiment_distribution": {
+        "中性": 2
+      },
+      "tendency": "中性"
+    },
+    "楊傑": {
+      "poem_count": 2,
+      "avg_sentiment": 0.0,
+      "sentiment_std": 1.0,
+      "sentiment_distribution": {
+        "积极": 1,
+        "消极": 1
+      },
+      "tendency": "中性"
+    },
+    "陳著": {
+      "poem_count": 2,
+      "avg_sentiment": 0.5,
+      "sentiment_std": 0.5,
+      "sentiment_distribution": {
+        "积极": 1,
+        "中性": 1
+      },
+      "tendency": "积极"
+    }
+  }
+}
