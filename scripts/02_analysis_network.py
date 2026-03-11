@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-文学社交网络分析脚本
-使用sample data进行社交网络分析
+文学社交网络分析脚本（优化版）
+支持 sample/full 数据切换、结果缓存、使用 node2vec 进行网络嵌入
 """
 
 import sys
+import argparse
+import json
+import hashlib
 from pathlib import Path
 from collections import Counter
+from typing import Dict, List, Optional
 
 sys.path.append(str(Path(__file__).parent.parent))
 
@@ -15,18 +19,80 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-from src.models.social_network_model import SocialNetworkModel, build_poet_network
+# 尝试导入 node2vec 进行网络嵌入
+try:
+    from node2vec import Node2Vec
+    NODE2VEC_AVAILABLE = True
+except ImportError:
+    NODE2VEC_AVAILABLE = False
+    print("提示: node2vec 未安装，跳过网络嵌入。安装: pip install node2vec")
+
+from src.models.social_network_model import SocialNetworkModel
 from src.visualization.poetry_visualizer import PoetryVisualizer
 
 
-def build_author_network(df: pd.DataFrame, min_poems: int = 2, similarity_threshold: float = 0.1) -> dict:
+def get_cache_path(data_path: Path, suffix: str = "") -> Path:
+    """生成缓存文件路径"""
+    data_hash = hashlib.md5(str(data_path).encode()).hexdigest()[:8]
+    cache_dir = Path(__file__).parent.parent / "data" / "cache"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir / f"network_{data_hash}{suffix}.json"
+
+
+def load_cached_analysis(cache_path: Path, override: bool = False) -> Optional[Dict]:
+    """加载缓存的分析结果"""
+    if override or not cache_path.exists():
+        return None
+    
+    try:
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            print(f"加载缓存: {cache_path}")
+            return json.load(f)
+    except Exception as e:
+        print(f"缓存加载失败: {e}")
+        return None
+
+
+def save_cached_analysis(cache_path: Path, data: Dict):
+    """保存分析结果到缓存"""
+    try:
+        with open(cache_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+        print(f"缓存已保存: {cache_path}")
+    except Exception as e:
+        print(f"缓存保存失败: {e}")
+
+
+def load_data(data_type: str = 'sample') -> pd.DataFrame:
+    """加载数据"""
+    project_root = Path(__file__).parent.parent
+    
+    if data_type == 'sample':
+        data_path = project_root / "data" / "sample_data" / "all_poetry.pkl"
+    else:
+        data_path = project_root / "data" / "processed_data" / "all_poetry.pkl"
+    
+    if not data_path.exists():
+        raise FileNotFoundError(f"数据文件不存在: {data_path}")
+    
+    print(f"加载数据: {data_path}")
+    df = pd.read_pickle(data_path)
+    print(f"共 {len(df)} 首诗，{df['author'].nunique()} 位诗人")
+    
+    return df
+
+
+def build_author_network(df: pd.DataFrame, min_poems: int = 2, 
+                        similarity_threshold: float = 0.1,
+                        use_node2vec: bool = False) -> dict:
     """
-    构建作者社交网络
+    构建作者社交网络（支持 node2vec 嵌入）
     
     Args:
-        df: 诗词数据DataFrame
+        df: 诗词数据
         min_poems: 最少诗数阈值
         similarity_threshold: 相似度阈值
+        use_node2vec: 是否使用 node2vec 进行网络嵌入
         
     Returns:
         社交网络分析结果
@@ -65,7 +131,7 @@ def build_author_network(df: pd.DataFrame, min_poems: int = 2, similarity_thresh
     
     similar_pairs.sort(key=lambda x: x['similarity'], reverse=True)
     
-    return {
+    result = {
         'authors': authors_list,
         'similarity_matrix': similarity_matrix.tolist(),
         'network': {
@@ -82,64 +148,139 @@ def build_author_network(df: pd.DataFrame, min_poems: int = 2, similarity_thresh
         'top_similar_pairs': similar_pairs[:20],
         'network_analysis': network_analysis
     }
+    
+    # 使用 node2vec 进行网络嵌入（可选）
+    if use_node2vec and NODE2VEC_AVAILABLE and len(authors_list) > 5:
+        print("使用 node2vec 进行网络嵌入...")
+        try:
+            node2vec = Node2Vec(G, dimensions=64, walk_length=30, num_walks=200, workers=4)
+            model_n2v = node2vec.fit(window=10, min_count=1, batch_words=4)
+            
+            # 提取每个作者的嵌入向量
+            embeddings = {}
+            for author in authors_list:
+                if author in model_n2v.wv:
+                    embeddings[author] = model_n2v.wv[author].tolist()
+            
+            result['node2vec_embeddings'] = embeddings
+            print(f"  生成了 {len(embeddings)} 个作者的嵌入向量")
+        except Exception as e:
+            print(f"  node2vec 失败: {e}")
+    
+    return result
 
 
-def analyze_author_clusters(network_result: dict) -> dict:
+def analyze_author_clusters(network_result: dict, n_clusters: int = 5) -> dict:
     """
-    分析作者聚类
+    分析作者聚类（支持多种算法）
     
     Args:
         network_result: 社交网络分析结果
+        n_clusters: 聚类数量
         
     Returns:
         聚类分析结果
     """
-    import networkx as nx
-    from sklearn.cluster import SpectralClustering
+    from sklearn.cluster import SpectralClustering, KMeans
+    from sklearn.metrics import silhouette_score
     
     similarity_matrix = np.array(network_result['similarity_matrix'])
     authors = network_result['authors']
     
-    # 使用谱聚类
-    n_clusters = min(5, len(authors))
+    n_clusters = min(n_clusters, len(authors))
     if n_clusters < 2:
-        return {'clusters': []}
+        return {'clusters': [], 'method': 'none'}
     
-    clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed')
-    labels = clustering.fit_predict(similarity_matrix)
+    # 尝试多种聚类算法
+    methods = {}
     
-    # 组织聚类结果
-    clusters = {}
-    for author, label in zip(authors, labels):
-        label_key = int(label)  # 转换为Python int
-        if label_key not in clusters:
-            clusters[label_key] = []
-        clusters[label_key].append(author)
+    # 1. 谱聚类
+    try:
+        # 修复：清空对角线（自身相似度设为0）
+        np.fill_diagonal(similarity_matrix, 0)
+        
+        clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed', random_state=42)
+        labels = clustering.fit_predict(similarity_matrix)
+        score = silhouette_score(similarity_matrix, labels, metric='precomputed')
+        methods['spectral'] = {'labels': labels, 'score': score}
+    except Exception as e:
+        print(f"谱聚类失败: {e}")
     
-    return {
-        'n_clusters': int(n_clusters),
-        'clusters': clusters
-    }
+    # 2. K-Means（基于 node2vec 嵌入）
+    if 'node2vec_embeddings' in network_result and len(network_result['node2vec_embeddings']) > n_clusters:
+        try:
+            embeddings = np.array([network_result['node2vec_embeddings'][a] for a in authors 
+                                  if a in network_result['node2vec_embeddings']])
+            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+            labels_km = kmeans.fit_predict(embeddings)
+            score_km = silhouette_score(embeddings, labels_km)
+            methods['kmeans_node2vec'] = {'labels': labels_km, 'score': score_km}
+        except Exception as e:
+            print(f"K-Means 失败: {e}")
+    
+    # 选择最佳方法
+    if methods:
+        best_method = max(methods.items(), key=lambda x: x[1]['score'])
+        best_labels = best_method[1]['labels']
+        
+        # 组织聚类结果
+        clusters = {}
+        for author, label in zip(authors, best_labels):
+            label_key = int(label)
+            if label_key not in clusters:
+                clusters[label_key] = []
+            clusters[label_key].append(author)
+        
+        return {
+            'n_clusters': n_clusters,
+            'clusters': clusters,
+            'method': best_method[0],
+            'silhouette_score': float(best_method[1]['score'])
+        }
+    
+    return {'clusters': [], 'method': 'none'}
 
 
 def main():
     """主函数"""
+    parser = argparse.ArgumentParser(description='文学社交网络分析')
+    parser.add_argument('--data', choices=['sample', 'full'], default='sample',
+                       help='使用 sample 或 full 数据 (默认: sample)')
+    parser.add_argument('--override', action='store_true',
+                       help='覆盖已有缓存')
+    parser.add_argument('--node2vec', action='store_true',
+                       help='使用 node2vec 进行网络嵌入')
+    parser.add_argument('--threshold', type=float, default=0.1,
+                       help='相似度阈值 (默认: 0.1)')
+    
+    args = parser.parse_args()
+    
     print("=" * 60)
     print("文学社交网络分析")
+    print(f"数据类型: {args.data}")
+    print(f"使用 node2vec: {args.node2vec}")
     print("=" * 60)
     
     # 加载数据
-    project_root = Path(__file__).parent.parent
-    data_path = project_root / "data" / "sample_data" / "all_poetry.pkl"
+    df = load_data(args.data)
     
-    print(f"\n加载数据: {data_path}")
-    df = pd.read_pickle(data_path)
-    print(f"共 {len(df)} 首诗")
-    print(f"共 {df['author'].nunique()} 位诗人")
+    # 生成缓存路径
+    data_path = Path(__file__).parent.parent / "data" / f"{args.data}_data" / "all_poetry.pkl"
+    cache_path = get_cache_path(data_path)
     
-    # 构建社交网络
-    print("\n" + "-" * 60)
-    network_result = build_author_network(df, min_poems=2, similarity_threshold=0.05)
+    # 尝试加载缓存
+    network_result = load_cached_analysis(cache_path, args.override)
+    
+    if not network_result:
+        # 构建社交网络
+        print("\n" + "-" * 60)
+        network_result = build_author_network(
+            df, min_poems=2, similarity_threshold=args.threshold,
+            use_node2vec=args.node2vec
+        )
+        
+        if network_result:
+            save_cached_analysis(cache_path, network_result)
     
     if network_result:
         print(f"\n网络统计:")
@@ -165,34 +306,15 @@ def main():
         print("进行聚类分析...")
         cluster_result = analyze_author_clusters(network_result)
         
-        print(f"\n分为 {cluster_result['n_clusters']} 个群体:")
-        for cluster_id, authors in cluster_result['clusters'].items():
-            print(f"  群体 {cluster_id + 1}: {', '.join(authors)}")
+        if cluster_result['clusters']:
+            print(f"\n使用 {cluster_result['method']} 分为 {cluster_result['n_clusters']} 个群体:")
+            print(f"轮廓系数: {cluster_result.get('silhouette_score', 0):.3f}")
+            for cluster_id, authors in cluster_result['clusters'].items():
+                print(f"  群体 {cluster_id + 1}: {', '.join(authors)}")
         
-        # 生成可视化
-        print("\n" + "-" * 60)
-        print("生成可视化...")
-        
-        visualizer = PoetryVisualizer()
-        
-        # 准备节点和边
-        nodes = [{'id': author, 'label': author, 'size': 10 + degree_cent.get(author, 0) * 50} 
-                for author in network_result['authors']]
-        
-        edges = []
-        for pair in network_result['top_similar_pairs'][:50]:  # 只取前50条边
-            edges.append({
-                'source': pair['author1'],
-                'target': pair['author2'],
-                'weight': pair['similarity']
-            })
-        
-        # 创建网络图
-        fig = visualizer.create_network_graph(nodes, edges, title="诗人社交网络")
-        
-        # 保存结果
-        import json
-        output_dir = project_root / "reports" / "social_network"
+        # 保存结果 - 根据数据类型保存到不同子目录
+        project_root = Path(__file__).parent.parent
+        output_dir = project_root / "reports" / args.data / "social_network"
         output_dir.mkdir(parents=True, exist_ok=True)
         
         with open(output_dir / "network_analysis.json", 'w', encoding='utf-8') as f:
@@ -200,9 +322,6 @@ def main():
         
         with open(output_dir / "cluster_analysis.json", 'w', encoding='utf-8') as f:
             json.dump(cluster_result, f, ensure_ascii=False, indent=2, default=str)
-        
-        if fig:
-            visualizer.save_visualization(fig, str(output_dir / "author_network.html"))
         
         print(f"\n结果已保存到: {output_dir}")
     

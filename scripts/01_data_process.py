@@ -223,18 +223,17 @@ def create_sample_dataset(
     # 分层采样：保证每个朝代和体裁都有代表
     if "dynasty" in df.columns and "genre" in df.columns:
         # 按朝代和体裁组合分层
-        sample_df = df.groupby(["dynasty", "genre"], group_keys=False).apply(
-            lambda x: x.sample(min(len(x), max(1, int(len(x) * sample_ratio)))),
-            include_groups=False
-        )
-        # 需要重新包含分组列
-        sample_df = df.loc[sample_df.index]
+        groups = []
+        for (dynasty, genre), group in df.groupby(["dynasty", "genre"]):
+            sample_count = min(len(group), max(1, int(len(group) * sample_ratio)))
+            groups.append(group.sample(n=sample_count, random_state=random_seed))
+        sample_df = pd.concat(groups, ignore_index=True)
     elif "dynasty" in df.columns:
-        sample_df = df.groupby("dynasty", group_keys=False).apply(
-            lambda x: x.sample(min(len(x), max(1, int(len(x) * sample_ratio)))),
-            include_groups=False
-        )
-        sample_df = df.loc[sample_df.index]
+        groups = []
+        for dynasty, group in df.groupby("dynasty"):
+            sample_count = min(len(group), max(1, int(len(group) * sample_ratio)))
+            groups.append(group.sample(n=sample_count, random_state=random_seed))
+        sample_df = pd.concat(groups, ignore_index=True)
     else:
         sample_df = df.sample(n=sample_size, random_state=random_seed)
     
