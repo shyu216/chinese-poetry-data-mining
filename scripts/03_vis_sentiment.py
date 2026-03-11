@@ -6,6 +6,7 @@
 """
 
 import sys
+import argparse
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -16,13 +17,13 @@ import pandas as pd
 from src.visualization.poetry_visualizer import PoetryVisualizer
 
 
-def load_sentiment_data(project_root: Path) -> dict:
+def load_sentiment_data(project_root: Path, data_type: str = 'sample') -> dict:
     """加载情感分析结果"""
-    result_path = project_root / "reports" / "sentiment_analysis" / "sentiment_distribution.json"
+    result_path = project_root / "reports" / data_type / "sentiment_analysis" / "sentiment_distribution.json"
     
     if not result_path.exists():
         print(f"警告: 未找到分析结果文件 {result_path}")
-        print("请先运行: python scripts/02_analysis_sentiment.py")
+        print(f"请先运行: python scripts/02_analysis_sentiment.py --data {data_type}")
         return None
     
     with open(result_path, 'r', encoding='utf-8') as f:
@@ -94,17 +95,23 @@ def visualize_extreme_poems(data: dict, output_dir: Path):
 
 def main():
     """主函数"""
+    parser = argparse.ArgumentParser(description='情感可视化')
+    parser.add_argument('--data', choices=['sample', 'full'], default='sample',
+                       help='使用 sample 或 full 数据 (默认: sample)')
+    args = parser.parse_args()
+    
     print("=" * 60)
     print("情感可视化")
+    print(f"数据类型: {args.data}")
     print("=" * 60)
     
     project_root = Path(__file__).parent.parent
-    output_dir = project_root / "reports" / "visualizations"
+    output_dir = project_root / "reports" / args.data / "visualizations"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # 加载分析结果
     print("\n加载分析结果...")
-    data = load_sentiment_data(project_root)
+    data = load_sentiment_data(project_root, args.data)
     
     if data:
         print(f"共 {data.get('total_poems', 0)} 首诗\n")

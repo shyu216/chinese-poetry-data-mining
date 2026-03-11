@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 朝代可视化脚本
-读取sample data，生成朝代相关的可视化图表
+读取sample或full data，生成朝代相关的可视化图表
 """
 
 import sys
+import argparse
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
@@ -15,9 +16,12 @@ import pandas as pd
 from src.visualization.poetry_visualizer import PoetryVisualizer
 
 
-def load_dynasty_data(project_root: Path) -> pd.DataFrame:
+def load_dynasty_data(project_root: Path, data_type: str = 'sample') -> pd.DataFrame:
     """加载朝代数据"""
-    data_path = project_root / "data" / "sample_data" / "all_poetry.pkl"
+    if data_type == 'sample':
+        data_path = project_root / "data" / "sample_data" / "all_poetry.pkl"
+    else:
+        data_path = project_root / "data" / "processed_data" / "all_poetry.pkl"
     
     if not data_path.exists():
         print(f"警告: 未找到数据文件 {data_path}")
@@ -93,17 +97,23 @@ def visualize_genre_by_dynasty(df: pd.DataFrame, output_dir: Path):
 
 def main():
     """主函数"""
+    parser = argparse.ArgumentParser(description='朝代可视化')
+    parser.add_argument('--data', choices=['sample', 'full'], default='sample',
+                       help='使用 sample 或 full 数据 (默认: sample)')
+    args = parser.parse_args()
+    
     print("=" * 60)
     print("朝代可视化")
+    print(f"数据类型: {args.data}")
     print("=" * 60)
     
     project_root = Path(__file__).parent.parent
-    output_dir = project_root / "reports" / "visualizations"
+    output_dir = project_root / "reports" / args.data / "visualizations"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # 加载数据
     print("\n加载数据...")
-    df = load_dynasty_data(project_root)
+    df = load_dynasty_data(project_root, args.data)
     
     if df is not None:
         print(f"共 {len(df)} 首诗")
