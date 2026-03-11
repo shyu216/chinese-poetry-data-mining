@@ -25,11 +25,12 @@
 | Category | Tools |
 |----------|-------|
 | Data Processing | Pandas, NumPy |
-| Text Processing | OpenCC (Traditional/Simplified), pypinyin |
+| Text Processing | OpenCC (Traditional/Simplified), pypinyin, jieba |
 | Feature Extraction | Custom rhyme, sentiment, semantic extractors |
 | Visualization | Plotly, Pyecharts, Dash |
 | Machine Learning | scikit-learn (TF-IDF, similarity, clustering) |
-| Network Analysis | NetworkX |
+| Deep Learning | PyTorch, Transformers (BERT) |
+| Network Analysis | NetworkX, Node2Vec |
 
 ## 📁 Project Structure
 
@@ -47,7 +48,9 @@ chinese-poetry-data-mining/
 │   ├── 01_data_process.py     # Data processing
 │   ├── 02_analysis_*.py       # Analysis scripts
 │   ├── 03_vis_*.py            # Visualization scripts
-│   └── serve_visualizations.py # Local server
+│   ├── 03_generate_all.py     # Run all scripts
+│   ├── 04_build_index.py      # Build visualization index
+│   └── 04_serve.py            # Local server
 ├── reports/
 │   └── visualizations/        # Generated HTML visualizations
 ├── docs/                      # Documentation
@@ -56,7 +59,28 @@ chinese-poetry-data-mining/
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Option 1: Conda (Recommended)
+
+```bash
+# Clone repository
+git clone https://github.com/shyu216/chinese-poetry-data-mining.git
+cd chinese-poetry-data-mining
+
+# Create conda environment
+conda env create -f environment.yml
+
+# Activate environment
+conda activate poetry-mining
+
+# Verify installation
+python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+python -c "import transformers; print(f'Transformers: {transformers.__version__}')"
+python -c "import node2vec; print(f'Node2Vec: {node2vec.__version__}')"
+```
+
+**Note:** The environment includes PyTorch CPU version by default. For GPU support, modify `environment.yml` to use `pytorch-gpu` channel.
+
+### Option 2: pip
 
 ```bash
 # Python 3.11+
@@ -68,10 +92,18 @@ pip install -r requirements.txt
 ### Generate Visualizations
 
 ```bash
-# Option 1: Run all scripts sequentially
-python scripts/generate_all_visualizations.py
+# Make sure conda environment is activated
+conda activate poetry-mining
 
-# Option 2: Run individual scripts
+# Option 1: Run all scripts sequentially
+python scripts/03_generate_all.py
+
+# Option 2: Run individual analysis scripts
+python scripts/02_analysis_sentiment.py --data sample
+python scripts/02_analysis_network.py --data sample --node2vec
+python scripts/02_analysis_meter.py --data sample
+
+# Option 3: Run individual visualization scripts
 python scripts/03_vis_sentiment.py
 python scripts/03_vis_network.py
 python scripts/03_vis_dynasty.py
@@ -81,7 +113,7 @@ python scripts/03_vis_dynasty.py
 
 ```bash
 # Start local server
-python scripts/serve_visualizations.py
+python scripts/04_serve.py
 
 # Or open directly
 open reports/visualizations/index.html

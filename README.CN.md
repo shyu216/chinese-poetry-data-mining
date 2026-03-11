@@ -25,11 +25,12 @@
 | 类别 | 工具 |
 |------|------|
 | 数据处理 | Pandas, NumPy |
-| 文本处理 | OpenCC（繁简转换）, pypinyin（拼音） |
+| 文本处理 | OpenCC（繁简转换）, pypinyin（拼音）, jieba（分词） |
 | 特征提取 | 自定义韵律、情感、语义提取器 |
 | 可视化 | Plotly, Pyecharts, Dash |
 | 机器学习 | scikit-learn（TF-IDF、相似度、聚类） |
-| 网络分析 | NetworkX |
+| 深度学习 | PyTorch, Transformers（BERT） |
+| 网络分析 | NetworkX, Node2Vec |
 
 ## 📁 项目结构
 
@@ -47,7 +48,9 @@ chinese-poetry-data-mining/
 │   ├── 01_data_process.py     # 数据处理
 │   ├── 02_analysis_*.py       # 分析脚本
 │   ├── 03_vis_*.py            # 可视化脚本
-│   └── serve_visualizations.py # 本地服务器
+│   ├── 03_generate_all.py     # 运行所有脚本
+│   ├── 04_build_index.py      # 构建可视化索引
+│   └── 04_serve.py            # 本地服务器
 ├── reports/
 │   └── visualizations/        # 生成的 HTML 可视化
 ├── docs/                      # 文档
@@ -56,7 +59,28 @@ chinese-poetry-data-mining/
 
 ## 🚀 快速开始
 
-### 环境准备
+### 方式1：Conda（推荐）
+
+```bash
+# 克隆仓库
+git clone https://github.com/shyu216/chinese-poetry-data-mining.git
+cd chinese-poetry-data-mining
+
+# 创建 conda 环境
+conda env create -f environment.yml
+
+# 激活环境
+conda activate poetry-mining
+
+# 验证安装
+python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+python -c "import transformers; print(f'Transformers: {transformers.__version__}')"
+python -c "import node2vec; print(f'Node2Vec: {node2vec.__version__}')"
+```
+
+**注意：** 默认安装 PyTorch CPU 版本。如需 GPU 支持，请修改 `environment.yml` 使用 `pytorch-gpu` 频道。
+
+### 方式2：pip
 
 ```bash
 # Python 3.11+
@@ -68,10 +92,18 @@ pip install -r requirements.txt
 ### 生成可视化
 
 ```bash
-# 方式1：一键运行所有脚本
-python scripts/generate_all_visualizations.py
+# 确保 conda 环境已激活
+conda activate poetry-mining
 
-# 方式2：单独运行
+# 方式1：一键运行所有脚本
+python scripts/03_generate_all.py
+
+# 方式2：单独运行分析脚本
+python scripts/02_analysis_sentiment.py --data sample
+python scripts/02_analysis_network.py --data sample --node2vec
+python scripts/02_analysis_meter.py --data sample
+
+# 方式3：单独运行可视化脚本
 python scripts/03_vis_sentiment.py
 python scripts/03_vis_network.py
 python scripts/03_vis_dynasty.py
@@ -81,7 +113,7 @@ python scripts/03_vis_dynasty.py
 
 ```bash
 # 启动本地服务器
-python scripts/serve_visualizations.py
+python scripts/04_serve.py
 
 # 或直接打开
 open reports/visualizations/index.html
