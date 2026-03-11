@@ -1,0 +1,6 @@
+[submodule "data/chinese-poetry"]
+	path = data/chinese-poetry
+	url = https://github.com/chinese-poetry/chinese-poetry.git
+[submodule "data/chinese-gushiwen"]
+	path = data/chinese-gushiwen
+	url = https://github.com/caoxingyu/chinese-gushiwen.git
