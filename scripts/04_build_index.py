@@ -257,8 +257,8 @@ def build_index_html(visualizations_dir: Path, data_type: str = 'sample') -> str
             </div>
             
             <div class="data-switcher">
-                <a href="../sample/visualizations/index.html" class="{'active' if data_type == 'sample' else ''}">采样数据</a>
-                <a href="../full/visualizations/index.html" class="{'active' if data_type == 'full' else ''}">完整数据</a>
+                <a href="../sample/index.html" class="{'active' if data_type == 'sample' else ''}">采样数据</a>
+                <a href="../full/index.html" class="{'active' if data_type == 'full' else ''}">完整数据</a>
             </div>
         </header>
         
@@ -310,7 +310,7 @@ def main():
     
     # 设置路径
     project_root = Path(__file__).parent.parent
-    visualizations_dir = project_root / "reports" / args.data / "visualizations"
+    visualizations_dir = project_root / "gh-pages" / args.data / "visualizations"
     
     if not visualizations_dir.exists():
         print(f"警告: 可视化目录不存在 {visualizations_dir}")
@@ -320,8 +320,8 @@ def main():
     # 构建HTML
     html_content = build_index_html(visualizations_dir, args.data)
     
-    # 保存
-    index_path = visualizations_dir / "index.html"
+    # 保存到 gh-pages/{data_type}/index.html
+    index_path = project_root / "gh-pages" / args.data / "index.html"
     with open(index_path, 'w', encoding='utf-8') as f:
         f.write(html_content)
     

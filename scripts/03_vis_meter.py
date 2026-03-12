@@ -122,7 +122,7 @@ def main():
     print("=" * 60)
     
     project_root = Path(__file__).parent.parent
-    output_dir = project_root / "reports" / args.data / "visualizations"
+    output_dir = project_root / "gh-pages" / args.data / "visualizations"
     output_dir.mkdir(parents=True, exist_ok=True)
     
     # 加载分析结果
