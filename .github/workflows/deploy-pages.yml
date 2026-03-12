@@ -79,8 +79,11 @@ jobs:
           python scripts/04_build_index.py --data full
           python scripts/05_build_main_index.py
 
-      - name: List generated files
+      - name: Copy files to gh-pages
         run: |
+          echo "复制文件到 gh-pages 目录..."
+          mkdir -p gh-pages
+          cp -r data/github_pages/* gh-pages/
           echo "生成的文件结构:"
           find gh-pages -type f | head -30
 
