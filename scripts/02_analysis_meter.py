@@ -74,13 +74,47 @@ def load_data(data_type: str = 'sample') -> pd.DataFrame:
     return df
 
 
-def analyze_meter_batch(df: pd.DataFrame, use_advanced: bool = True) -> Dict:
+def get_progress_path(cache_path: Path) -> Path:
+    """生成进度文件路径"""
+    return cache_path.with_suffix('.progress.json')
+
+
+def load_progress(progress_path: Path) -> Optional[Dict]:
+    """加载进度"""
+    if not progress_path.exists():
+        return None
+    try:
+        with open(progress_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def save_progress(progress_path: Path, processed_ids: set, results: list):
+    """保存进度"""
+    try:
+        progress_data = {
+            'processed_ids': list(processed_ids),
+            'results': results,
+            'count': len(results)
+        }
+        with open(progress_path, 'w', encoding='utf-8') as f:
+            json.dump(progress_data, f, ensure_ascii=False, default=str)
+    except Exception as e:
+        print(f"进度保存失败: {e}")
+
+
+def analyze_meter_batch(df: pd.DataFrame, use_advanced: bool = True,
+                        cache_path: Optional[Path] = None,
+                        override: bool = False) -> Dict:
     """
-    批量分析格律（支持高级分析）
+    批量分析格律（支持高级分析和断点续传）
     
     Args:
         df: 诗词DataFrame
         use_advanced: 是否使用高级韵律分析
+        cache_path: 缓存文件路径（用于断点续传）
+        override: 是否覆盖缓存
         
     Returns:
         格律分析结果
@@ -89,8 +123,27 @@ def analyze_meter_batch(df: pd.DataFrame, use_advanced: bool = True) -> Dict:
     
     extractor = RhymeFeatureExtractor() if use_advanced else None
     
+    # 尝试加载进度（用于断点续传）
+    progress_path = get_progress_path(cache_path) if cache_path else None
+    processed_ids = set()
     results = []
-    for idx, row in tqdm(df.iterrows(), total=len(df), desc="格律分析"):
+    
+    if progress_path and not override:
+        progress = load_progress(progress_path)
+        if progress:
+            processed_ids = set(progress.get('processed_ids', []))
+            results = progress.get('results', [])
+            print(f"恢复进度: 已处理 {len(results)}/{len(df)} 首诗")
+    
+    # 筛选未处理的数据
+    df_to_process = df[~df.index.isin(processed_ids)] if processed_ids else df
+    
+    if len(df_to_process) == 0:
+        print("所有数据已处理完成")
+    else:
+        print(f"剩余 {len(df_to_process)} 首诗需要处理")
+        
+    for idx, row in tqdm(df_to_process.iterrows(), total=len(df_to_process), desc="格律分析"):
         content = row.get('content', '')
         if not content:
             continue
@@ -100,6 +153,7 @@ def analyze_meter_batch(df: pd.DataFrame, use_advanced: bool = True) -> Dict:
         tone_patterns = get_tone_pattern(content)
         
         result = {
+            'id': row.get('id', idx),
             'title': row.get('title', ''),
             'author': row.get('author', ''),
             'dynasty': row.get('dynasty', ''),
@@ -124,6 +178,11 @@ def analyze_meter_batch(df: pd.DataFrame, use_advanced: bool = True) -> Dict:
                 pass
         
         results.append(result)
+        processed_ids.add(idx)
+        
+        # 每100首保存一次进度
+        if len(results) % 100 == 0 and progress_path:
+            save_progress(progress_path, processed_ids, results)
     
     # 统计诗体分布
     form_counts = Counter(r['form'] for r in results)
@@ -161,13 +220,20 @@ def analyze_meter_batch(df: pd.DataFrame, use_advanced: bool = True) -> Dict:
                 'total': sum(forms.values())
             }
     
-    return {
+    result_data = {
         'total': len(results),
         'form_distribution': dict(form_counts),
         'tone_ratio': tone_ratio,
         'author_specialty': author_specialty,
         'details': results
     }
+    
+    # 清理进度文件
+    if progress_path and progress_path.exists():
+        progress_path.unlink()
+        print(f"清理进度文件: {progress_path}")
+    
+    return result_data
 
 
 def main():
@@ -203,7 +269,8 @@ def main():
     if not result:
         # 分析格律
         print("\n" + "-" * 60)
-        result = analyze_meter_batch(df, use_advanced=args.advanced)
+        result = analyze_meter_batch(df, use_advanced=args.advanced,
+                                     cache_path=cache_path, override=args.override)
         
         if result:
             save_cached_analysis(cache_path, result)

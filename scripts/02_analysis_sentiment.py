@@ -18,39 +18,23 @@ sys.path.append(str(Path(__file__).parent.parent))
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from transformers import pipeline
 
-# 尝试导入 transformers 进行更准确的情感分析
-try:
-    from transformers import pipeline
-    TRANSFORMERS_AVAILABLE = True
-except ImportError:
-    TRANSFORMERS_AVAILABLE = False
-    print("警告: transformers 未安装，使用基础情感分析。安装: pip install transformers")
-
-from src.features.sentiment_features import SentimentFeatureExtractor
+from src.visualization.poetry_visualizer import PoetryVisualizer
 
 
 class SentimentAnalyzer:
-    """情感分析器（支持多种后端）"""
+    """情感分析器（使用 transformers 进行更准确的分析）"""
     
-    def __init__(self, use_transformers: bool = False):
-        """
-        初始化分析器
-        
-        Args:
-            use_transformers: 是否使用 transformers 进行更准确的分析
-        """
-        self.use_transformers = use_transformers and TRANSFORMERS_AVAILABLE
-        self.basic_analyzer = SentimentFeatureExtractor()
-        
-        if self.use_transformers:
-            print("加载 transformers 情感分析模型...")
-            # 使用中文情感分析模型
-            self.transformer_classifier = pipeline(
-                "sentiment-analysis",
-                model="uer/roberta-base-finetuned-jd-binary-chinese",
-                device=-1  # CPU
-            )
+    def __init__(self):
+        """初始化分析器"""
+        print("加载 transformers 情感分析模型...")
+        # 使用中文情感分析模型
+        self.transformer_classifier = pipeline(
+            "sentiment-analysis",
+            model="uer/roberta-base-finetuned-jd-binary-chinese",
+            device=0  # GPU
+        )
     
     def analyze(self, text: str) -> Dict:
         """
@@ -62,37 +46,24 @@ class SentimentAnalyzer:
         Returns:
             情感分析结果
         """
-        if self.use_transformers and len(text) < 512:  # transformers 有长度限制
-            try:
-                result = self.transformer_classifier(text[:512])[0]
-                # 转换为统一格式
-                label = result['label']
-                score = result['score']
-                
-                # 映射到我们的格式
-                if label == 'positive':
-                    return {
-                        'sentiment_score': score,
-                        'sentiment': '积极',
-                        'confidence': score
-                    }
-                else:
-                    return {
-                        'sentiment_score': -score,
-                        'sentiment': '消极',
-                        'confidence': score
-                    }
-            except Exception as e:
-                # 失败时回退到基础分析
-                pass
+        result = self.transformer_classifier(text[:512])[0]
+        # 转换为统一格式
+        label = result['label']
+        score = result['score']
         
-        # 使用基础分析
-        result = self.basic_analyzer.extract_sentiment_features(text)
-        return {
-            'sentiment_score': result['sentiment_score'],
-            'sentiment': result['sentiment'],
-            'confidence': abs(result['sentiment_score'])
-        }
+        # 映射到我们的格式
+        if label == 'positive':
+            return {
+                'sentiment_score': score,
+                'sentiment': '积极',
+                'confidence': score
+            }
+        else:
+            return {
+                'sentiment_score': -score,
+                'sentiment': '消极',
+                'confidence': score
+            }
 
 
 def get_cache_path(data_path: Path, suffix: str = "") -> Path:
@@ -109,23 +80,16 @@ def load_cached_analysis(cache_path: Path, override: bool = False) -> Optional[D
     if override or not cache_path.exists():
         return None
     
-    try:
-        with open(cache_path, 'r', encoding='utf-8') as f:
-            print(f"加载缓存: {cache_path}")
-            return json.load(f)
-    except Exception as e:
-        print(f"缓存加载失败: {e}")
-        return None
+    with open(cache_path, 'r', encoding='utf-8') as f:
+        print(f"加载缓存: {cache_path}")
+        return json.load(f)
 
 
 def save_cached_analysis(cache_path: Path, data: Dict):
     """保存分析结果到缓存"""
-    try:
-        with open(cache_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-        print(f"缓存已保存: {cache_path}")
-    except Exception as e:
-        print(f"缓存保存失败: {e}")
+    with open(cache_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+    print(f"缓存已保存: {cache_path}")
 
 
 def load_data(data_type: str = 'sample') -> pd.DataFrame:
@@ -155,11 +119,35 @@ def load_data(data_type: str = 'sample') -> pd.DataFrame:
     return df
 
 
+def get_progress_path(cache_path: Path) -> Path:
+    """生成进度文件路径"""
+    return cache_path.with_suffix('.progress.json')
+
+
+def load_progress(progress_path: Path) -> Optional[Dict]:
+    """加载进度"""
+    if not progress_path.exists():
+        return None
+    with open(progress_path, 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+
+def save_progress(progress_path: Path, processed_ids: set, results: list):
+    """保存进度"""
+    progress_data = {
+        'processed_ids': list(processed_ids),
+        'results': results,
+        'count': len(results)
+    }
+    with open(progress_path, 'w', encoding='utf-8') as f:
+        json.dump(progress_data, f, ensure_ascii=False, default=str)
+
+
 def analyze_sentiment_distribution(df: pd.DataFrame, analyzer: SentimentAnalyzer, 
                                    cache_path: Optional[Path] = None,
                                    override: bool = False) -> Dict:
     """
-    分析情感分布（带缓存）
+    分析情感分布（带缓存和断点续传）
     
     Args:
         df: 诗词数据
@@ -176,24 +164,48 @@ def analyze_sentiment_distribution(df: pd.DataFrame, analyzer: SentimentAnalyzer
         if cached:
             return cached
     
-    print("进行情感分析...")
+    # 尝试加载进度（用于断点续传）
+    progress_path = get_progress_path(cache_path) if cache_path else None
+    processed_ids = set()
     results = []
     
-    for idx, row in tqdm(df.iterrows(), total=len(df), desc="情感分析"):
-        content = row.get('content', '')
-        if not content:
-            continue
+    if progress_path and not override:
+        progress = load_progress(progress_path)
+        if progress:
+            processed_ids = set(progress.get('processed_ids', []))
+            results = progress.get('results', [])
+            print(f"恢复进度: 已处理 {len(results)}/{len(df)} 首诗")
+    
+    print("进行情感分析...")
+    
+    # 筛选未处理的数据
+    df_to_process = df[~df.index.isin(processed_ids)] if processed_ids else df
+    
+    if len(df_to_process) == 0:
+        print("所有数据已处理完成")
+    else:
+        print(f"剩余 {len(df_to_process)} 首诗需要处理")
         
-        result = analyzer.analyze(content)
-        results.append({
-            'id': row.get('id', idx),
-            'title': row.get('title', ''),
-            'author': row.get('author', ''),
-            'dynasty': row.get('dynasty', ''),
-            'sentiment_score': result['sentiment_score'],
-            'sentiment': result['sentiment'],
-            'confidence': result.get('confidence', 1.0)
-        })
+        for idx, row in tqdm(df_to_process.iterrows(), total=len(df_to_process), desc="情感分析"):
+            content = row.get('content', '')
+            if not content:
+                continue
+            
+            result = analyzer.analyze(content)
+            results.append({
+                'id': row.get('id', idx),
+                'title': row.get('title', ''),
+                'author': row.get('author', ''),
+                'dynasty': row.get('dynasty', ''),
+                'sentiment_score': result['sentiment_score'],
+                'sentiment': result['sentiment'],
+                'confidence': result.get('confidence', 1.0)
+            })
+            processed_ids.add(idx)
+            
+            # 每100首保存一次进度
+            if len(results) % 100 == 0 and progress_path:
+                save_progress(progress_path, processed_ids, results)
     
     # 统计
     sentiment_counts = Counter(r['sentiment'] for r in results)
@@ -216,6 +228,10 @@ def analyze_sentiment_distribution(df: pd.DataFrame, analyzer: SentimentAnalyzer
     # 保存缓存
     if cache_path:
         save_cached_analysis(cache_path, result)
+        # 删除进度文件（处理完成）
+        if progress_path and progress_path.exists():
+            progress_path.unlink()
+            print(f"清理进度文件: {progress_path}")
     
     return result
 
@@ -286,22 +302,19 @@ def main():
                        help='使用 sample 或 full 数据 (默认: sample)')
     parser.add_argument('--override', action='store_true',
                        help='覆盖已有缓存')
-    parser.add_argument('--transformers', action='store_true',
-                       help='使用 transformers 进行更准确的分析（需要 GPU/较长时间）')
     
     args = parser.parse_args()
     
     print("=" * 60)
     print("诗词情感分析")
     print(f"数据类型: {args.data}")
-    print(f"使用 transformers: {args.transformers}")
     print("=" * 60)
     
     # 加载数据
     df = load_data(args.data)
     
     # 初始化分析器
-    analyzer = SentimentAnalyzer(use_transformers=args.transformers)
+    analyzer = SentimentAnalyzer()
     
     # 生成缓存路径
     data_path = Path(__file__).parent.parent / "data" / f"{args.data}_data" / "all_poetry.pkl"

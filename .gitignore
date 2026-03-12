@@ -146,6 +146,14 @@ cython_debug/
 data/processed_data/
 data/chinese-poetry/
 
+# Large CSV files (>100MB)
+data/structure_analysis/poetry_structure_full.csv
+
+# Large JSON files (>100MB)
+data/github_pages/data/poems.json
+
+data/cache/
+
 # Reports (keep visualizations for GitHub Pages, ignore analysis results)
 reports/sentiment_analysis/
 reports/social_network/
@@ -169,4 +177,5 @@ logs/
 
 # Output files
 output/
+outputs/
 results/

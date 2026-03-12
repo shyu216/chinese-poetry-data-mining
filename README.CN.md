@@ -130,6 +130,13 @@ open reports/visualizations/index.html
 
 - [开发进度](docs/2026-03-11-progress.md) - 初始开发日志
 - [重构记录](docs/2026-03-11-refactor.md) - 代码重构文档
+- [AI 开发指南](docs/AI_DEVELOPMENT_GUIDE.md) - AI 助手开发指南
+
+## 📖 参考资料
+
+- [用文本挖掘剖析近5万首《全唐诗》(腾讯云)](https://cloud.tencent.cn/developer/article/1541499) - 全面的古诗词 NLP 分析方法
+- [古诗词数据集与NLP实战应用(CSDN)](https://blog.csdn.net/weixin_36178216/article/details/151284411) - 数据集和实用的诗词分析技术
+- [用文本挖掘剖析54万首诗歌(知乎)](https://zhuanlan.zhihu.com/p/208751653) - 深入的诗词语料库分析和洞察
 
 ## 🤝 贡献指南
 

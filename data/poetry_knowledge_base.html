@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>诗词格律大全 - 33万首诗词</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #eee;
+            padding: 20px;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        header { text-align: center; padding: 30px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        h1 {
+            font-size: 2em;
+            background: linear-gradient(90deg, #ff6b6b, #ffd93d, #6bcb77);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stats { display: flex; justify-content: center; gap: 20px; margin: 20px 0; flex-wrap: wrap; }
+        .stat { background: rgba(255,255,255,0.05); padding: 10px 20px; border-radius: 8px; }
+        .stat-num { font-size: 1.5em; color: #ffd93d; font-weight: bold; }
+        .stat-label { font-size: 0.85em; color: #888; }
+        
+        .search-box {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 25px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            outline: none;
+        }
+        .search-box input:focus { border-color: #ffd93d; }
+        
+        .meter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        .meter-chip {
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .meter-chip:hover { background: rgba(255, 217, 61, 0.2); transform: translateY(-2px); }
+        .meter-pattern { color: #6bcb77; font-family: monospace; font-size: 0.95em; }
+        .meter-count { color: #ffd93d; font-size: 0.85em; }
+        
+        .results-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            color: #888;
+        }
+        
+        .poem-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .poem-list { display: flex; flex-direction: column; gap: 15px; }
+        .poem-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .poem-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .poem-title { font-size: 1.2em; color: #ffd93d; }
+        .poem-meta { display: flex; gap: 10px; }
+        .poem-tag { padding: 4px 10px; background: rgba(255,255,255,0.1); border-radius: 15px; font-size: 0.8em; }
+        .poem-lines { font-size: 1.05em; line-height: 1.8; letter-spacing: 1px; text-align: center; }
+        .poem-line { display: block; padding: 3px 0; }
+        .poem-info { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.85em; color: #888; }
+        
+        .pagination { display: flex; justify-content: center; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
+        .page-btn {
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+        }
+        .page-btn:hover, .page-btn.active { background: #ffd93d; color: #000; }
+        .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        
+        .loading { text-align: center; padding: 40px; color: #888; }
+        .back-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 20px;
+            color: #fff;
+            cursor: pointer;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
+        
+        .view-toggle {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .toggle-btn {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toggle-btn.active { background: #6bcb77; color: #000; }
+        .toggle-btn:hover { background: rgba(255,255,255,0.2); }
+        
+        /* 位置统计面板 */
+        .position-stats {
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .position-stats h3 {
+            color: #ffd93d;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .position-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .position-card {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .position-card h4 {
+            color: #6bcb77;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+        
+        .position-card .chars {
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .position-card .char-item {
+            display: inline-block;
+            margin: 2px 4px;
+            padding: 2px 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        
+        .position-card .pos-dist {
+            margin-top: 8px;
+            font-size: 0.8em;
+            color: #888;
+        }
+        
+        .no-data {
+            color: #888;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #ffd93d;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📚 诗词格律大全</h1>
+            <div class="stats">
+                <div class="stat"><div class="stat-num" id="totalPoems">-</div><div class="stat-label">诗词总数</div></div>
+                <div class="stat"><div class="stat-num" id="totalPatterns">-</div><div class="stat-label">格律模式</div></div>
+            </div>
+        </header>
+        
+        <div id="meterView">
+            <div class="search-box">
+                <input type="text" id="meterSearch" placeholder="搜索格律模式... (如: 7,7,7,7)" oninput="filterMeters()">
+            </div>
+            <div class="meter-grid" id="meterGrid">
+                <div class="loading"><span class="loading-spinner"></span> 加载中...</div>
+            </div>
+            <div class="pagination" id="meterPagination"></div>
+        </div>
+        
+        <div id="poemView" style="display:none;">
+            <button class="back-btn" onclick="showMeterView()">← 返回格律列表</button>
+            
+            <div class="poem-header-bar">
+                <div class="results-info" id="resultsInfo" style="margin:0;"></div>
+                <div class="view-toggle">
+                    <button class="toggle-btn active" id="poemTabBtn" onclick="showPoemTab()">📝 诗词列表</button>
+                    <button class="toggle-btn" id="statTabBtn" onclick="showStatTab()">📊 位置分析</button>
+                </div>
+            </div>
+            
+            <div id="poemList"></div>
+            <div class="pagination" id="poemPagination"></div>
+            
+            <div id="positionStats" class="position-stats" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:5000/api';
+        
+        // 缓存
+        let allMeters = [];
+        let meterPositionCache = {};  // 位置统计缓存
+        let currentMeterPage = 1;
+        let metersPerPage = 36;  // 减少每页数量
+        let currentPoemPage = 1;
+        let currentMeter = '';
+        let currentView = 'poem';
+        let currentPoemsData = null;  // 当前诗词数据缓存
+        let meterStatsData = null;   // 格律统计数据缓存
+        
+        // 并行加载
+        async function init() {
+            const [statsRes, meterRes] = await Promise.all([
+                fetch(`${API_BASE}/stats`),
+                fetch(`${API_BASE}/meter-stats`)
+            ]);
+            
+            const stats = await statsRes.json();
+            meterStatsData = await meterRes.json();
+            
+            document.getElementById('totalPoems').textContent = (stats.total || 0).toLocaleString();
+            document.getElementById('totalPatterns').textContent = Object.keys(meterStatsData.all_patterns || {}).length.toLocaleString();
+            
+            allMeters = Object.entries(meterStatsData.all_patterns || {})
+                .map(([pattern, count]) => ({ pattern, count }))
+                .sort((a, b) => b.count - a.count);
+            
+            renderMeters();
+        }
+        
+        function filterMeters() {
+            const query = document.getElementById('meterSearch').value.trim();
+            if (!query) {
+                currentMeterPage = 1;
+                renderMeters();
+                return;
+            }
+            const filtered = allMeters.filter(m => m.pattern.includes(query));
+            renderMeterList(filtered, 1);
+        }
+        
+        function renderMeters() {
+            currentMeterPage = 1;
+            renderMeterList(allMeters, currentMeterPage);
+        }
+        
+        function renderMeterList(list, page) {
+            const start = (page - 1) * metersPerPage;
+            const end = start + metersPerPage;
+            const pageData = list.slice(start, end);
+            
+            const grid = document.getElementById('meterGrid');
+            grid.innerHTML = pageData.map(m => `
+                <div class="meter-chip" onclick="selectMeter('${m.pattern}', ${m.count})">
+                    <span class="meter-pattern">${m.pattern}</span>
+                    <span class="meter-count">${m.count.toLocaleString()}</span>
+                </div>
+            `).join('');
+            
+            const totalPages = Math.ceil(list.length / metersPerPage);
+            let pagHtml = '';
+            if (totalPages > 1) {
+                const prevDisabled = page <= 1 ? 'disabled' : '';
+                const nextDisabled = page >= totalPages ? 'disabled' : '';
+                pagHtml += `<button class="page-btn" onclick="goMeterPage(${page-1})" ${prevDisabled}>上一页</button>`;
+                pagHtml += `<span style="padding:8px">${page} / ${totalPages}</span>`;
+                pagHtml += `<button class="page-btn" onclick="goMeterPage(${page+1})" ${nextDisabled}>下一页</button>`;
+            }
+            document.getElementById('meterPagination').innerHTML = pagHtml;
+        }
+        
+        function goMeterPage(page) {
+            const list = document.getElementById('meterSearch').value.trim() ? 
+                allMeters.filter(m => m.pattern.includes(document.getElementById('meterSearch').value.trim())) : 
+                allMeters;
+            const totalPages = Math.ceil(list.length / metersPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentMeterPage = page;
+            renderMeterList(list, page);
+            document.getElementById('meterView').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        async function selectMeter(meter, count) {
+            currentMeter = meter;
+            currentPoemPage = 1;
+            currentView = 'poem';
+            
+            // 显示加载状态
+            document.getElementById('meterView').style.display = 'none';
+            document.getElementById('poemView').style.display = 'block';
+            document.getElementById('poemList').innerHTML = '<div class="loading"><span class="loading-spinner"></span> 加载中...</div>';
+            
+            // 获取诗词数据（限制50条，减少传输）
+            const resp = await fetch(`${API_BASE}/search/by-meter?meter=${encodeURIComponent(meter)}`);
+            currentPoemsData = await resp.json();
+            
+            showPoemTab();
+            
+            // 后台预加载位置统计
+            preloadPositionStats(meter);
+        }
+        
+        async function preloadPositionStats(meter) {
+            if (meterPositionCache[meter]) return;  // 已缓存
+            
+            try {
+                const resp = await fetch(`${API_BASE}/meter-position/${encodeURIComponent(meter)}`);
+                if (resp.ok) {
+                    meterPositionCache[meter] = await resp.json();
+                }
+            } catch(e) {}
+        }
+        
+        function showPoemTab() {
+            currentView = 'poem';
+            document.getElementById('poemTabBtn').classList.add('active');
+            document.getElementById('statTabBtn').classList.remove('active');
+            document.getElementById('poemList').style.display = 'flex';
+            document.getElementById('poemPagination').style.display = 'flex';
+            document.getElementById('positionStats').style.display = 'none';
+            
+            renderPoems();
+        }
+        
+        function showStatTab() {
+            currentView = 'stat';
+            document.getElementById('poemTabBtn').classList.remove('active');
+            document.getElementById('statTabBtn').classList.add('active');
+            document.getElementById('poemList').style.display = 'none';
+            document.getElementById('poemPagination').style.display = 'none';
+            document.getElementById('positionStats').style.display = 'block';
+            
+            renderPositionStats();
+        }
+        
+        function renderPoems() {
+            if (!currentPoemsData) return;
+            
+            const perPage = 15;  // 减少每页
+            const start = (currentPoemPage - 1) * perPage;
+            const pageData = currentPoemsData.data.slice(start, start + perPage);
+            
+            document.getElementById('resultsInfo').textContent = 
+                `📝 ${currentMeter} - ${currentPoemsData.total.toLocaleString()}首诗词`;
+            
+            const list = document.getElementById('poemList');
+            list.innerHTML = pageData.map(p => `
+                <div class="poem-card">
+                    <div class="poem-header">
+                        <div class="poem-title">${p.title || '无题'}</div>
+                        <div class="poem-meta">
+                            <span class="poem-tag">${p.dynasty || ''}</span>
+                            <span class="poem-tag">${p.genre || ''}</span>
+                        </div>
+                    </div>
+                    <div class="poem-lines">
+                        ${(p.lines || []).map(l => `<span class="poem-line">${l}</span>`).join('')}
+                    </div>
+                    <div class="poem-info">${p.author || '未知'}</div>
+                </div>
+            `).join('');
+            
+            // 分页
+            const totalPages = Math.ceil(currentPoemsData.total / perPage);
+            let pagHtml = '';
+            if (totalPages > 1) {
+                const prevDisabled = currentPoemPage <= 1 ? 'disabled' : '';
+                const nextDisabled = currentPoemPage >= totalPages ? 'disabled' : '';
+                pagHtml += `<button class="page-btn" onclick="goPoemPage(${currentPoemPage-1})" ${prevDisabled}>上一页</button>`;
+                pagHtml += `<span style="padding:8px">${currentPoemPage} / ${totalPages}</span>`;
+                pagHtml += `<button class="page-btn" onclick="goPoemPage(${currentPoemPage+1})" ${nextDisabled}>下一页</button>`;
+            }
+            document.getElementById('poemPagination').innerHTML = pagHtml;
+        }
+        
+        function goPoemPage(page) {
+            const totalPages = Math.ceil(currentPoemsData.total / 15);
+            if (page < 1 || page > totalPages) return;
+            currentPoemPage = page;
+            renderPoems();
+            document.getElementById('poemView').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function renderPositionStats() {
+            const statDiv = document.getElementById('positionStats');
+            const data = meterPositionCache[currentMeter];
+            
+            if (!data) {
+                statDiv.innerHTML = '<div class="loading"><span class="loading-spinner"></span> 加载位置统计中...</div>';
+                return;
+            }
+            
+            if (!data.positions) {
+                statDiv.innerHTML = '<div class="no-data">该格律暂无位置统计数据</div>';
+                return;
+            }
+            
+            let html = `<h3>📊 位置分析 - 每句第N字 (${data.count.toLocaleString()}首诗)</h3><div class="position-grid">`;
+            
+            const posNames = { 'n': '名', 'v': '动', 'a': '形', 'd': '副', 'nr': '人', 'm': '数', 'f': '方' };
+            
+            for (const [posKey, posInfo] of Object.entries(data.positions)) {
+                const pos = posInfo.position;
+                const chars = posInfo.top_chars || {};
+                const posDist = posInfo.pos_distribution || {};
+                
+                html += `
+                    <div class="position-card">
+                        <h4>第${pos}字</h4>
+                        <div class="chars">
+                            ${Object.entries(chars).slice(0, 6).map(([c, n]) => 
+                                `<span class="char-item">${c}×${n}</span>`
+                            ).join('')}
+                        </div>
+                        <div class="pos-dist">
+                            ${Object.entries(posDist).slice(0, 3).map(([p, n]) => 
+                                `${posNames[p]||p}:${n}`
+                            ).join(' | ')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            statDiv.innerHTML = html;
+        }
+        
+        function showMeterView() {
+            document.getElementById('poemView').style.display = 'none';
+            document.getElementById('meterView').style.display = 'block';
+            currentPoemsData = null;
+        }
+        
+        // 启动
+        init();
+    </script>
+</body>
+</html>

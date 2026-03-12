@@ -1,0 +1,3084 @@
+{
+  "total_poems": 331,
+  "sentiment_distribution": {
+    "消极": 50,
+    "中性": 206,
+    "积极": 75
+  },
+  "average_score": 0.07502517623363544,
+  "most_positive": [
+    {
+      "id": "3a9d1ffd-f5fe-4bf1-8e0c-fb3970d28f30",
+      "title": "寿范漕 其四",
+      "author": "吳泳",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "4e9ea91f-b72e-4a22-b02b-29c9b8a093d0",
+      "title": "春半久雨走笔五首 其四",
+      "author": "方回",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "49b0602c-2661-490e-a689-069d3ed359e8",
+      "title": "庸斋再赋予亦再和",
+      "author": "高斯得",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "09616c3a-8aa9-4368-8b4f-b593cbb78782",
+      "title": "中秋赏月蓬莱阁呈同官",
+      "author": "王十朋",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f6468b76-877e-4f70-b3e7-58690a5093ee",
+      "title": "竹溪直院盛称起予草堂诗之善暇日览之多有可恨者因效颦作十首亦前人广骚反骚之意内二十九首用旧题惟岁寒知松柏被褐怀珠玉三首效山谷余十八首别命题或追录少作并存于卷以训童蒙之意 西狩获麟",
+      "author": "劉克莊",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    }
+  ],
+  "most_negative": [
+    {
+      "id": "26213571-4b04-47e0-a740-72ddee580ca9",
+      "title": "拨櫂歌 三十二",
+      "author": "德誠",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "c02906d2-c9d0-4319-8996-95902b618962",
+      "title": "琴曲歌辞 胡笳十八拍 第十七拍",
+      "author": "劉商",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "7e385d41-7a71-4829-905d-bd7f1e806c99",
+      "title": "古塞下曲七首 一",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "1e4bb2c4-aa18-4a7e-8600-f459d9933dcf",
+      "title": "陈情献蜀皇帝",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "61479e50-d043-4087-9210-ba372edd74e0",
+      "title": "春日芙蓉园侍宴应制",
+      "author": "蘇頲",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    }
+  ],
+  "all_results": [
+    {
+      "id": "26213571-4b04-47e0-a740-72ddee580ca9",
+      "title": "拨櫂歌 三十二",
+      "author": "德誠",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "9b8f9ff5-ec06-4f60-9980-b116842374ec",
+      "title": "柳枝词",
+      "author": "李涉",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "f71050f4-0261-41bc-881e-1935a37ebb01",
+      "title": "李臯试诗",
+      "author": "何仲舉",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "c02906d2-c9d0-4319-8996-95902b618962",
+      "title": "琴曲歌辞 胡笳十八拍 第十七拍",
+      "author": "劉商",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "7e385d41-7a71-4829-905d-bd7f1e806c99",
+      "title": "古塞下曲七首 一",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "165060cb-4603-4748-809d-aaa12fe3550e",
+      "title": "悲铜雀台",
+      "author": "李遠",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1e4bb2c4-aa18-4a7e-8600-f459d9933dcf",
+      "title": "陈情献蜀皇帝",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "9079b311-c980-4a27-9232-317b8ac1804d",
+      "title": "初出京邑有怀旧林",
+      "author": "盧僎",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "61479e50-d043-4087-9210-ba372edd74e0",
+      "title": "春日芙蓉园侍宴应制",
+      "author": "蘇頲",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "29d4e6ab-d0d6-4848-8457-3eeae711bfec",
+      "title": "舞曲歌辞 吴俞儿舞歌 矛俞",
+      "author": "陸龜蒙",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1e01d799-ea31-44b9-beda-39f919271104",
+      "title": "松江早春",
+      "author": "皮日休",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "41fca742-a88c-4a20-8dfe-a48d2d6f7d43",
+      "title": "饮茶歌诮崔石使君",
+      "author": "皎然",
+      "dynasty": "唐代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "6f4c6712-cee1-4e61-81fb-3115a2b55585",
+      "title": "颂 二",
+      "author": "師備",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "245493d5-ed57-489e-aa36-45d6947f3cab",
+      "title": "乱石",
+      "author": "李商隱",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "938c9eac-51b4-47d9-9e44-29bec2d7fa3f",
+      "title": "句",
+      "author": "漢皓",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "2d3a6835-caa8-45c1-9873-0e2a2ad3406f",
+      "title": "江行无题一百首 五十五",
+      "author": "錢起",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "4196d48d-8b3d-4b74-b28c-1cecaa9f32fa",
+      "title": "送陆歙州傪",
+      "author": "韓愈",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8e1dbe55-0d25-4eb7-84f5-85674dfc2951",
+      "title": "鹭鸶",
+      "author": "劉象",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "246ff90e-bd5c-4e81-8637-f1605fa647d9",
+      "title": "园官送茶",
+      "author": "杜甫",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "5bfdfaf3-7ec6-459b-9c62-d04f3b755ba2",
+      "title": "过招国李家南园二首 一",
+      "author": "李商隱",
+      "dynasty": "唐代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "07bdb559-4d76-408f-a58c-3a0456bc1fbf",
+      "title": "牛僧孺入薄后庙与诸后妃共吟诗(题拟) 牛僧孺作诗",
+      "author": "不詳",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "618dc75f-4bc9-4f52-b1aa-ef8efdea4d8c",
+      "title": "浯溪",
+      "author": "鄭谷",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "d27cb764-d288-47e1-b54b-f25af928338d",
+      "title": "送赵真长归夏县旧山依阳征君读书",
+      "author": "盧綸",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "8b1b22a4-37a9-4916-a724-9cf313cda916",
+      "title": "题重玄寺阁八韵",
+      "author": "張祜",
+      "dynasty": "唐代",
+      "sentiment_score": -0.5,
+      "sentiment": "消极",
+      "confidence": 0.5
+    },
+    {
+      "id": "74d5613c-7fcc-43c2-a74f-d4b364f77e0e",
+      "title": "兵要望江南 占兽第二十(京本列第二十二,前六首另作「占牛马第十八」○三十四首) 六",
+      "author": "易靜",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "7af43a17-25bc-4308-832c-5ac0fb99483c",
+      "title": "谢主人惠绿酒白鱼",
+      "author": "徐夤",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "aa1f13cf-fc73-4c9f-942d-6c87d8a76f09",
+      "title": "秋暮",
+      "author": "賈島",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "63d2442b-288b-4ae8-9ad7-bb0019891906",
+      "title": "雨中与李先生期垂钓先后相失因作叠韵",
+      "author": "溫庭筠",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "a4ea207f-f164-4ca6-8901-823d810415a4",
+      "title": "慈恩伽蓝清会",
+      "author": "韋應物",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "104b0aa6-35d3-41f8-9961-a66fd899631c",
+      "title": "池边即事",
+      "author": "白居易",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "657adab1-891f-4ad7-8570-10676fef36ec",
+      "title": "独不见",
+      "author": "戴叔倫",
+      "dynasty": "唐代",
+      "sentiment_score": 0.5,
+      "sentiment": "积极",
+      "confidence": 0.5
+    },
+    {
+      "id": "7cf5a7bf-abd6-4eb7-8902-dfbfb183c805",
+      "title": "钟陵铁柱",
+      "author": "盧士衡",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "aa7033e7-70ad-449c-8ae8-40ea460f2604",
+      "title": "秋怨",
+      "author": "羅鄴",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "36f66970-f369-4a07-bbe4-aabe9be62d75",
+      "title": "角",
+      "author": "齊己",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1fc1b07d-cf86-49f1-ab28-cede8b546e49",
+      "title": "独坐",
+      "author": "司空圖",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9f05d684-2335-4aef-9deb-dec38328bb7b",
+      "title": "春秋战国门 虞卿",
+      "author": "周曇",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "184771db-dc12-4e83-b701-4f741f09efcb",
+      "title": "西施诗",
+      "author": "西施",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "2cd621d8-f22f-470d-974a-d6ef2892171f",
+      "title": "田园乐七首 四",
+      "author": "王維",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "c2a82c4d-8c7d-4c02-a5a8-3268bd1c085d",
+      "title": "送李季良北归",
+      "author": "皎然",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "ea8c55bb-8c45-44f5-b3de-0e91c79921bd",
+      "title": "泉州刺桐花咏兼呈赵使君 四",
+      "author": "陳陶",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "118a90d5-3a84-47d0-8261-5d92fb2da00a",
+      "title": "上巳浮江宴韵得遥字",
+      "author": "王勃",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "c41d63e5-7f9b-45df-a6cf-e5e8e9b38b38",
+      "title": "病中作",
+      "author": "李中",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "5de3245d-8e8a-44df-88a4-d154aaca2983",
+      "title": "系乐府十二首 思太古",
+      "author": "元結",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "db52ba9d-b7c0-4a0a-9b69-4d55c3d4f2f5",
+      "title": "闻无相道人顺世五首 三",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "49a003d9-bac0-4745-9dc2-58fb0c2fb266",
+      "title": "旅次洋州寓居郝氏林亭",
+      "author": "方干",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "74c637b5-6125-4c59-9d66-1932b721ee82",
+      "title": "书怀寄王秘书",
+      "author": "張籍",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "344f82e5-6f1c-4ea9-a4c2-49041091256e",
+      "title": "丰城劒池驿感题",
+      "author": "權德輿",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "10d7b11d-ff01-4218-9d09-d7d04ddfc763",
+      "title": "新岭临眺寄连总进士",
+      "author": "歐陽玭",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "704cf3c8-46c0-4e9f-b015-7e386bd0eff2",
+      "title": "题衡山县文宣王庙新学堂呈陆宰",
+      "author": "杜甫",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "ee096afe-357e-40fd-bc25-19361ea20a08",
+      "title": "行路难三首 一",
+      "author": "顧況",
+      "dynasty": "唐代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "07f07083-25b9-46a9-8e0c-8e3867cc8854",
+      "title": "行路易十五首 二",
+      "author": "傅翕",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9475130c-3a09-49e2-ac32-eaf4866227a6",
+      "title": "感兴",
+      "author": "鄭谷",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f8abbcf9-6e8c-474c-a9e0-cdf19686d015",
+      "title": "送衞雄下第归同州",
+      "author": "李端",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "52a46df5-f913-4649-b9c1-d1c47ac5eb88",
+      "title": "春日过寿安山馆",
+      "author": "羅鄴",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "37800dd9-895c-4fcc-8bb6-3ce8f3437c21",
+      "title": "享文恭太子庙乐章二首 一",
+      "author": "馮伉",
+      "dynasty": "唐代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "4b14acee-b0cb-4d95-9f75-305e88d21837",
+      "title": "荅韦八",
+      "author": "白居易",
+      "dynasty": "唐代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "401c1e34-c0a2-4d90-968c-43d1daa325f4",
+      "title": "听田顺儿歌",
+      "author": "白居易",
+      "dynasty": "唐代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "感皇恩",
+      "author": "赵孟坚",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "临江仙",
+      "author": "向",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "浣溪沙",
+      "author": "贺铸",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "霜天晓角",
+      "author": "吴潜",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "念奴娇",
+      "author": "魏了翁",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "鼓笛慢・水龙吟",
+      "author": "无名氏",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "定风波",
+      "author": "苏轼",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "台城路・齐天乐",
+      "author": "张炎",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "唤春愁・添声杨柳枝",
+      "author": "贺铸",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "如梦令",
+      "author": "王沂孙",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "点绛唇",
+      "author": "辛弃疾",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "定风波",
+      "author": "曾觌",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "齐天乐",
+      "author": "吴文英",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "一落索",
+      "author": "陈瓘",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "满江红",
+      "author": "吴潜",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "减字木兰花",
+      "author": "叶梦得",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "乌夜啼",
+      "author": "朱敦儒",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "鹧鸪天",
+      "author": "赵长卿",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "玲珑四犯",
+      "author": "方千里",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": NaN,
+      "title": "浣溪沙",
+      "author": "韩淲",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": NaN,
+      "title": "洞仙歌",
+      "author": "刘埙",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f0c78b77-b612-45c0-97d5-db205e588f3f",
+      "title": "偈一首",
+      "author": "吳處厚",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "18319292-b130-4011-82af-23fa566565fd",
+      "title": "冬日杂兴 其八",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "d5224fe4-2f13-4b11-ad7a-856871bb9995",
+      "title": "出宰分宁别旧同舍五首 其一",
+      "author": "韓駒",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "4f36abac-c30e-4a02-8d65-3e0aa70c0d2a",
+      "title": "句 其一○",
+      "author": "舒亶",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "63336c74-a54d-4331-b8e9-7b61d44dace7",
+      "title": "次韵送新潜江滕令 其一",
+      "author": "項安世",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9aba2569-af0f-4e63-81a3-dde9fd82a71b",
+      "title": "戏题 其一",
+      "author": "李洪",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "669762a5-d740-443b-8bec-6a41bea796a5",
+      "title": "送方潮州",
+      "author": "林希逸",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "6d35e292-02dd-42c5-85c9-cc49ccad0316",
+      "title": "苦寒行二首 其一",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "d1fe252b-6c2f-41bd-bddf-33b5c7606fa7",
+      "title": "子瞻与李公麟宣德共画翠石古木老僧谓之憩寂图题其后",
+      "author": "蘇轍",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "786a06d4-dffb-4853-a924-36a9002323ca",
+      "title": "己酉岁十一月二十六日避寇至龙潭院十二月十五日作五首 其一",
+      "author": "洪炎",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "be469bd4-2f17-4345-8495-c19364423593",
+      "title": "三月六日出城",
+      "author": "張九成",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "2a3b2499-d13a-4c85-9559-b5fd28f798fb",
+      "title": "求木硙于周尉",
+      "author": "胡寅",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e3044896-981b-45d4-93d8-b4a0f144eb35",
+      "title": "自湘赴广道间杂咏 桃李",
+      "author": "李曾伯",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "71bde201-8e97-4423-8fbb-a3b2314ed171",
+      "title": "刘孝叔会虎丘时王规父斋素祈雨不至二首 其二",
+      "author": "蘇軾",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "c54b6984-afb4-4137-9b15-39ed461efde2",
+      "title": "次韵大人待次吴陵邑五首 其二",
+      "author": "葛勝仲",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8d3acb80-5b8d-4091-ae9b-7ff1a7cc8100",
+      "title": "读元次山诗有感而作",
+      "author": "丘葵",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "72ca9a7f-6ff4-4b47-befe-3d83061dd54b",
+      "title": "题天庆观",
+      "author": "葛紹體",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "56d8af09-ab3f-4a5b-a56c-265e3886800f",
+      "title": "游山七绝 水月洞 其一",
+      "author": "張釜",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "388e791e-0d9e-49b0-90f2-9e116bf26613",
+      "title": "和毅伯见寄",
+      "author": "王炎",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "078b9ae0-39e3-4233-8202-f17d04c256ea",
+      "title": "次韵汪仁甫",
+      "author": "吳錫疇",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "9a29262f-dc19-4760-b9e0-5fdd29cc37f5",
+      "title": "送徐榷院奉户檄之九江等郡",
+      "author": "鄧林",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "c3a03f69-b2db-4cea-b176-cef92b9ca847",
+      "title": "同正仲赋赪桐彩蝶",
+      "author": "舒岳祥",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "0e30ee3a-1211-4a0d-9a2c-efe5ae55e7b1",
+      "title": "偈颂六十八首 其六七",
+      "author": "釋法薰",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "2f3baa06-9418-43a3-9573-6f6195aeec57",
+      "title": "句 其三",
+      "author": "釋士珪",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "7858044d-130f-40d7-a025-4a58d3aa1228",
+      "title": "不如茅屋底四首 其四",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "538ae772-f2ec-413d-8415-b6d635e28cdf",
+      "title": "初雪",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "7da37595-a5c1-498d-a2f9-16c32d65408c",
+      "title": "题灵泉观",
+      "author": "李梃",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "3699e19f-4bba-4f0f-b264-cea9111551ee",
+      "title": "出守桐庐道中十绝 其一",
+      "author": "范仲淹",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "eaeddb78-1d18-4056-8313-43548e530f82",
+      "title": "致政大夫胡公挽诗五首 其一",
+      "author": "周麟之",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f921b578-ec1c-4cdc-bf39-20b695a7f8c6",
+      "title": "吴江三高祠 范蠡",
+      "author": "葉茵",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9f9e2c7d-2bd5-4fda-bf31-7ab4928bb5a8",
+      "title": "登舟",
+      "author": "梅堯臣",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "2569b642-a451-4a83-befe-0b56f756b82c",
+      "title": "次韵周希稷饷耕三绝句 其二",
+      "author": "王庭珪",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "35ae615f-5b52-427f-b57a-2ea99fa51add",
+      "title": "连日雨",
+      "author": "張侃",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8fc15783-3b79-43a9-9dd3-d6c0137da6a5",
+      "title": "人间",
+      "author": "蔡槃",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "b05d0a62-c356-4b53-8a36-71cd25ddc872",
+      "title": "常山四诗 迎神",
+      "author": "孔平仲",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "7ffef651-5280-4318-8f4f-fa7a1b614a2f",
+      "title": "勉初志",
+      "author": "釋守卓",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "ff19fd26-f3f5-41b0-a6a3-ba38d83c6759",
+      "title": "次韵陈文仲探梅二绝 其二",
+      "author": "葛立方",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9d8789e8-23f4-484e-a532-1a166f418c21",
+      "title": "逰石帆玉笥石旗诸山",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e2312be5-c1f9-4087-8863-ad17191c1a7e",
+      "title": "张法示诗集为题其后",
+      "author": "徐鹿卿",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "601b27ab-9d06-4035-9d71-707896f87647",
+      "title": "良坦姪再转福清县赠行",
+      "author": "趙與闢",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "4de9eda8-eb5a-49e1-9584-cf877cc1649c",
+      "title": "句 其四六",
+      "author": "釋曉瑩",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "4b2f3be0-e9c1-4965-931d-1c31280d0c4b",
+      "title": "再和 其三",
+      "author": "虞儔",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "0c25aa23-935e-44db-a5e1-fda7a0bd062a",
+      "title": "金刚随机无尽颂 法界通化分第十九 其二",
+      "author": "釋印肅",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8d6905fa-5b7c-477b-b334-6ccbbee72388",
+      "title": "碧落洞",
+      "author": "陳煥子弟",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "3773b4bd-d5cd-44ac-8972-7102a69846dc",
+      "title": "南浦五小诗迎劳二弟 其三",
+      "author": "朱松",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "20c97cd3-4667-4150-a1e8-9581dcfbba74",
+      "title": "兖学叙旧呈子充",
+      "author": "葛勝仲",
+      "dynasty": "宋代",
+      "sentiment_score": 0.3333333333333333,
+      "sentiment": "积极",
+      "confidence": 0.3333333333333333
+    },
+    {
+      "id": "c55d7307-ed9f-41be-9899-f48900254605",
+      "title": "杨嗣勋惠茯苓",
+      "author": "高似孫",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "6094a3bb-cf7d-4fcf-ae43-97cc7ce92e1a",
+      "title": "句 其二",
+      "author": "王晞鴻",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "7fceee59-f086-4cd3-9133-a41df0db30e1",
+      "title": "颂古十首 其七",
+      "author": "釋行鞏",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "5853a20e-ff8d-4499-b3eb-901fa0012299",
+      "title": "云边阻雨 其二",
+      "author": "劉宰",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "32d6e4f5-89c7-4fba-8c84-cfd9e2b40a82",
+      "title": "和李清卿雪",
+      "author": "王之望",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "3318bcee-37e9-4e00-8658-cc20f98e3234",
+      "title": "读白乐天诗",
+      "author": "方一夔",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "8fc75b8e-aea0-46f7-ac83-fd2bd511dce8",
+      "title": "示园丁",
+      "author": "嚴粲",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "b569a270-fde2-4b3a-b51a-cd21cb002362",
+      "title": "洞户",
+      "author": "劉筠",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "6a336d76-cc44-4a81-82fd-f43aa2882265",
+      "title": "东楼落成二绝 其二",
+      "author": "吳芾",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "5e5d684c-13f8-4a4d-8075-aa0ca1de75c2",
+      "title": "存目",
+      "author": "呂本中",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "53a9a198-1083-4824-9f45-8bec7badc25c",
+      "title": "宿第四铺",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9be439ec-5258-46f5-b44f-545a8d532eac",
+      "title": "句 其一",
+      "author": "劉接",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "0f371598-73d9-4f4f-9bad-f7f2d3c18203",
+      "title": "次韵许冲元送成都高士敦钤辖",
+      "author": "蘇軾",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "a005310a-690d-4d79-a42f-d76d65213e34",
+      "title": "和房日严换武诗",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "786b7880-9829-49e0-a39f-0628d3a63fd4",
+      "title": "金陵杂兴二百首 其九九",
+      "author": "蘇泂",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "7af15385-b64c-4aa1-849f-0f9df1fdf5f4",
+      "title": "送裴如晦宰吴江",
+      "author": "王安石",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "5bec84d1-733f-4e2e-8f69-47f46696f3b9",
+      "title": "徐君季纯常德教授廨中名一室曰如舟取东坡为宛丘诗而云也过之欲为赋诗意到辄书故不免杂出君居龙游故有盈川之句诗臞云者盖初未识而为簿公曾元之所言也凡五首 其二",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "a261fdb0-4524-4088-9e2e-8e7731c3cd64",
+      "title": "梦中 其二",
+      "author": "方岳",
+      "dynasty": "宋代",
+      "sentiment_score": -0.5,
+      "sentiment": "消极",
+      "confidence": 0.5
+    },
+    {
+      "id": "273ba6b6-0444-4b61-bbbc-2b442104beb9",
+      "title": "苏训直方夷吾相挽同饭招隠",
+      "author": "章甫",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "49e70f86-377f-42d1-897c-de0492c84970",
+      "title": "北风",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "aa72b3fc-ca00-4d7c-b470-cb0492e1644a",
+      "title": "送明上人归洞庭",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "cd297c27-6146-4ef0-98ed-705f34f532ee",
+      "title": "偶成 其三",
+      "author": "李流謙",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "aef6044e-e521-48c2-85dc-40452cf64244",
+      "title": "德清宰俞居安自画渊明图",
+      "author": "王當",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e68e20fe-e9c0-4e60-82fc-ac1182cb446d",
+      "title": "颂古十七首 其一六",
+      "author": "釋宗演",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "fdacfc6d-4e07-4dea-813d-4bdcda017aae",
+      "title": "陈士淳主簿举似与严庆曾主簿邓伯允仙尉同到阳华佳句且有岩下弄琴舟中吹笛之乐长庚虽不奉胜游辄继高韵 其一",
+      "author": "李長庚",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "3508f0eb-8fc6-46d5-b87f-23767bb28311",
+      "title": "咏史 汉高帝 其六",
+      "author": "陳普",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "52546774-6d7e-4702-b1a4-b83b47b47085",
+      "title": "赵龙学寄阳羡茶为汲蜀井对琼花烹之",
+      "author": "方岳",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8436e2b1-d070-4381-808c-a34eba67b39b",
+      "title": "过大拽",
+      "author": "王十朋",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "5fbc1003-4f0d-4c11-af95-3064aa379105",
+      "title": "潜鹤鼓",
+      "author": "楊備",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "15fc8baf-44ce-45bb-80fa-2f363e215cf4",
+      "title": "清明二首 其二",
+      "author": "方一夔",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "edc0a225-0ed7-4403-b85c-d9fccaf68d94",
+      "title": "女坟湖",
+      "author": "周弼",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "a469a863-85bd-415f-b8ac-4a94cb036648",
+      "title": "上山",
+      "author": "李廌",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "f0c4a9ab-9cdb-4ac2-bf42-7612b8765e13",
+      "title": "秋蚊",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "6f1c8a2c-d503-40b9-a4d7-3705128acf18",
+      "title": "新林小憩见花二首 其一",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "bf7ffd00-72cf-4c7f-ab4f-6cbd8112547e",
+      "title": "和赵达夫元夕礼闱锁宿",
+      "author": "韋驤",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "aef1c9a3-8278-4fd5-bafe-888c398fce5f",
+      "title": "赠杨佳孙",
+      "author": "舒岳祥",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "d9b5d279-606a-4836-a072-96239b102be4",
+      "title": "次韵王教授同寄昌甫器远无为临漳 其四",
+      "author": "韓淲",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "5131176c-cf25-4e6f-b59a-86465d568e8a",
+      "title": "接伴书怀",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "06b89609-31fa-4624-95b6-c6030e5dc9ed",
+      "title": "题观音石壁",
+      "author": "紹興卜者",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "d44a94a8-57e7-4034-9947-28f6dc63c773",
+      "title": "世美约仲孺述之同泛清潩登楼待月分得楼字 其二",
+      "author": "鄒浩",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "ea4482dc-f109-47a2-a2d0-82f6429abe17",
+      "title": "次韵中玉早梅二首 其二",
+      "author": "黄庭堅",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "38caa40a-0128-49fa-a454-52de0cb28de6",
+      "title": "次韵汪以南闲居漫吟十首 其七",
+      "author": "方回",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "39045bd3-0ee8-4784-9875-e93c2d05f1e0",
+      "title": "还自奉口",
+      "author": "周密",
+      "dynasty": "宋代",
+      "sentiment_score": 0.3333333333333333,
+      "sentiment": "积极",
+      "confidence": 0.3333333333333333
+    },
+    {
+      "id": "9516fdb2-815b-4dc2-9dcf-f12335b9c3c2",
+      "title": "复次数语呈知止",
+      "author": "汪應辰",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1ba3d42b-f813-4fab-a0d2-96838ce59b33",
+      "title": "寄孙元忠 其二九",
+      "author": "孔平仲",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "a3866822-8393-428a-8bde-024fe7356f2f",
+      "title": "寄郢州崔守八首 其五",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "b6814a87-95a2-4679-92a3-136eb6681e5c",
+      "title": "雨中对梅寄何户曹 其二",
+      "author": "吳惟信",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "c3d28472-d6c7-43f6-8d7b-49a7f2bc5c83",
+      "title": "寄天台王炼师兼呈邑宰",
+      "author": "張日損",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "c07e9d1a-6fd9-4d30-ba4d-e5d4b41816ea",
+      "title": "题点易窗道人苏门遗啸",
+      "author": "陳杰",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "5f08da0d-5393-41af-a59d-8427cde8cde2",
+      "title": "余伯皋持巩仲至三山诗卷来因借录之 其一",
+      "author": "韓淲",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "55e5ae21-f7b6-4118-a6f3-445c0dfe4bc7",
+      "title": "同子瞻赋游惠山三首 其三",
+      "author": "秦觀",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "ad575622-139d-404c-a339-9efcd959e2ee",
+      "title": "王武俊",
+      "author": "呂陶",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "cc45357b-623c-440a-ae81-d4402e1f3397",
+      "title": "表高氏石公之墓",
+      "author": "李廌",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "4f9fa116-98c1-42ff-88d9-d286620cb9b8",
+      "title": "山居杂诗九十首 其三五",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "526b82cd-abcd-4f41-ace9-41fce5cf26f4",
+      "title": "谢三门提举辇运宋叔达郎中寄古碑杂言",
+      "author": "强至",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "71b64578-9e52-4c13-9f2c-32ec5ad038ae",
+      "title": "和府公二十韵",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "94e5846c-fe8a-43a0-b9eb-f25a75e42b60",
+      "title": "送刘伯宣尹松江府五首 其四",
+      "author": "俞德鄰",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "db680fcb-12aa-4c64-a637-aa3d9c2ea891",
+      "title": "长垣路中 其二",
+      "author": "彭汝礪",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "37766ac3-5a06-45f4-89e4-a0ae2ea7c53e",
+      "title": "与观禅者",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "d2bd65a5-0135-482f-a8dc-8065addb40f0",
+      "title": "于忽操 其三",
+      "author": "王令",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "94c35a5a-dbff-4fc8-94c3-03885a3b8545",
+      "title": "题松滋东禅院",
+      "author": "鄭文寶",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "47b624c9-48f6-4945-bdda-c0a6deb2dcd4",
+      "title": "复至凝祥池上",
+      "author": "晁補之",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "169f6af1-d707-4dd7-a2f0-f22e1f09549f",
+      "title": "行县途中读柳子厚诗",
+      "author": "晁說之",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "b35fecb8-5db4-4896-84f2-7eea421d9b83",
+      "title": "休日欲报谒林子长值雨不能前用小诗以谢不敏",
+      "author": "虞儔",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "54e48520-09c7-475a-996d-fe1106eac256",
+      "title": "漏泽院四绝句 其一",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "7f8e5dd5-5dc5-4df3-afa3-947081d262dc",
+      "title": "自题岁寒堂",
+      "author": "余瀚",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "4e0a837b-f4fa-4471-a1f9-6a910aa33eba",
+      "title": "寄余干郑丞",
+      "author": "李龏",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e47434b7-98ac-4b04-a23b-cdc2c3bc4737",
+      "title": "句 其一",
+      "author": "黄庚",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "d1e96fc5-3924-48bd-93c3-954d7c2f233e",
+      "title": "句 其一○",
+      "author": "朱敦儒",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "c3d7989e-2df6-408a-978f-dfa03e148f92",
+      "title": "桂源早行",
+      "author": "余靖",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "55b5e308-0db1-4683-8504-6c16b5c17bab",
+      "title": "夜兴",
+      "author": "汪莘",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "6684f5d2-a8ab-41e3-987d-4ff085dbf7cb",
+      "title": "率饮亭二十绝 其一三",
+      "author": "王十朋",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "26d3f710-7faf-42b8-82b8-26b4f3c6a983",
+      "title": "别赋一首",
+      "author": "劉克莊",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "07cbee1a-4d21-4fc5-95cc-579bc29eebae",
+      "title": "圆石",
+      "author": "陸佃",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "cd6e616c-f606-4769-9ce0-ca6a15a21826",
+      "title": "菊",
+      "author": "嚴粲",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "d3bf5bc0-7961-4ba4-a717-952ef6586489",
+      "title": "春日杂题六首 其一",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "13deeb10-a8b7-42be-9fbb-e467ce697d86",
+      "title": "早春",
+      "author": "寇準",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "85e4b4dd-c914-4e6b-854c-9e80288066ca",
+      "title": "还过渚宫 其一",
+      "author": "項安世",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8d880a60-3bbb-48a2-94f1-b7cf4d5ab56b",
+      "title": "送张直翁",
+      "author": "薛師石",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f59a6b1b-6438-4da2-bf3a-17ae15f05644",
+      "title": "赠金斗相士",
+      "author": "姚勉",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "f7822952-d317-430a-9610-94eda88feab3",
+      "title": "题史髯词卷二首 其一",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "79f216a8-6ffa-4c0d-84a0-715e9b515c30",
+      "title": "次李司直韵二首 其一",
+      "author": "裘萬頃",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8dc79d85-953c-4a75-bef1-67503370d501",
+      "title": "将赴表臣会呈杜挺之",
+      "author": "梅堯臣",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "c92225e0-23b9-4d23-81d2-640c0d136111",
+      "title": "游裴公亭 其一",
+      "author": "趙恒",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e595d262-3fac-4d30-bf9c-4b49f951fd3b",
+      "title": "冬后 其三",
+      "author": "黄裳",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "2305b29b-67f8-4334-b548-cb7f17e6ea9a",
+      "title": "投魏先辈二首 其一",
+      "author": "劉應時",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "fb40e3f0-58a2-4852-8066-d4c66d3fa3e7",
+      "title": "思归",
+      "author": "傅察",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "26574777-60a0-4c68-b573-32ba37af4395",
+      "title": "题汪水云诗卷 其七",
+      "author": "胡斗南",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "21675f8a-2f5b-435e-9669-9965009c9a35",
+      "title": "别白水归大雪",
+      "author": "趙文",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "7ca7f50f-bbc8-4800-ae52-47a3d961350a",
+      "title": "矮桃",
+      "author": "許及之",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1512d2d5-3ecd-451f-9311-ef24731fd5c7",
+      "title": "阎生谈黄庭",
+      "author": "文同",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "70489092-b5d5-456c-b03b-b2796b086ebe",
+      "title": "予平生愿学忠恕既以自勉亦告于人王牒正则闻而悦之归作唯斋九万里风斯下矣写衰容命之赞",
+      "author": "周必大",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "b52fe16b-2d14-43a4-8d1d-9cc6ec6543ff",
+      "title": "嘉禾百咏 简斋",
+      "author": "張堯同",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "19c08c45-99ca-4f62-adc3-a9c2f63a7f15",
+      "title": "白都山",
+      "author": "楊備",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "bb3aded5-7002-4fc3-80cc-62d50d238596",
+      "title": "渔翁二首 其一",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "25496277-fba1-46df-95c2-8ff71257c38b",
+      "title": "同熊伯通自定林过悟真二首 其一",
+      "author": "王安石",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "cff9356b-bcdd-493f-b1f7-afa127434ade",
+      "title": "偈颂一百三十三首 其一二六",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "bfe5ffaa-ca34-4792-a015-fb9b3bf94363",
+      "title": "咏鹤",
+      "author": "張嵲",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "ceed4e4e-308e-4596-a6ff-2a271ef222ce",
+      "title": "雨中望灵山呈明远",
+      "author": "韓元吉",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "6b00441f-2207-4082-806e-8210b4e19749",
+      "title": "寄程子山舍人",
+      "author": "王庭珪",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "ec78ef34-40fb-4b66-8bb0-e8566fba2b18",
+      "title": "书兰莫德全壁",
+      "author": "潘璵",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "b11330ce-b119-4906-879d-b97463ac98fd",
+      "title": "醉起",
+      "author": "趙崇嶓",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "d68d8308-c9ac-4370-b45b-ba7cbe404b40",
+      "title": "观锡宴宣劝",
+      "author": "王同祖",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "4426315e-ae74-41d8-87e3-984f81574198",
+      "title": "黄孟博辞往鄂渚赠别",
+      "author": "陳杰",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f21644b4-839c-4ca7-9f9e-578920ac40f3",
+      "title": "次芸居无题韵",
+      "author": "胡仲弓",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "6bf3cc32-05ab-4a73-a6c6-ecaaddd920e8",
+      "title": "次韵九弟五绝句 其四",
+      "author": "李彭",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "551cc08d-aa36-47e9-9a6f-00cd6df49c2d",
+      "title": "之永和小憩资寿寺",
+      "author": "楊萬里",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "4027f653-1560-487d-9336-a57130c4aae6",
+      "title": "为李少监赋秋崖歌",
+      "author": "釋文珦",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "5e693bc0-8d31-46fc-b4f3-4d13de09d5be",
+      "title": "忆水芙蓉木芙蓉寄西湖诸友 其二",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "6e6b94fa-9c86-4599-bba9-a9edc342bec5",
+      "title": "句 其一",
+      "author": "喻汝礪",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "757f5987-14ba-4a93-bdfa-f278aafad49b",
+      "title": "四月八日偕张菊村邓匪石洪乐闲游城西诸寺以山高水长分韵得长字",
+      "author": "陸文圭",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "c70a277e-92bb-437e-bc06-64cd019cc461",
+      "title": "松风",
+      "author": "俞紫芝",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "3573b26a-92d1-4ea0-a6e7-2a834ae57fe0",
+      "title": "别茂直",
+      "author": "鄭剛中",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f344f2ce-21e9-4f99-b7c0-0620b3dee773",
+      "title": "晓至池上",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "f8ee7c7b-4878-40c0-ba71-3469afd2e399",
+      "title": "郑司法挽词 其一",
+      "author": "樓鑰",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "a8b9dac8-87ac-425b-b167-7f1b3fd365f2",
+      "title": "谢发运颖叔宠寄新什",
+      "author": "郭祥正",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e6f2f5de-91a9-4430-b5d4-35b6204c7b26",
+      "title": "秋晴",
+      "author": "鄭獬",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "1eaec81e-f37f-4d41-9acf-d02690d35b6b",
+      "title": "拟玉台体七首 携手曲",
+      "author": "歐陽修",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "3ac9358e-ee32-4f9e-9de0-327a56bad12c",
+      "title": "句",
+      "author": "劉琰",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "78dc3c16-ed14-4234-b8b5-d3d1d68b43d7",
+      "title": "十六日伏睹明堂礼成圣驾恭谢太一宫小臣敬成口号 其六",
+      "author": "蘇泂",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "96ed30a9-5fe9-4b5f-bed3-0714bcf6835d",
+      "title": "清明后一日出寻梨花先过城南资福僧舍修竹森然即赋小诗盛道爱竹之意客摘诗语病予曰君自有竹何来此为因作梨花解嘲盖予故秋至魏未尝见梨花盛时资福之句良率然也晚饮全福抵花下披取巨枝立植间坐欢甚径醉乃知吾家子猷直与竹同迷耳亦为作诗凡得三绝句 其三",
+      "author": "王安中",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "42bcd1ff-a1b6-4d4d-8df1-489691302d1d",
+      "title": "寄家书有怀岁寒五友二首 其二",
+      "author": "錢時",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "b62eb132-d5d7-42e6-bdd9-a238a110c2d3",
+      "title": "将至兰陵道中以远岫重叠出寒花散漫开为韵 其六",
+      "author": "李處權",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "177661cc-5eda-489d-93a7-9f101de3a221",
+      "title": "偈颂一百零二首 其九",
+      "author": "釋慧遠",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "8708c54a-43f1-44de-bd96-800a98e9eeed",
+      "title": "挽程孺人",
+      "author": "黄文雷",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "4f3055b9-6b15-409f-a53c-ac650287532c",
+      "title": "上钱唐太守薛大谏",
+      "author": "釋智圓",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "6612b74e-f7be-469c-a2bf-8c043e9f8c63",
+      "title": "醉歌 其一○",
+      "author": "汪元量",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "5ba0774c-ca42-4c5a-9fd5-16b2c17b7d55",
+      "title": "柳枝词十三首 其六",
+      "author": "司馬光",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "d637dac4-766b-48cf-9509-d78f6a66a04b",
+      "title": "和范景仁蜀中寄牡丹图",
+      "author": "范純仁",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "e8faa370-51c6-4001-a060-1cf0c006348c",
+      "title": "学诗",
+      "author": "趙崇鉘",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "a87c5d12-55ea-4779-b6d4-0864f451b03f",
+      "title": "句",
+      "author": "政和太學生",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "2dc4ccf3-b55c-40a4-9cb2-c209ac25c195",
+      "title": "山居即事",
+      "author": "王邁",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "2e56f0ae-4c11-4ce3-9131-70e109cabd2f",
+      "title": "官池即事",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "cfa9e345-e206-401b-b22f-4abc6160c350",
+      "title": "咏史 阮籍 其二",
+      "author": "陳普",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "fd1a4bbe-9367-4238-aea4-93083c567f65",
+      "title": "元夕卜油溪故事 其一",
+      "author": "魏了翁",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "972f5828-22ef-4e28-a095-bbaf9db83424",
+      "title": "游灵岩分韵得从字",
+      "author": "蔡沈",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "c29de2fb-626a-4bc9-8b3f-51f92905edb8",
+      "title": "杂咏四首 其一",
+      "author": "范仲淹",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "bd2df342-1470-4ea2-a844-a501a11b387e",
+      "title": "屋头梅开一蕊",
+      "author": "翁森",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "421155bc-78f2-4a1b-bd6b-ef07edaa8e12",
+      "title": "次韵毕叔文牡丹",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8c688196-5b5a-43ec-aa0b-a3c2c29b3f9c",
+      "title": "和范公希文怀庆朔堂",
+      "author": "陳希亮",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "13042394-e0eb-4ce8-9bfc-a15c8c1d41f8",
+      "title": "子大有游东山之约以诗相趣因次其韵 其四",
+      "author": "王炎",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "b8c76f67-5bb4-49d1-bb1e-bae27321172c",
+      "title": "和人见寄",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9ee7a5ee-0289-4235-9df3-4d854eacb733",
+      "title": "郡斋怀隠庵 其二",
+      "author": "辛棄疾",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "eb386fc7-2af6-4f82-812c-5d9e032417b5",
+      "title": "再赋末利二绝 其二",
+      "author": "范成大",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "5814bee1-c58b-4d25-8073-c1b9e052fb30",
+      "title": "答范君锡 其二",
+      "author": "徐積",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8290e2e2-104f-4622-ad1c-28acef305d0e",
+      "title": "偈颂二百零五首 其五七",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "d7aae81f-ace8-4baa-abab-9ef14289a3c1",
+      "title": "二月望游齐山呈仓使二首 其一",
+      "author": "錢時",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "60a229e2-f889-4873-8298-c83acd6a31aa",
+      "title": "波光亭",
+      "author": "王庭珪",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "153c2398-c54b-4f45-b3f0-dc31f6844153",
+      "title": "立夏五首 其五",
+      "author": "方回",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "6319b5f5-30ef-46de-8599-e789a5c5b04d",
+      "title": "春暮",
+      "author": "劉應時",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "a0c26dce-f25f-42e6-8eaf-301745bd7338",
+      "title": "谢德华惠牡丹因招同官会饮",
+      "author": "彭汝礪",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "e52b248b-6650-4be2-9b5f-b803866f8922",
+      "title": "次韵择之铅山道中二首 其一",
+      "author": "朱熹",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "833c6149-94b0-479a-873a-0e78e758e1ea",
+      "title": "十月旦日过云林",
+      "author": "韓淲",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "95d4a645-7073-4a43-af73-89fa2b4040d9",
+      "title": "题赵希贤所藏墨竹 其二",
+      "author": "仇遠",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "87025692-dc0a-46f7-a337-d28ad54c199d",
+      "title": "醉中信笔作四绝句既成惧观者不知野人本心也复作一绝 其五",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "4e29a22f-f1d9-4497-b80a-c9197a4393ad",
+      "title": "和子瞻次韵陶渊明劝农诗 其一",
+      "author": "蘇轍",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "f5864887-00d2-42fd-aa3c-2e1615ec37f9",
+      "title": "思归引",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "0683b57b-b38a-4d8e-823a-eec5e7172d9f",
+      "title": "偈颂二百零五首 其二○三",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "d16fe8fb-c9bb-431c-bfc6-f3a14e4c7b7b",
+      "title": "都尉王居士赞",
+      "author": "楊傑",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "89312b97-43b9-4dfb-86b4-032d4132a0bb",
+      "title": "句 其七",
+      "author": "趙師秀",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "b230bbb7-7bc5-41fb-bc5a-7a6b9a337546",
+      "title": "太硕人潘氏挽词",
+      "author": "樓鑰",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1ea0dedc-c9f2-427d-bcab-9437e1c73866",
+      "title": "送别胡汲古",
+      "author": "黄庚",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "e210215d-01e2-4c18-8949-0c73cf2dedfb",
+      "title": "次韵戴成叔 其一○",
+      "author": "陳著",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "e3c49ec5-56fc-4522-8639-cbd92b82990d",
+      "title": "器之示巽中见怀次韵",
+      "author": "釋德洪",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "e57d3757-cca3-4e6e-acbb-56825c418187",
+      "title": "耿天骘许浪山千叶梅见寄",
+      "author": "王安石",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "f5f42bb9-225a-40c1-a16d-c6c5007c58d8",
+      "title": "颜鲁公画像",
+      "author": "朱翌",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "d59da380-2e41-4d51-a713-cadb73673641",
+      "title": "答分守魏大夫",
+      "author": "李復",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "f70fa72a-1955-4bc4-8819-2c9df8e8a89e",
+      "title": "走笔代书寄岊仲七弟",
+      "author": "錢勰",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "98ae5ba7-b106-46ce-873e-91a55af05fce",
+      "title": "西湖观梅三首 其一",
+      "author": "章謙亨",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "9c232277-24c3-4290-b892-062490405a28",
+      "title": "忆和",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "0cae2b20-33cd-4cb1-8f57-303d82a18294",
+      "title": "句 其一",
+      "author": "周密",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "501e6a8c-a4a3-4027-950a-31658e7d4390",
+      "title": "隆祐太后挽歌辞三首 其三",
+      "author": "劉子翬",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "27c6f1de-3d17-43bb-a554-f87d213a9dd1",
+      "title": "颂古一百则 其六七",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "fa12ce5a-2691-4aeb-b6a3-00d132695ec8",
+      "title": "宫词 其九一",
+      "author": "宋白",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "a68d9123-d9cd-41d9-b543-7767b12f1244",
+      "title": "颂古一百首 其二一",
+      "author": "釋智愚",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "a0e002e1-5ea8-4637-8cec-8c3642a893fb",
+      "title": "偈颂一百三十三首 其一五",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "88e1f991-dbc6-4bb6-8945-6f040717dd6d",
+      "title": "老桂古字韵",
+      "author": "陸文圭",
+      "dynasty": "宋代",
+      "sentiment_score": -0.3333333333333333,
+      "sentiment": "消极",
+      "confidence": 0.3333333333333333
+    },
+    {
+      "id": "bbaf4fb8-ecbb-4974-b304-7e0c2c746df7",
+      "title": "送吴敏叔待制侍郎",
+      "author": "楊萬里",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1c794334-4f0c-4e45-af95-31d29f3ec38c",
+      "title": "全州道间 其二",
+      "author": "李曾伯",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "cf73054d-c376-4b49-acd8-1edb7be2309d",
+      "title": "至日建中次季真韵",
+      "author": "胡一桂",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "8837313b-47a1-4985-862b-61ae1254b4f7",
+      "title": "和董显叔韵",
+      "author": "袁說友",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "cdf3998c-4e6b-4dd4-a51e-3ee67799a07e",
+      "title": "句",
+      "author": "蔡薿",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e8a06535-8098-400d-992a-53d6126f23be",
+      "title": "和刘师文饮城西见怀",
+      "author": "孫應時",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "3264ce70-7dfa-4ed7-a838-f04c0439b786",
+      "title": "和王总干韵",
+      "author": "衛宗武",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "3a9d1ffd-f5fe-4bf1-8e0c-fb3970d28f30",
+      "title": "寿范漕 其四",
+      "author": "吳泳",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "6166f39c-4e82-49e1-8aff-b26f328f8b09",
+      "title": "闲身 其一",
+      "author": "釋文珦",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "1e3c6e5e-1c93-4a81-b196-0eb342590c46",
+      "title": "和高路分见赠二首 其一",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "0d269f45-cb07-432f-aa31-6e9681b6666a",
+      "title": "游毛公洞六首 其三",
+      "author": "王之道",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "4e9ea91f-b72e-4a22-b02b-29c9b8a093d0",
+      "title": "春半久雨走笔五首 其四",
+      "author": "方回",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "71cb6b52-eb3b-4c1b-a5b2-07837d3081e6",
+      "title": "偈",
+      "author": "釋凈曇",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "a349e2b7-45c6-4d88-b697-983eed1d5583",
+      "title": "与宁陵叔弟别后有怀兼寄赵才仲二首 其一",
+      "author": "呂本中",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "538a03b8-3690-4f30-a637-d4a547fc1fbc",
+      "title": "刘共甫枢密挽词三首 其二",
+      "author": "周必大",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "87276ad6-f58a-4f40-88b9-e1e782c7af44",
+      "title": "寿马裕斋观文 东山,二章,章四句. 其一",
+      "author": "陳著",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "23c06999-38be-4a3a-8187-5b17e992fc3b",
+      "title": "郫县道中思故里",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "7c37dd5e-9762-40db-8ab6-b1deac2b1bc2",
+      "title": "夜思",
+      "author": "方回",
+      "dynasty": "宋代",
+      "sentiment_score": 0.0,
+      "sentiment": "中性",
+      "confidence": 0.0
+    },
+    {
+      "id": "49b0602c-2661-490e-a689-069d3ed359e8",
+      "title": "庸斋再赋予亦再和",
+      "author": "高斯得",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "112cad22-5d18-4a2f-aabb-139696e1d70f",
+      "title": "古鉴谣",
+      "author": "楊傑",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "eaecbc2c-733a-4b0a-a3c3-27613053810d",
+      "title": "句 其三",
+      "author": "張舜民",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "09616c3a-8aa9-4368-8b4f-b593cbb78782",
+      "title": "中秋赏月蓬莱阁呈同官",
+      "author": "王十朋",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "9fad7912-db1c-4d0f-8d58-f85b1b09861e",
+      "title": "陈渭老今夕开阁诚为盛事戏成二小诗以侑坐客 其二",
+      "author": "李光",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "091a3e4f-bffe-4f16-b75e-aabf936f7483",
+      "title": "舟中追和逊卿早春即事十首 其七",
+      "author": "陸文圭",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "a6b92a2c-e09f-4633-a570-fc405c14aed7",
+      "title": "黄燕山",
+      "author": "楊琛",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "e27992a6-bf32-41d7-8045-5e0d7ee12316",
+      "title": "冻禽",
+      "author": "梅堯臣",
+      "dynasty": "宋代",
+      "sentiment_score": -1.0,
+      "sentiment": "消极",
+      "confidence": 1.0
+    },
+    {
+      "id": "ee8045c8-7c9c-4201-ba4a-5f058fe8e09f",
+      "title": "挽黄承事三首 其三",
+      "author": "廖行之",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "f6468b76-877e-4f70-b3e7-58690a5093ee",
+      "title": "竹溪直院盛称起予草堂诗之善暇日览之多有可恨者因效颦作十首亦前人广骚反骚之意内二十九首用旧题惟岁寒知松柏被褐怀珠玉三首效山谷余十八首别命题或追录少作并存于卷以训童蒙之意 西狩获麟",
+      "author": "劉克莊",
+      "dynasty": "宋代",
+      "sentiment_score": 1.0,
+      "sentiment": "积极",
+      "confidence": 1.0
+    },
+    {
+      "id": "94b56b91-fcb3-47f2-9ae8-97edc9aa3e66",
+      "title": "明日子充折赠次韵谢之",
+      "author": "范成大",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    },
+    {
+      "id": "16dcadd8-1377-4c19-b298-045e7661f214",
+      "title": "缴回太守赵庸斋照牒",
+      "author": "何基",
+      "dynasty": "宋代",
+      "sentiment_score": 0,
+      "sentiment": "中性",
+      "confidence": 0
+    }
+  ]
+}

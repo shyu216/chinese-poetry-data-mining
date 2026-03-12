@@ -7,23 +7,18 @@
 
 import re
 from typing import List, Optional
+from opencc import OpenCC
 
 
 class TextProcessor:
     """文本处理器"""
     
     def __init__(self):
-        # 尝试导入OpenCC
-        try:
-            from opencc import OpenCC
-            self.cc = OpenCC('t2s')
-            self.has_opencc = True
-        except ImportError:
-            self.has_opencc = False
+        self.cc = OpenCC('t2s')
     
     def traditional_to_simplified(self, text: str) -> str:
         """繁体转简体"""
-        if self.has_opencc and text:
+        if text:
             return self.cc.convert(text)
         return text
     
@@ -50,8 +45,8 @@ class TextProcessor:
         """统一标点符号"""
         replacements = {
             '，': ',', '。': '.', '！': '!', '？': '?',
-            '；': ';', '：': ':', '“': '"', '”': '"',
-            '‘': "'", '’': "'", '（': '(', '）': ')',
+            '；': ';', '：': ':', '"': '"', '"': '"',
+            ''': "'", ''': "'", '（': '(', '）': ')',
             '【': '[', '】': ']', '《': '<', '》': '>'
         }
         

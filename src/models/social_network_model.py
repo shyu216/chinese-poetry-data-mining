@@ -8,37 +8,19 @@
 from typing import List, Dict, Tuple, Optional
 from collections import defaultdict
 import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import networkx as nx
+from networkx.algorithms.community import greedy_modularity_communities
 
 
 class SocialNetworkModel:
     """社交网络模型"""
     
     def __init__(self):
-        self._check_sklearn()
-        self._check_networkx()
-    
-    def _check_sklearn(self):
-        """检查sklearn是否可用"""
-        try:
-            from sklearn.feature_extraction.text import TfidfVectorizer
-            from sklearn.metrics.pairwise import cosine_similarity
-            self.TfidfVectorizer = TfidfVectorizer
-            self.cosine_similarity = cosine_similarity
-            self.has_sklearn = True
-        except ImportError:
-            self.has_sklearn = False
-            self.TfidfVectorizer = None
-            self.cosine_similarity = None
-    
-    def _check_networkx(self):
-        """检查networkx是否可用"""
-        try:
-            import networkx as nx
-            self.nx = nx
-            self.has_networkx = True
-        except ImportError:
-            self.has_networkx = False
-            self.nx = None
+        self.TfidfVectorizer = TfidfVectorizer
+        self.cosine_similarity = cosine_similarity
+        self.nx = nx
     
     def build_author_texts(self, df, min_poems: int = 2) -> Dict[str, str]:
         """
@@ -77,9 +59,6 @@ class SocialNetworkModel:
         Returns:
             (作者列表, 文本列表, 相似度矩阵)
         """
-        if not self.has_sklearn:
-            raise ImportError("需要安装scikit-learn")
-        
         authors = list(author_texts.keys())
         texts = list(author_texts.values())
         
@@ -93,7 +72,7 @@ class SocialNetworkModel:
         return authors, texts, similarity_matrix
     
     def build_network(self, authors: List[str], similarity_matrix: np.ndarray, 
-                     threshold: float = 0.1) -> Optional:
+                     threshold: float = 0.1):
         """
         构建社交网络
         
@@ -105,9 +84,6 @@ class SocialNetworkModel:
         Returns:
             NetworkX图对象
         """
-        if not self.has_networkx:
-            raise ImportError("需要安装networkx")
-        
         G = self.nx.Graph()
         
         # 添加节点
@@ -133,9 +109,6 @@ class SocialNetworkModel:
         Returns:
             网络分析结果
         """
-        if not self.has_networkx:
-            raise ImportError("需要安装networkx")
-        
         analysis = {
             'network_properties': {
                 'nodes': G.number_of_nodes(),
@@ -167,19 +140,11 @@ class SocialNetworkModel:
         Returns:
             社区列表，每个社区是作者列表
         """
-        if not self.has_networkx:
-            raise ImportError("需要安装networkx")
-        
         if G.number_of_edges() == 0:
             return [[node] for node in G.nodes()]
         
-        try:
-            from networkx.algorithms.community import greedy_modularity_communities
-            communities = list(greedy_modularity_communities(G))
-            return [list(c) for c in communities]
-        except:
-            # 如果社区发现失败，返回每个节点一个社区
-            return [[node] for node in G.nodes()]
+        communities = list(greedy_modularity_communities(G))
+        return [list(c) for c in communities]
     
     def get_top_similar_pairs(self, authors: List[str], similarity_matrix: np.ndarray, 
                              top_k: int = 10) -> List[Dict]:

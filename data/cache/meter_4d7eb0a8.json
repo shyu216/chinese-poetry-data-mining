@@ -1,0 +1,6237 @@
+{
+  "total": 331,
+  "form_distribution": {
+    "词": 30,
+    "古体诗": 301
+  },
+  "tone_ratio": {
+    "level": 0.5628818908211911,
+    "oblique": 0.43711810917880883
+  },
+  "author_specialty": {
+    "貫休": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "皎然": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "李商隱": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "杜甫": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "鄭谷": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "白居易": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "羅鄴": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "贺铸": {
+      "specialty": "古体诗",
+      "count": 1,
+      "total": 2
+    },
+    "吴潜": {
+      "specialty": "词",
+      "count": 1,
+      "total": 2
+    },
+    "魏了翁": {
+      "specialty": "词",
+      "count": 1,
+      "total": 2
+    },
+    "朱敦儒": {
+      "specialty": "词",
+      "count": 1,
+      "total": 2
+    },
+    "趙蕃": {
+      "specialty": "古体诗",
+      "count": 4,
+      "total": 4
+    },
+    "項安世": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "張耒": {
+      "specialty": "古体诗",
+      "count": 5,
+      "total": 5
+    },
+    "蘇轍": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "李曾伯": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "蘇軾": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "葛勝仲": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "王炎": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "舒岳祥": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "陸游": {
+      "specialty": "古体诗",
+      "count": 7,
+      "total": 7
+    },
+    "劉敞": {
+      "specialty": "古体诗",
+      "count": 4,
+      "total": 4
+    },
+    "范仲淹": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "梅堯臣": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "王庭珪": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "孔平仲": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "虞儔": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "方一夔": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "嚴粲": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "呂本中": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "蘇泂": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "王安石": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "方岳": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "釋居簡": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 4
+    },
+    "陳普": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "王十朋": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "楊備": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "李廌": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "陳造": {
+      "specialty": "古体诗",
+      "count": 4,
+      "total": 4
+    },
+    "韓淲": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "曹勛": {
+      "specialty": "古体诗",
+      "count": 4,
+      "total": 4
+    },
+    "方回": {
+      "specialty": "古体诗",
+      "count": 4,
+      "total": 4
+    },
+    "周密": {
+      "specialty": "古体诗",
+      "count": 1,
+      "total": 2
+    },
+    "陳杰": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "彭汝礪": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "釋正覺": {
+      "specialty": "词",
+      "count": 3,
+      "total": 4
+    },
+    "黄庚": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "劉克莊": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "劉應時": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "周必大": {
+      "specialty": "词",
+      "count": 1,
+      "total": 2
+    },
+    "楊萬里": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "釋文珦": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "陸文圭": {
+      "specialty": "古体诗",
+      "count": 3,
+      "total": 3
+    },
+    "樓鑰": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "錢時": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "范成大": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    },
+    "楊傑": {
+      "specialty": "词",
+      "count": 1,
+      "total": 2
+    },
+    "陳著": {
+      "specialty": "古体诗",
+      "count": 2,
+      "total": 2
+    }
+  },
+  "details": [
+    {
+      "title": "拨櫂歌 三十二",
+      "author": "德誠",
+      "dynasty": "唐代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平平仄仄平平",
+        "平仄仄仄平平仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "柳枝词",
+      "author": "李涉",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平平仄平平仄仄平",
+        "仄仄平平平仄仄仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "李臯试诗",
+      "author": "何仲舉",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "仄平仄仄仄平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "琴曲歌辞 胡笳十八拍 第十七拍",
+      "author": "劉商",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄仄平仄平平平平仄",
+        "仄平仄仄平仄平平仄平平仄平仄",
+        "仄平仄平仄平仄平仄平平仄平仄",
+        "仄仄平平仄仄平平平仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "古塞下曲七首 一",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平仄仄平平",
+        "仄仄平平仄平平平仄平",
+        "平平平仄平仄仄仄平平",
+        "平仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "悲铜雀台",
+      "author": "李遠",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平仄平平平",
+        "仄仄平平平平平仄仄平",
+        "仄平平仄仄平仄仄平平",
+        "平仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押五歌韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "陈情献蜀皇帝",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平平平平仄仄平平",
+        "平平平平平平仄平仄平平平平平",
+        "仄仄平平平仄仄平平平仄仄平平",
+        "仄平平仄平平仄仄平平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 4,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "初出京邑有怀旧林",
+      "author": "盧僎",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平仄仄仄平平",
+        "仄仄平平平平仄平仄平",
+        "仄平仄仄仄仄仄平仄平",
+        "平平平仄?仄?平仄平仄平",
+        "平平平仄平平平仄平平",
+        "仄平平仄仄仄仄平仄平",
+        "平平仄平平仄仄平平平",
+        "平仄平平平平仄平平平",
+        "仄仄仄平仄仄仄仄仄平",
+        "仄仄平平仄平平平平平",
+        "平仄平仄平仄平平平平"
+      ],
+      "rhythm": {
+        "line_count": 11,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "春日芙蓉园侍宴应制",
+      "author": "蘇頲",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平平平仄仄平",
+        "仄平平仄仄仄平仄平平",
+        "平仄平平仄平平平仄平",
+        "平平仄平?平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "舞曲歌辞 吴俞儿舞歌 矛俞",
+      "author": "陸龜蒙",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平仄平仄平仄仄仄仄平平平仄仄",
+        "平平仄仄?平仄平",
+        "平平仄仄平仄平平",
+        "平平平仄平仄仄仄仄仄仄平平仄平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "松江早春",
+      "author": "皮日休",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平仄仄平",
+        "仄平平平平平仄平平仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "饮茶歌诮崔石使君",
+      "author": "皎然",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平仄平平平仄平仄",
+        "仄平仄仄平仄平平仄平平平仄平",
+        "平仄平平仄平平仄仄仄平仄",
+        "仄仄平仄平平平平仄仄平平",
+        "平仄仄平仄平平仄平仄平仄",
+        "仄仄平平仄仄平仄平仄仄平仄平",
+        "平仄仄平仄平仄仄仄平平平仄平",
+        "平平仄平仄仄仄平平平平平平仄",
+        "平平平仄平仄平平仄平平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 9,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "颂 二",
+      "author": "師備",
+      "dynasty": "唐代",
+      "form": "词",
+      "tone_patterns": [
+        "平平平平仄仄仄仄平平?平平?",
+        "平仄仄平平平?平平仄",
+        "仄仄平仄仄平平平仄仄",
+        "平仄仄平仄平仄仄平仄",
+        "仄平仄平仄平平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 5,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 4,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "乱石",
+      "author": "李商隱",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平仄仄仄平平",
+        "仄平仄仄平平仄平平平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "句",
+      "author": "漢皓",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "江行无题一百首 五十五",
+      "author": "錢起",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平仄平平平仄平",
+        "仄平平仄平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "送陆歙州傪",
+      "author": "韓愈",
+      "dynasty": "唐代",
+      "form": "词",
+      "tone_patterns": [
+        "仄平平平平仄仄平平",
+        "仄平平仄平平仄平平",
+        "仄仄仄仄平平平平平",
+        "平平仄仄平仄仄平",
+        "仄仄仄平平平仄仄",
+        "平平平平平?仄仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "换韵或散句",
+        "alliteration_count": 2,
+        "assonance_count": 6
+      }
+    },
+    {
+      "title": "鹭鸶",
+      "author": "劉象",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平仄平仄平平仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平",
+        "仄仄仄平平仄平平平平仄仄平平",
+        "平平仄仄平平仄仄平平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "园官送茶",
+      "author": "杜甫",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平",
+        "仄仄平平仄仄仄平平平",
+        "仄仄仄平平仄仄仄仄平",
+        "平平平平仄平平仄平平",
+        "平仄仄平仄仄仄仄平仄",
+        "平平仄平仄平平仄仄平",
+        "仄平仄仄仄平平仄仄平",
+        "仄平平仄仄仄仄平平平",
+        "仄平仄仄仄仄平平仄平",
+        "仄仄仄仄平平平平平平",
+        "平平仄仄仄仄仄平仄平",
+        "仄仄仄仄平仄平仄平平",
+        "平平仄平仄仄仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 13,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 8,
+        "assonance_count": 7
+      }
+    },
+    {
+      "title": "过招国李家南园二首 一",
+      "author": "李商隱",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平平平平仄仄平平",
+        "平平平仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "牛僧孺入薄后庙与诸后妃共吟诗(题拟) 牛僧孺作诗",
+      "author": "不詳",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平平仄仄平",
+        "仄仄平平平仄仄仄平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "浯溪",
+      "author": "鄭谷",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平平平平平平仄仄平平",
+        "平平仄仄仄仄仄平仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 4,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "送赵真长归夏县旧山依阳征君读书",
+      "author": "盧綸",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平平仄仄平平",
+        "平仄仄平仄仄平平仄平",
+        "平平仄平仄平仄仄平平",
+        "仄仄平仄仄仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "题重玄寺阁八韵",
+      "author": "張祜",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平平平仄平",
+        "平平仄平仄平仄仄平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平仄仄仄平仄仄平平",
+        "平平平平仄平平仄平平",
+        "仄平平仄仄平平仄平平",
+        "仄仄平平平平平仄仄仄",
+        "平平仄平仄平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 1,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "兵要望江南 占兽第二十(京本列第二十二,前六首另作「占牛马第十八」○三十四首) 六",
+      "author": "易靜",
+      "dynasty": "唐代",
+      "form": "词",
+      "tone_patterns": [
+        "平?平仄仄?平??平仄平仄仄平平",
+        "仄仄仄平平仄仄平平平仄仄平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "谢主人惠绿酒白鱼",
+      "author": "徐夤",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平仄仄平平平平仄仄平平",
+        "平平仄平平平仄平仄平平仄仄平",
+        "平仄仄平平仄仄仄平平仄仄平平",
+        "仄平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 5,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "秋暮",
+      "author": "賈島",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄平仄平平",
+        "平仄平平仄平平平仄平",
+        "平平平仄平平仄仄平平",
+        "仄仄平平平仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "雨中与李先生期垂钓先后相失因作叠韵",
+      "author": "溫庭筠",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄平平平平平",
+        "仄仄仄仄仄平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 13
+      }
+    },
+    {
+      "title": "慈恩伽蓝清会",
+      "author": "韋應物",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平仄仄平平仄仄",
+        "平平仄平平仄平平仄仄",
+        "仄平平仄平平仄仄平仄",
+        "平仄仄平平平平仄平仄",
+        "平平平平仄平仄平平仄",
+        "平平平平仄平平平平仄",
+        "平平平仄仄平平平仄仄",
+        "平仄平平平平平仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 6,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "池边即事",
+      "author": "白居易",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平平平平平仄仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "独不见",
+      "author": "戴叔倫",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄仄仄平平仄",
+        "仄仄仄仄平平平仄平仄",
+        "平平平仄仄平仄平平仄",
+        "仄平平平平仄仄平平仄",
+        "平仄仄平平平平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 5,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "钟陵铁柱",
+      "author": "盧士衡",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平仄仄仄平平仄仄平",
+        "平平平平仄平仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "秋怨",
+      "author": "羅鄴",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平平平平仄仄平平",
+        "仄平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "角",
+      "author": "齊己",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平平平平仄平",
+        "平平平平仄平仄仄平平",
+        "仄仄平平平平仄仄仄平",
+        "平平仄平平平仄平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "独坐",
+      "author": "司空圖",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平平仄平平平平",
+        "平平平仄仄仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "春秋战国门 虞卿",
+      "author": "周曇",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄平平平平仄平平平",
+        "平平平平平平平平仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "西施诗",
+      "author": "西施",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平平仄平仄平仄平仄平",
+        "平仄仄平平仄仄仄平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "田园乐七首 四",
+      "author": "王維",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平仄仄仄仄平仄平",
+        "平平仄平平仄平仄仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 3,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "送李季良北归",
+      "author": "皎然",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平平仄仄平平",
+        "仄仄仄平平平平平仄平",
+        "平平平仄仄仄平仄平平",
+        "仄仄仄平仄平平平?平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "泉州刺桐花咏兼呈赵使君 四",
+      "author": "陳陶",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平平平仄平平仄仄平",
+        "仄仄平平平仄平仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "上巳浮江宴韵得遥字",
+      "author": "王勃",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平平仄平",
+        "仄平平仄仄平仄仄平平",
+        "平平平仄仄平仄仄平平",
+        "仄平平仄仄平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "病中作",
+      "author": "李中",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄平仄仄平平",
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄仄仄仄平平",
+        "仄仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "系乐府十二首 思太古",
+      "author": "元結",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平平仄仄平",
+        "平仄平仄平仄平平仄平",
+        "平平仄仄平仄仄仄平平",
+        "仄平平仄仄平仄仄平平",
+        "平平仄仄平仄平平仄平",
+        "平平仄平仄仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 4,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "闻无相道人顺世五首 三",
+      "author": "貫休",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平仄仄平仄",
+        "平平平仄仄仄平平仄平",
+        "仄平平平仄平仄平平平",
+        "平平平平平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "旅次洋州寓居郝氏林亭",
+      "author": "方干",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平平仄仄平仄仄仄仄平平",
+        "仄平仄仄平平仄平仄平平仄平平",
+        "平仄仄平平仄仄平平仄平仄平平",
+        "平平仄平平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "书怀寄王秘书",
+      "author": "張籍",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄仄平平平仄仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平",
+        "仄仄仄平平平仄仄平平仄仄平平",
+        "仄平平仄平平仄仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "丰城劒池驿感题",
+      "author": "權德輿",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平仄平平平平仄平",
+        "仄平平仄平平仄仄平平",
+        "平仄仄仄平仄平仄平平",
+        "仄平平平仄平仄平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "新岭临眺寄连总进士",
+      "author": "歐陽玭",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄平仄平平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平平平仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "题衡山县文宣王庙新学堂呈陆宰",
+      "author": "杜甫",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平仄仄仄仄",
+        "平仄平平仄平平平平仄",
+        "平平仄平平平平仄平仄",
+        "平平仄平平平仄平仄仄",
+        "仄平仄平仄平平平平仄",
+        "平平仄?平仄仄平平仄",
+        "平仄平平平仄平仄平仄",
+        "仄仄平仄平仄平仄平仄",
+        "平平平仄仄仄仄平仄仄",
+        "平仄仄仄平平平仄平仄",
+        "仄平平仄仄仄平平平仄",
+        "仄仄平仄平平平仄平仄",
+        "平仄平平平仄平平仄仄",
+        "平仄仄平仄仄仄平平仄",
+        "仄仄平仄平仄平仄平仄",
+        "仄平平平平平平平仄平",
+        "仄平平平仄平平仄平平",
+        "平仄仄平平平平仄平仄",
+        "仄平仄平仄仄仄仄仄仄",
+        "平平平仄仄平仄仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 20,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 11,
+        "assonance_count": 16
+      }
+    },
+    {
+      "title": "行路难三首 一",
+      "author": "顧況",
+      "dynasty": "唐代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄仄平仄平仄平仄仄平平仄仄仄平平",
+        "平平平仄仄平仄平平仄平仄平平",
+        "平平仄仄仄平平仄仄平平仄仄平",
+        "平仄仄仄仄平仄仄平平仄平仄平",
+        "平仄平平仄平平仄仄平仄",
+        "平平平仄平仄仄平仄仄平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 1,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "行路易十五首 二",
+      "author": "傅翕",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平仄平仄仄平平",
+        "平仄仄平平平平平仄平",
+        "平仄仄仄仄平平仄",
+        "平平仄仄仄仄平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "感兴",
+      "author": "鄭谷",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平仄仄平平仄平",
+        "平仄仄平仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "送衞雄下第归同州",
+      "author": "李端",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平仄仄平平",
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄仄仄仄平平",
+        "仄仄平平平平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "春日过寿安山馆",
+      "author": "羅鄴",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平平平平平仄仄平平平",
+        "平平平仄平平仄仄仄平平平仄平",
+        "平仄仄平平仄仄平平平仄仄平平",
+        "平平仄平平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "享文恭太子庙乐章二首 一",
+      "author": "馮伉",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平仄平平仄平",
+        "仄平仄仄仄仄平平",
+        "仄平平平平仄平平",
+        "仄平平仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 5,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "荅韦八",
+      "author": "白居易",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄仄仄仄仄平平",
+        "平仄仄平仄仄平平仄平",
+        "平平平平仄平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "听田顺儿歌",
+      "author": "白居易",
+      "dynasty": "唐代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄平平平仄仄仄平平",
+        "平平平平仄平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 0,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "感皇恩",
+      "author": "赵孟坚",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄仄平平仄平仄?",
+        "平平平平仄平仄",
+        "平平仄?平仄仄仄平仄",
+        "平平仄仄仄平平仄",
+        "仄仄平平仄平平仄",
+        "平平平平平平仄",
+        "平平仄仄仄仄仄平平平平仄",
+        "仄平平仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "临江仙",
+      "author": "向",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄仄平平平仄仄平平平仄平仄",
+        "仄仄平仄平平平",
+        "平平平仄仄平仄仄平平",
+        "平仄平平平仄仄平平仄仄平平",
+        "平平平仄仄平平",
+        "平平平仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "浣溪沙",
+      "author": "贺铸",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平仄平",
+        "仄平平仄平平平",
+        "仄平平仄平平平",
+        "平仄仄平平仄平平平平仄仄平平",
+        "平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 5,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "霜天晓角",
+      "author": "吴潜",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平平仄",
+        "仄仄平平仄",
+        "仄仄平平平仄平仄仄?平平平",
+        "仄平平仄仄",
+        "平平平仄平",
+        "仄仄平平仄仄平仄仄?仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押五歌韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "念奴娇",
+      "author": "魏了翁",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄平平仄平平仄平仄平平平仄",
+        "仄仄平平平仄仄仄仄平平平仄",
+        "仄仄平平平平仄仄仄仄平平平",
+        "仄仄仄平平平平仄平平",
+        "平仄仄仄平平平平仄平平仄平平仄",
+        "仄仄平平平仄仄平仄平平平仄",
+        "平仄平平仄平平仄仄仄仄平平",
+        "仄平仄仄仄平平仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 4,
+        "assonance_count": 7
+      }
+    },
+    {
+      "title": "鼓笛慢・水龙吟",
+      "author": "无名氏",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平平仄平仄平平平仄",
+        "平平仄仄平平仄仄平平仄仄",
+        "平仄平平仄平平仄仄平平仄",
+        "仄平平仄仄平平仄仄平平仄?平平?",
+        "平仄仄平平平",
+        "仄平平?平平平仄",
+        "平平仄仄平平平仄平平仄仄",
+        "平仄平平仄平平仄仄平平仄",
+        "仄仄平仄平平平仄仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 9,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "定风波",
+      "author": "苏轼",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平",
+        "平平平仄仄平平",
+        "平仄仄平平仄仄",
+        "平仄",
+        "平平平仄仄平平",
+        "平仄平平平仄仄",
+        "平仄",
+        "仄平平平仄平平",
+        "仄平平平平仄仄",
+        "平仄",
+        "仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 11,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "台城路・齐天乐",
+      "author": "张炎",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄平平仄平平仄平平仄平平仄",
+        "仄仄仄平平平仄仄平仄平平平仄",
+        "平平仄仄",
+        "仄平仄平平仄平平仄",
+        "仄仄仄平仄平平平仄平仄",
+        "平平平仄仄仄仄平平仄平平仄平仄",
+        "仄仄平平平仄仄仄平?平平平仄",
+        "平平仄仄",
+        "仄仄仄平平仄平平仄",
+        "仄仄平平仄平仄仄仄"
+      ],
+      "rhythm": {
+        "line_count": 10,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 4,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "唤春愁・添声杨柳枝",
+      "author": "贺铸",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄平平仄仄平",
+        "仄平平",
+        "平平仄仄仄平平",
+        "仄平平",
+        "仄仄仄平平仄仄仄平平",
+        "平平平仄仄平平",
+        "仄平平"
+      ],
+      "rhythm": {
+        "line_count": 7,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "如梦令",
+      "author": "王沂孙",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄",
+        "平仄平平平仄",
+        "平仄平平平仄仄仄平平仄",
+        "平仄",
+        "平仄",
+        "平仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "点绛唇",
+      "author": "辛弃疾",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄平平仄平仄仄平平仄",
+        "平平仄仄",
+        "仄仄仄平仄",
+        "平仄平平仄仄平平仄",
+        "平平仄",
+        "平平仄仄",
+        "仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 7,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "定风波",
+      "author": "曾觌",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平",
+        "仄平仄仄仄平平",
+        "仄仄平平平仄仄",
+        "平仄",
+        "平平仄仄仄平平",
+        "平仄平平平仄仄",
+        "平平仄仄仄平平",
+        "仄仄仄平平仄仄",
+        "平仄",
+        "仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 10,
+        "rhyme_scheme": "换韵或散句",
+        "alliteration_count": 5,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "齐天乐",
+      "author": "吴文英",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平平仄平平仄平平仄平平仄",
+        "仄仄平平平平仄仄平平平平平仄",
+        "平平仄仄",
+        "仄平平平平仄平仄仄",
+        "仄仄平平仄平平仄仄平仄",
+        "平平平仄仄仄仄平平仄仄平仄平仄",
+        "仄仄平仄平平仄仄仄平平平平仄",
+        "平平仄仄",
+        "仄平平平平仄平平仄",
+        "仄平平平仄平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 10,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "一落索",
+      "author": "陈瓘",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄仄平?平仄仄",
+        "仄仄平仄",
+        "仄平平仄仄平平平仄仄?平平仄",
+        "平仄平平平仄",
+        "平平仄仄",
+        "仄平平仄仄平仄平?平?平平仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "满江红",
+      "author": "吴潜",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平仄?仄平平仄",
+        "仄仄仄仄平平仄仄平平仄",
+        "平仄平平平仄平仄平平仄平平仄",
+        "仄平平?平仄仄平平平平仄",
+        "平仄仄平平仄",
+        "平仄仄平平仄",
+        "仄平平平仄仄平平仄",
+        "仄仄平平平仄仄平平仄仄平平仄",
+        "仄平平?仄仄仄平平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 9,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 9,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "减字木兰花",
+      "author": "叶梦得",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平仄仄",
+        "仄仄平平平仄仄",
+        "仄仄平平",
+        "平仄仄平仄仄平",
+        "仄平平仄",
+        "仄仄平仄平仄仄",
+        "仄仄平平",
+        "平仄平平仄仄仄"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "换韵或散句",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "乌夜啼",
+      "author": "朱敦儒",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平平",
+        "平平仄仄平平仄平仄平平平",
+        "仄仄平仄仄平平平仄仄平平",
+        "平平仄仄平平仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押五微韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "鹧鸪天",
+      "author": "赵长卿",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平仄仄仄平平",
+        "平平仄仄仄平平",
+        "仄平平仄平平仄平仄平平平仄平",
+        "平仄仄仄平平",
+        "平平平仄仄平平",
+        "仄平仄仄平仄仄平仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 5,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "玲珑四犯",
+      "author": "方千里",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平平仄仄平仄平平平仄平仄",
+        "仄仄平平平仄仄平平仄",
+        "平仄仄仄平平",
+        "仄仄仄?仄平平仄",
+        "仄平平?仄仄平仄",
+        "平平仄平平仄",
+        "仄平平仄平平仄",
+        "仄平平?仄平平仄",
+        "平平仄仄平平仄平仄平平仄",
+        "平仄仄仄仄平仄平仄?平仄平仄",
+        "仄仄平平仄平仄仄?平平仄"
+      ],
+      "rhythm": {
+        "line_count": 11,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 4,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "浣溪沙",
+      "author": "韩淲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平",
+        "平平平仄平平平",
+        "仄平平仄仄平平",
+        "仄仄仄平平仄仄仄仄平仄仄平平",
+        "仄平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 5,
+        "rhyme_scheme": "主要押五歌韵",
+        "alliteration_count": 3,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "洞仙歌",
+      "author": "刘埙",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平平仄仄平平平仄",
+        "仄仄平平平平仄",
+        "仄仄平仄仄平仄平平平平仄?平仄平平平仄",
+        "平平平仄仄平平平平平仄平平仄平仄",
+        "平仄仄平平平仄平平平平仄?仄仄仄平平仄",
+        "仄平仄?平平仄平平仄仄仄平平仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "偈一首",
+      "author": "吳處厚",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄平平平平",
+        "仄平仄仄仄仄仄仄平仄",
+        "仄仄仄平平平平平仄仄",
+        "平平平仄平仄仄?平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "冬日杂兴 其八",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平平仄平",
+        "平平平平仄仄平仄仄平",
+        "仄仄平平仄平平仄仄平",
+        "平平平平仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "出宰分宁别旧同舍五首 其一",
+      "author": "韓駒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平仄仄平仄平",
+        "仄仄平平仄平平仄平平",
+        "平平仄平仄仄仄平平平",
+        "平平平平平仄平仄平仄",
+        "平平仄平仄平平平仄平",
+        "仄仄仄平平仄仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 0,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "句 其一○",
+      "author": "舒亶",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "次韵送新潜江滕令 其一",
+      "author": "項安世",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平平仄仄仄",
+        "平仄平平平仄平平平平仄仄平平",
+        "平平平仄平平仄仄仄平平仄仄平",
+        "仄仄仄平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 3,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "戏题 其一",
+      "author": "李洪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平平平平",
+        "平仄仄平平仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 5,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "送方潮州",
+      "author": "林希逸",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄仄平",
+        "平平仄仄平仄平仄平仄仄仄平平",
+        "平平仄仄平平平仄仄平平仄仄平",
+        "仄平仄平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 0,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "苦寒行二首 其一",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄仄仄平仄平平平仄仄",
+        "仄平仄平平平平平平仄平平仄仄",
+        "仄平平仄平仄平仄平仄平仄仄平",
+        "仄仄平平仄仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "子瞻与李公麟宣德共画翠石古木老僧谓之憩寂图题其后",
+      "author": "蘇轍",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平平平仄仄平仄平平",
+        "仄仄仄平平仄平仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "己酉岁十一月二十六日避寇至龙潭院十二月十五日作五首 其一",
+      "author": "洪炎",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "平平仄仄仄平平仄仄平",
+        "仄仄平仄平平平平仄平",
+        "平平仄仄平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "三月六日出城",
+      "author": "張九成",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平仄平平",
+        "平仄平平平仄平仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "求木硙于周尉",
+      "author": "胡寅",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄仄仄平平仄平平仄",
+        "平平仄仄平仄平仄仄平平平平仄",
+        "仄平平仄仄平平仄仄仄仄仄仄仄",
+        "仄平仄仄仄平平仄仄平平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 1,
+        "assonance_count": 7
+      }
+    },
+    {
+      "title": "自湘赴广道间杂咏 桃李",
+      "author": "李曾伯",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平仄仄平平仄平平",
+        "仄平平仄仄仄仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "刘孝叔会虎丘时王规父斋素祈雨不至二首 其二",
+      "author": "蘇軾",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄仄仄平平",
+        "仄仄平平仄平平平仄平",
+        "平平平平仄平仄仄平平",
+        "平仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "次韵大人待次吴陵邑五首 其二",
+      "author": "葛勝仲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄仄仄平仄平平",
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄仄仄仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "读元次山诗有感而作",
+      "author": "丘葵",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平平平仄平仄平",
+        "平平仄平平仄仄仄平平",
+        "平平平平仄仄平平仄平",
+        "平平平仄仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "题天庆观",
+      "author": "葛紹體",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平仄仄平平仄仄平",
+        "平仄平平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 0,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "游山七绝 水月洞 其一",
+      "author": "張釜",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平仄仄仄平平",
+        "仄平平平平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "和毅伯见寄",
+      "author": "王炎",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平平仄平平平仄仄仄平平",
+        "平平仄仄平平平平仄平平仄仄平",
+        "仄仄平平平仄仄平平平仄仄平平",
+        "仄平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押五微韵",
+        "alliteration_count": 2,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "次韵汪仁甫",
+      "author": "吳錫疇",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平平平仄平",
+        "平仄平平平仄平平平平仄仄平平",
+        "仄平仄仄平平仄平平平平平仄平",
+        "仄仄平平平仄仄平平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "送徐榷院奉户檄之九江等郡",
+      "author": "鄧林",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄仄平",
+        "仄仄平平平仄仄仄平仄平仄平平",
+        "平平平仄平平平平仄平平仄仄平",
+        "平仄平平平仄?平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "同正仲赋赪桐彩蝶",
+      "author": "舒岳祥",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平仄?仄平平",
+        "平平仄仄平平仄平仄平平仄仄?",
+        "平仄仄平平仄仄仄仄仄平仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "偈颂六十八首 其六七",
+      "author": "釋法薰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄仄平平仄",
+        "仄平平仄平仄平平?仄"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "句 其三",
+      "author": "釋士珪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "不如茅屋底四首 其四",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平平平平",
+        "仄平平平仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "初雪",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平仄仄平平仄仄平",
+        "仄仄平仄仄仄平仄平平",
+        "平平平平仄平平平仄平",
+        "平平仄平仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "题灵泉观",
+      "author": "李梃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平仄仄平",
+        "仄仄平平仄平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "出守桐庐道中十绝 其一",
+      "author": "范仲淹",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平平平平仄仄平",
+        "平平仄仄仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "致政大夫胡公挽诗五首 其一",
+      "author": "周麟之",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄仄平平仄平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "吴江三高祠 范蠡",
+      "author": "葉茵",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄?仄平仄平仄平平",
+        "平平仄仄仄平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "登舟",
+      "author": "梅堯臣",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄仄平仄平",
+        "仄平仄仄平仄仄平仄平",
+        "仄仄仄仄平仄仄平仄平",
+        "平仄平平平仄仄平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "次韵周希稷饷耕三绝句 其二",
+      "author": "王庭珪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平平仄平平仄仄平",
+        "仄仄平平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "连日雨",
+      "author": "張侃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平仄平平平仄平仄仄仄",
+        "平平平平平平仄仄平平平仄平仄",
+        "平平仄仄平仄仄仄平仄仄平平平",
+        "平?平仄平仄平仄仄仄平仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "人间",
+      "author": "蔡槃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄平平",
+        "平平平仄仄仄仄仄平平",
+        "仄平平平仄平平仄仄平",
+        "平平仄平仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "常山四诗 迎神",
+      "author": "孔平仲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平仄仄平平平平平平平",
+        "平平平平平仄仄平仄仄平仄平仄平",
+        "仄仄平平仄仄平仄仄仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 3,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 4,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "勉初志",
+      "author": "釋守卓",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平仄平平平仄平平仄仄平",
+        "仄仄仄平平平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "次韵陈文仲探梅二绝 其二",
+      "author": "葛立方",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄平平平仄仄平",
+        "仄仄平平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "逰石帆玉笥石旗诸山",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平仄平平仄平平",
+        "平平平仄仄平仄仄平平",
+        "平仄平平仄平平仄仄平",
+        "仄平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 3,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "张法示诗集为题其后",
+      "author": "徐鹿卿",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平平平平平仄仄平",
+        "仄仄平平平仄仄平平仄仄仄平平",
+        "平平平仄平平仄仄平仄平仄仄平",
+        "平仄平平平仄?仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "良坦姪再转福清县赠行",
+      "author": "趙與闢",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄仄仄平平平仄平平仄仄平",
+        "仄仄平平平仄平平平仄仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "句 其四六",
+      "author": "釋曉瑩",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "再和 其三",
+      "author": "虞儔",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄仄仄平平仄平平平",
+        "仄平平仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "金刚随机无尽颂 法界通化分第十九 其二",
+      "author": "釋印肅",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平平仄仄平平",
+        "仄平平仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押五歌韵",
+        "alliteration_count": 3,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "碧落洞",
+      "author": "陳煥子弟",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平平仄仄平平",
+        "平平仄仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "南浦五小诗迎劳二弟 其三",
+      "author": "朱松",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄?平平仄仄平",
+        "仄仄仄平平平仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "兖学叙旧呈子充",
+      "author": "葛勝仲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平平仄仄仄仄",
+        "平仄平平平仄仄平平仄",
+        "仄仄仄平仄平平平平平",
+        "平平仄平仄平仄平平平",
+        "仄仄平仄平平平平仄仄",
+        "仄仄平平平平仄平平仄",
+        "平仄仄仄仄平仄仄平平",
+        "平平平平仄平平仄平平",
+        "平平仄平平仄平仄平仄",
+        "平平平仄平平仄仄平仄",
+        "仄平平平仄平仄平平平",
+        "仄平平仄仄仄仄平平平",
+        "平平平平平仄平平平仄",
+        "平平仄平平仄仄平平仄",
+        "仄仄仄仄仄仄平仄仄平",
+        "仄仄仄平平仄仄平平平",
+        "仄平平?平仄仄仄仄仄",
+        "平平仄仄平仄仄平平仄",
+        "仄平仄仄平平仄平仄平",
+        "仄仄平平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 20,
+        "rhyme_scheme": "换韵或散句",
+        "alliteration_count": 7,
+        "assonance_count": 13
+      }
+    },
+    {
+      "title": "杨嗣勋惠茯苓",
+      "author": "高似孫",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平平仄平",
+        "仄平平仄仄平仄仄平平",
+        "平平平平仄平平仄仄平",
+        "平平平平仄平仄仄平平",
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄平?平平平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "句 其二",
+      "author": "王晞鴻",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "颂古十首 其七",
+      "author": "釋行鞏",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄仄仄平平平仄平平",
+        "平平平仄平平仄仄平平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "云边阻雨 其二",
+      "author": "劉宰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平仄仄平",
+        "平仄仄平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "和李清卿雪",
+      "author": "王之望",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平仄仄平平平",
+        "平平仄仄平平仄仄仄平平平仄仄",
+        "平仄仄平平仄仄平平平仄平平平",
+        "平平仄仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "读白乐天诗",
+      "author": "方一夔",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄平仄仄仄平",
+        "平仄仄平仄仄仄仄平仄",
+        "仄平平仄平平仄仄平仄",
+        "平平仄平平平平仄平仄",
+        "仄平仄仄平仄仄平平平",
+        "仄平平平仄平仄平仄仄",
+        "平平仄平平仄仄仄仄平",
+        "仄平仄平平仄仄仄仄仄",
+        "平仄平仄平平仄平仄仄",
+        "平平平仄仄仄仄平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 10,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 7
+      }
+    },
+    {
+      "title": "示园丁",
+      "author": "嚴粲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平仄仄平平平仄仄平平",
+        "平平仄平平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "洞户",
+      "author": "劉筠",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平仄平平平平平平",
+        "仄平仄仄仄平仄平仄平平仄平平",
+        "仄仄平平平仄仄仄平平仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 3,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "东楼落成二绝 其二",
+      "author": "吳芾",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平平平平仄仄平平",
+        "仄平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "存目",
+      "author": "呂本中",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平?平平仄平平平仄平仄平?平?仄仄仄仄平平平仄平仄平仄仄平平平仄仄平仄仄?仄仄平平仄平仄平平仄仄仄平平平平仄平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "宿第四铺",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平平平仄仄仄平平",
+        "平平仄仄平平仄仄仄平仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 3,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "句 其一",
+      "author": "劉接",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "次韵许冲元送成都高士敦钤辖",
+      "author": "蘇軾",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄平平仄仄仄平仄仄平",
+        "仄仄平平平仄平平平仄仄仄平平",
+        "平平仄仄平平平平仄平平仄仄平",
+        "平仄仄平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "和房日严换武诗",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平平仄平平仄仄平",
+        "仄仄平平仄仄仄平平平仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "金陵杂兴二百首 其九九",
+      "author": "蘇泂",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄仄仄平仄平平仄平平",
+        "仄平仄平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "送裴如晦宰吴江",
+      "author": "王安石",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄平平平仄平",
+        "平平仄平仄仄仄平平平",
+        "平平平平平仄仄仄平平",
+        "仄仄平仄平平平仄平平",
+        "仄仄仄平仄仄仄平仄平",
+        "平平平仄仄仄仄平平平",
+        "平平仄平仄仄仄平平平",
+        "平?仄仄仄仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "徐君季纯常德教授廨中名一室曰如舟取东坡为宛丘诗而云也过之欲为赋诗意到辄书故不免杂出君居龙游故有盈川之句诗臞云者盖初未识而为簿公曾元之所言也凡五首 其二",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平平平仄仄平平平",
+        "平平仄仄仄平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "梦中 其二",
+      "author": "方岳",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄仄平平仄仄仄平平仄仄平",
+        "仄平仄平平仄仄平平仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "苏训直方夷吾相挽同饭招隠",
+      "author": "章甫",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平平平平仄平平仄仄平",
+        "平平平平平仄平仄平平平仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平",
+        "仄仄仄平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "北风",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄仄平平仄仄仄平平仄仄平",
+        "仄仄平平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押五微韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "送明上人归洞庭",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄?仄平平平平仄平平仄平",
+        "平仄平平平平仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "偶成 其三",
+      "author": "李流謙",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平平仄平平仄仄平",
+        "平仄平平仄平仄仄平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "德清宰俞居安自画渊明图",
+      "author": "王當",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平仄仄平平平",
+        "平平仄平仄仄仄平平平",
+        "仄仄仄平平平平仄平平",
+        "仄平仄仄平仄仄平平平",
+        "平仄仄仄平平仄平平平",
+        "仄平仄仄仄平仄平平平",
+        "平平平平仄平平仄仄平",
+        "平平仄平仄平仄仄仄平",
+        "平平平仄仄平仄仄仄平",
+        "平平仄仄仄平仄平仄平",
+        "仄平平仄平仄仄平平平",
+        "平平平仄平仄仄平平平",
+        "平平平平平仄仄仄平平",
+        "仄平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 14,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 6,
+        "assonance_count": 9
+      }
+    },
+    {
+      "title": "颂古十七首 其一六",
+      "author": "釋宗演",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平仄仄仄平平平仄仄平平",
+        "仄平仄?平平平仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "陈士淳主簿举似与严庆曾主簿邓伯允仙尉同到阳华佳句且有岩下弄琴舟中吹笛之乐长庚虽不奉胜游辄继高韵 其一",
+      "author": "李長庚",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平?平平仄仄平仄平仄仄平平平",
+        "平平平仄仄平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "咏史 汉高帝 其六",
+      "author": "陳普",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平仄平仄平平平平",
+        "仄平仄仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "赵龙学寄阳羡茶为汲蜀井对琼花烹之",
+      "author": "方岳",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄平仄平仄仄仄平平",
+        "仄平平仄仄平平仄仄平平平仄平",
+        "平仄平平平平仄仄平仄仄平平平",
+        "平平仄仄平平仄平仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "过大拽",
+      "author": "王十朋",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平仄仄平",
+        "平平仄仄仄平仄平平平",
+        "仄平仄平仄平平平仄平",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "潜鹤鼓",
+      "author": "楊備",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄仄平",
+        "仄平仄平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "清明二首 其二",
+      "author": "方一夔",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平平平平仄仄平平",
+        "仄平平仄平平仄仄仄平平平仄平",
+        "平仄仄仄平仄仄仄平平仄仄平平",
+        "平平仄仄平平仄平平平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 5,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "女坟湖",
+      "author": "周弼",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平仄仄平",
+        "平平仄平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 3,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "上山",
+      "author": "李廌",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平仄平平仄",
+        "仄仄仄平平仄平平平仄",
+        "平平仄平仄仄仄仄平仄",
+        "平平仄平平平仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "秋蚊",
+      "author": "張耒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平平仄平平",
+        "仄仄平平平平仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "新林小憩见花二首 其一",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄平平平仄仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "和赵达夫元夕礼闱锁宿",
+      "author": "韋驤",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平平仄平平仄仄平",
+        "仄仄平平平仄仄平平平仄仄平平",
+        "平平仄仄平平仄平仄平平仄仄平",
+        "仄仄平平仄平平仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 5,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "赠杨佳孙",
+      "author": "舒岳祥",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平仄仄平仄仄平仄仄仄仄",
+        "仄平平平仄平平平平平仄平平仄",
+        "平平仄仄平仄仄平仄平平平仄仄",
+        "平平平平平仄平仄仄平平平仄仄",
+        "平平平仄仄仄仄平仄平平平仄仄",
+        "平仄平仄仄仄平平?仄仄仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 4,
+        "assonance_count": 7
+      }
+    },
+    {
+      "title": "次韵王教授同寄昌甫器远无为临漳 其四",
+      "author": "韓淲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄仄仄平平平",
+        "仄仄平仄仄仄平平仄平",
+        "平平平仄仄仄仄平平平",
+        "平仄平平仄平平?仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "接伴书怀",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平仄平仄平平平平仄仄平平",
+        "仄平平仄平平仄平仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "题观音石壁",
+      "author": "紹興卜者",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平仄仄平仄平平仄仄平平",
+        "平平仄仄平平平平仄仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "世美约仲孺述之同泛清潩登楼待月分得楼字 其二",
+      "author": "鄒浩",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平仄仄平平平仄?仄平平",
+        "平平平仄平平仄平仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "次韵中玉早梅二首 其二",
+      "author": "黄庭堅",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄仄平仄平平仄仄平平",
+        "平平仄仄平仄仄仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "次韵汪以南闲居漫吟十首 其七",
+      "author": "方回",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄仄仄平平仄平平",
+        "平平仄仄仄仄仄平平平",
+        "平平仄仄仄平平仄仄平",
+        "仄平仄仄仄仄平平仄平",
+        "平平仄仄平平?平平平",
+        "仄仄仄仄仄仄仄平平平",
+        "平平平仄仄平仄平平平",
+        "仄仄仄平仄平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 4,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "还自奉口",
+      "author": "周密",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "平平平仄仄仄仄仄平平",
+        "仄仄平平仄平平仄仄平",
+        "平平平仄仄仄平平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "复次数语呈知止",
+      "author": "汪應辰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平平平平仄平平",
+        "平平仄仄仄仄仄平平平",
+        "仄仄仄仄仄平仄平平平",
+        "平平仄平仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "寄孙元忠 其二九",
+      "author": "孔平仲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄平平平仄仄平平仄",
+        "平平平仄平平平平仄仄平仄平仄",
+        "仄平平平平平平仄平平仄仄平平",
+        "仄仄平平仄仄平平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "寄郢州崔守八首 其五",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄仄平平平平仄仄平平",
+        "仄平平平平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "雨中对梅寄何户曹 其二",
+      "author": "吳惟信",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄仄平平平平仄仄平平",
+        "仄平平仄平平仄平仄平平平仄平",
+        "仄仄仄平平仄仄仄平平仄平平平",
+        "仄平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "寄天台王炼师兼呈邑宰",
+      "author": "張日損",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平仄平平仄仄平平",
+        "平平仄仄平平平平仄平平仄仄平",
+        "平仄仄平平仄平仄平平仄仄平平",
+        "平平仄平平平平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "题点易窗道人苏门遗啸",
+      "author": "陳杰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平仄仄平仄仄仄平平平",
+        "平平平仄平平仄平平仄平平仄平",
+        "平平平平仄平仄仄仄平平平仄仄",
+        "平平仄平平仄仄仄平平仄仄仄仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "余伯皋持巩仲至三山诗卷来因借录之 其一",
+      "author": "韓淲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平仄仄平平平平仄仄平平",
+        "仄平平仄平平仄仄仄仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "同子瞻赋游惠山三首 其三",
+      "author": "秦觀",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄仄平仄平仄",
+        "仄平仄平平平平平仄平",
+        "平仄平平仄平平平仄仄",
+        "仄仄平平平平平仄平仄",
+        "仄平平仄平仄仄平平平",
+        "平仄仄平平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "王武俊",
+      "author": "呂陶",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平仄仄仄平仄",
+        "平平仄仄平平仄平仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "表高氏石公之墓",
+      "author": "李廌",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平平仄平平",
+        "平仄平平平仄仄仄平仄仄仄平平",
+        "平平仄仄平平仄仄仄平平平仄平",
+        "仄平平平仄平平平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 5,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "山居杂诗九十首 其三五",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平平仄仄平仄平",
+        "平平平仄仄平平平仄平",
+        "平平仄仄平平平仄仄平",
+        "平平仄仄平仄平平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "谢三门提举辇运宋叔达郎中寄古碑杂言",
+      "author": "强至",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄平仄平平仄平仄平仄平平",
+        "平平平平仄仄平仄平平平平平仄仄平平平",
+        "平平仄仄仄平仄仄仄仄平仄仄仄平平",
+        "平平平仄仄仄平仄仄平仄平平仄平平",
+        "平平平平平平平仄仄平仄平仄平平平仄平",
+        "平平仄仄仄仄仄平仄仄仄仄平平仄仄仄平平仄",
+        "仄平平仄平平仄平仄仄",
+        "平平平仄仄仄仄平仄仄仄仄平仄",
+        "仄平平平平仄仄仄平仄仄平仄仄",
+        "仄仄仄平仄仄仄平仄仄仄仄平仄仄仄平仄",
+        "仄平仄平平仄仄平仄平仄平仄仄平仄平平",
+        "平平平仄仄平仄平仄仄仄仄仄仄",
+        "平平平平平仄仄平仄平仄仄平仄仄",
+        "平平仄仄平仄仄仄仄平仄",
+        "平平仄平仄仄仄仄仄仄仄平平仄仄平仄平仄仄",
+        "平平仄平仄仄仄平仄仄仄仄平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 16,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 7,
+        "assonance_count": 11
+      }
+    },
+    {
+      "title": "和府公二十韵",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平平仄平",
+        "平平仄平仄平仄平平平",
+        "仄仄平平仄平平平仄平",
+        "仄平平平仄平仄仄平平",
+        "仄仄平平平平平仄?平",
+        "平平平仄仄平仄仄平平",
+        "仄仄仄平仄平平仄仄平",
+        "仄平平仄仄仄仄仄平平",
+        "平仄平平仄仄平仄仄平",
+        "仄平平仄平仄平仄平仄",
+        "仄仄平平仄平平平仄平",
+        "平平仄平仄仄仄仄平平",
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄仄仄仄平平",
+        "仄仄平平仄平平平仄平",
+        "平平平平平仄仄仄平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄平平仄仄平平",
+        "仄仄仄平仄平平平仄平",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 20,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 7,
+        "assonance_count": 18
+      }
+    },
+    {
+      "title": "送刘伯宣尹松江府五首 其四",
+      "author": "俞德鄰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄仄仄平平",
+        "仄仄平平仄平平仄仄平",
+        "平平平仄仄平仄仄平平",
+        "平平平平仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 4,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "长垣路中 其二",
+      "author": "彭汝礪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平仄仄平平仄平",
+        "仄平平平仄仄仄仄平平",
+        "仄仄平平仄平平平仄平",
+        "仄平平仄仄平仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 3,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "与观禅者",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平仄仄平平仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平",
+        "平平平平仄仄仄仄平仄仄平平平",
+        "平平仄仄平平仄仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 4,
+        "assonance_count": 6
+      }
+    },
+    {
+      "title": "于忽操 其三",
+      "author": "王令",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平平仄仄仄仄平仄平仄",
+        "仄平平平平平平平",
+        "仄仄平平平仄平仄",
+        "仄平仄平平平平平平平平平",
+        "平平仄平仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 5,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 13
+      }
+    },
+    {
+      "title": "题松滋东禅院",
+      "author": "鄭文寶",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平平仄平平仄仄平",
+        "平仄仄平平平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "复至凝祥池上",
+      "author": "晁補之",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平平仄仄平仄",
+        "平平仄仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "行县途中读柳子厚诗",
+      "author": "晁說之",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平平平仄平平仄仄平",
+        "仄仄平平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "休日欲报谒林子长值雨不能前用小诗以谢不敏",
+      "author": "虞儔",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平平平平仄仄平平",
+        "仄平平仄平平仄平仄平平仄平平",
+        "仄仄仄平仄仄仄平平仄仄平平平",
+        "平平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "漏泽院四绝句 其一",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平平平平仄平平仄仄平",
+        "平仄仄平平仄仄仄平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "自题岁寒堂",
+      "author": "余瀚",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平平仄平",
+        "仄仄仄平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "寄余干郑丞",
+      "author": "李龏",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平仄仄平平平仄平平平仄平",
+        "平仄平平平仄仄仄平平仄仄平平",
+        "?平仄仄平平平仄仄平平仄仄平",
+        "仄仄平平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 4,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "句 其一",
+      "author": "黄庚",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "句 其一○",
+      "author": "朱敦儒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄仄平仄仄平仄仄平平平平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "桂源早行",
+      "author": "余靖",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄仄仄仄平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄平平仄仄平平",
+        "平仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "夜兴",
+      "author": "汪莘",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平仄平平平仄仄平",
+        "仄仄仄平平仄仄仄平仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "率饮亭二十绝 其一三",
+      "author": "王十朋",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平仄仄平平",
+        "仄仄平平仄仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "别赋一首",
+      "author": "劉克莊",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平平平仄平平仄平平",
+        "仄仄平平平仄仄平平平仄仄平平",
+        "仄平仄仄平平仄平仄平平仄平平",
+        "仄仄平平仄平平平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "圆石",
+      "author": "陸佃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平仄仄仄平平",
+        "平仄仄仄平平仄平仄平平仄仄平",
+        "仄仄仄平平仄仄仄平平仄仄平平",
+        "仄平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "菊",
+      "author": "嚴粲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄仄仄平平平",
+        "仄仄平平仄平平仄平平",
+        "平平仄平平仄平平平平",
+        "仄平平仄平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "春日杂题六首 其一",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平仄平平平",
+        "仄平仄平仄平仄平仄平",
+        "仄平平平仄仄仄仄仄平",
+        "仄仄平仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "早春",
+      "author": "寇準",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄平仄仄平平",
+        "仄平平平仄平平仄仄平",
+        "平平仄平仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "还过渚宫 其一",
+      "author": "項安世",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄仄平",
+        "平仄仄平平平仄仄平平仄仄平平",
+        "仄平仄仄平平仄平平平平仄仄平",
+        "仄仄平平仄仄仄仄平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "送张直翁",
+      "author": "薛師石",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平平仄仄平平仄平",
+        "平仄仄平平仄仄平仄平仄仄平平",
+        "仄平平仄平平仄平仄平平仄仄平",
+        "平仄平平平平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "赠金斗相士",
+      "author": "姚勉",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平仄平仄平平仄仄仄平平平",
+        "仄仄仄仄平平平仄平仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "题史髯词卷二首 其一",
+      "author": "陳造",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平平仄平仄平平仄仄平平",
+        "仄平仄仄平平仄平平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "次李司直韵二首 其一",
+      "author": "裘萬頃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平平仄平平仄仄平",
+        "仄仄平平仄平平平平平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "将赴表臣会呈杜挺之",
+      "author": "梅堯臣",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平平仄平平仄平",
+        "平平平仄仄仄仄平平平",
+        "平仄平平仄平?仄仄平",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 6
+      }
+    },
+    {
+      "title": "游裴公亭 其一",
+      "author": "趙恒",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄仄平",
+        "仄仄平平平仄平平平平仄仄平平",
+        "仄平平仄平平仄平仄平平仄仄平",
+        "平仄仄平仄平仄仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 4,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "冬后 其三",
+      "author": "黄裳",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平平平平仄平平仄仄平",
+        "仄仄仄平平仄平平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "投魏先辈二首 其一",
+      "author": "劉應時",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平仄仄仄仄仄仄",
+        "仄平平平平平仄仄平平",
+        "平平平仄平平平仄仄平",
+        "平平仄平仄仄仄平平平",
+        "仄仄平仄仄仄仄平平平",
+        "平仄仄仄平仄仄仄仄平",
+        "平平平仄仄仄仄平平平",
+        "仄仄平仄仄平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 4,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "思归",
+      "author": "傅察",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄仄仄平平平仄平",
+        "仄平平仄仄平仄仄平平",
+        "仄仄平平平平平仄仄平",
+        "仄平平仄仄仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "题汪水云诗卷 其七",
+      "author": "胡斗南",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平平平仄平平仄仄平",
+        "平仄平平平仄仄仄平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "别白水归大雪",
+      "author": "趙文",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄仄平仄平仄仄平平平",
+        "平平仄平仄平仄仄平仄仄平平平",
+        "平平平平仄仄仄仄平平仄平平平",
+        "平平仄平仄仄平仄仄仄仄平平平",
+        "平平仄仄仄平仄仄仄仄仄平平平",
+        "仄平仄仄仄平仄平仄平平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 5,
+        "assonance_count": 6
+      }
+    },
+    {
+      "title": "矮桃",
+      "author": "許及之",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平平平平平仄仄",
+        "平平仄仄平仄仄仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押五歌韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "阎生谈黄庭",
+      "author": "文同",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平平平仄平仄仄",
+        "仄平仄平平仄仄仄平仄",
+        "平平平平仄平仄仄平仄",
+        "仄仄仄平平仄平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 4,
+        "assonance_count": 6
+      }
+    },
+    {
+      "title": "予平生愿学忠恕既以自勉亦告于人王牒正则闻而悦之归作唯斋九万里风斯下矣写衰容命之赞",
+      "author": "周必大",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平仄平平平仄仄",
+        "仄平平平仄平仄仄",
+        "仄平平仄平仄仄平仄平平平平仄",
+        "平仄仄平平仄平仄平仄仄平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "嘉禾百咏 简斋",
+      "author": "張堯同",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "白都山",
+      "author": "楊備",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平仄平平平仄平平",
+        "平平仄仄平仄平仄仄平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "渔翁二首 其一",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平平平仄仄仄平平",
+        "仄平仄仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "同熊伯通自定林过悟真二首 其一",
+      "author": "王安石",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平仄平平平仄平平",
+        "仄平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "偈颂一百三十三首 其一二六",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄仄平平仄仄平平",
+        "仄仄平平平平仄仄",
+        "仄仄平仄仄仄仄平平平仄仄平平",
+        "平平平仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 6,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "咏鹤",
+      "author": "張嵲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄仄平平平",
+        "仄仄平仄平平平平仄平",
+        "仄平平仄平平平平平平",
+        "仄仄平仄平仄仄平仄平",
+        "平平仄平仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 5,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "雨中望灵山呈明远",
+      "author": "韓元吉",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄仄平",
+        "仄仄仄平平仄仄仄平平仄仄平平",
+        "仄平仄平平平仄仄仄平平仄仄平",
+        "仄仄平平平仄仄仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 1,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "寄程子山舍人",
+      "author": "王庭珪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平仄平平仄平平仄仄平",
+        "仄平平平仄平仄仄平平仄平平平",
+        "平平平平平仄仄仄仄仄平平仄平",
+        "仄仄平平平平仄仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "书兰莫德全壁",
+      "author": "潘璵",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄平仄平平仄平平平",
+        "平平仄仄平平平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "醉起",
+      "author": "趙崇嶓",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平平仄仄平平",
+        "平平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "观锡宴宣劝",
+      "author": "王同祖",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平仄仄仄平平",
+        "平平仄仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押五微韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "黄孟博辞往鄂渚赠别",
+      "author": "陳杰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平平平平仄平平仄平平",
+        "仄仄平平平仄仄仄平平仄仄平平",
+        "平平仄仄平平仄仄仄平平仄平平",
+        "仄仄仄平平仄仄平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "次芸居无题韵",
+      "author": "胡仲弓",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平仄仄平平平",
+        "仄平仄仄平平仄平平平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "次韵九弟五绝句 其四",
+      "author": "李彭",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平平仄仄平仄仄平",
+        "平仄仄平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "之永和小憩资寿寺",
+      "author": "楊萬里",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平?仄仄仄平平平仄平",
+        "仄平仄平平仄平仄平平",
+        "平仄仄平仄平平仄仄平",
+        "仄平平平仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 1,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "为李少监赋秋崖歌",
+      "author": "釋文珦",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平仄平平平平仄平平平",
+        "平仄仄仄平仄仄平平仄仄平仄平",
+        "仄仄平平仄仄仄仄仄平平平平平",
+        "平平仄仄仄仄仄平仄仄仄仄平平",
+        "仄仄平平仄平仄仄平平平仄平平",
+        "仄平平平平仄仄仄平平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 6
+      }
+    },
+    {
+      "title": "忆水芙蓉木芙蓉寄西湖诸友 其二",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平平仄仄平平",
+        "平平平仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 3,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "句 其一",
+      "author": "喻汝礪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平仄平平平平仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "四月八日偕张菊村邓匪石洪乐闲游城西诸寺以山高水长分韵得长字",
+      "author": "陸文圭",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平仄仄平",
+        "平平平平平平平仄平平",
+        "仄仄平平仄平平平仄仄",
+        "仄平平仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "松风",
+      "author": "俞紫芝",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平仄平仄",
+        "仄仄平平平平平平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "别茂直",
+      "author": "鄭剛中",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平仄仄仄平仄",
+        "平平仄仄仄平仄仄平仄",
+        "平平平仄仄仄仄仄平仄",
+        "仄仄平平平平仄仄仄仄",
+        "仄仄仄平仄平仄仄平平",
+        "仄平平仄平平平平平仄",
+        "平平仄平平平仄平仄仄",
+        "仄仄平仄平平平平平仄",
+        "仄平仄平平平平仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 9,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "晓至池上",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄仄平仄平平仄平平",
+        "平平仄仄平平仄平平平",
+        "仄仄平平仄平平仄平平",
+        "平平平仄平平仄仄仄仄",
+        "平仄平仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 5,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "郑司法挽词 其一",
+      "author": "樓鑰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平平仄仄平",
+        "平平平仄平仄平仄平平",
+        "平平平平平平仄仄仄平",
+        "平平平仄平平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "谢发运颖叔宠寄新什",
+      "author": "郭祥正",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平平仄平平平仄平",
+        "仄平仄平平平仄平平平仄仄平平",
+        "仄平平平平平仄仄仄平平仄仄平",
+        "仄仄仄平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 5,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "秋晴",
+      "author": "鄭獬",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄仄仄平平仄仄仄仄",
+        "仄平平仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "拟玉台体七首 携手曲",
+      "author": "歐陽修",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平仄平平平平仄平",
+        "仄仄平仄平仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "句",
+      "author": "劉琰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平仄平仄平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "十六日伏睹明堂礼成圣驾恭谢太一宫小臣敬成口号 其六",
+      "author": "蘇泂",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄平平",
+        "平仄平平平平仄仄平平?仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "清明后一日出寻梨花先过城南资福僧舍修竹森然即赋小诗盛道爱竹之意客摘诗语病予曰君自有竹何来此为因作梨花解嘲盖予故秋至魏未尝见梨花盛时资福之句良率然也晚饮全福抵花下披取巨枝立植间坐欢甚径醉乃知吾家子猷直与竹同迷耳亦为作诗凡得三绝句 其三",
+      "author": "王安中",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平仄平平平平仄平平平",
+        "平平仄仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "寄家书有怀岁寒五友二首 其二",
+      "author": "錢時",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平平仄平仄平平平仄平平",
+        "平平仄仄平平仄平平平平仄仄?"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押五歌韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "将至兰陵道中以远岫重叠出寒花散漫开为韵 其六",
+      "author": "李處權",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平?仄平仄仄仄平平平",
+        "平平仄平仄仄仄平仄平",
+        "平仄平仄平仄仄平仄平",
+        "平仄仄平仄平平仄平平",
+        "仄平平仄仄仄仄仄仄平",
+        "平平平仄平平仄仄仄平",
+        "平平仄仄平仄平仄平平",
+        "平平仄平平仄仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "换韵或散句",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "偈颂一百零二首 其九",
+      "author": "釋慧遠",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平仄仄平平仄仄平平仄仄",
+        "平平平仄平平仄仄平平仄仄",
+        "仄仄?平平仄仄平平仄平平",
+        "平仄仄仄平仄仄平仄仄平?",
+        "平仄仄平平仄平平平平平平平仄平平",
+        "仄仄仄仄平平仄仄仄平仄平",
+        "平平仄平平仄仄平?仄",
+        "仄平平仄仄平平平平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 9,
+        "assonance_count": 9
+      }
+    },
+    {
+      "title": "挽程孺人",
+      "author": "黄文雷",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "平平平仄仄仄仄仄平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平平平仄仄仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "上钱唐太守薛大谏",
+      "author": "釋智圓",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄仄仄平平平",
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄平仄仄平平",
+        "仄仄平仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 3,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "醉歌 其一○",
+      "author": "汪元量",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平平平?平平仄平平",
+        "平仄仄平仄平仄仄平平仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "柳枝词十三首 其六",
+      "author": "司馬光",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平平平仄平平平仄仄平",
+        "仄仄平仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押二萧韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "和范景仁蜀中寄牡丹图",
+      "author": "范純仁",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平仄仄平平",
+        "平仄仄平仄平平平仄平",
+        "平平平仄仄平仄仄平平",
+        "平仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "学诗",
+      "author": "趙崇鉘",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平仄平仄仄仄",
+        "平平平平平平平平平仄",
+        "仄平平仄平平平仄平仄",
+        "平平仄平平平仄平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "句",
+      "author": "政和太學生",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平?平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "山居即事",
+      "author": "王邁",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平平平平仄仄平平",
+        "平平仄仄平平平平平平平仄仄平",
+        "仄仄平平平仄仄仄平仄仄平平平",
+        "仄平仄仄平仄仄仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "官池即事",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平仄平平仄仄平",
+        "仄平平仄平平仄仄平平",
+        "仄仄平平仄平平仄仄仄",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "咏史 阮籍 其二",
+      "author": "陳普",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄仄平仄平平仄仄平平",
+        "平平仄平平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "元夕卜油溪故事 其一",
+      "author": "魏了翁",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平仄平仄仄平平平仄仄平",
+        "仄平平平?平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "游灵岩分韵得从字",
+      "author": "蔡沈",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平仄平平平仄",
+        "平平仄仄平仄仄平仄平",
+        "仄仄平平仄平平仄平平",
+        "平平平仄平仄仄平平平",
+        "平平平平仄平平平平平",
+        "平平平平平仄仄平仄仄",
+        "仄平仄平仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 7,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "杂咏四首 其一",
+      "author": "范仲淹",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平平平仄仄平平仄仄平",
+        "平仄平平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押七阳韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "屋头梅开一蕊",
+      "author": "翁森",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平平仄平",
+        "平平平仄仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "次韵毕叔文牡丹",
+      "author": "趙蕃",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平平仄仄平平仄仄平",
+        "仄仄平平仄仄仄仄平仄仄仄平平",
+        "平平仄仄仄平仄仄仄仄平仄仄平",
+        "仄仄仄平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "和范公希文怀庆朔堂",
+      "author": "陳希亮",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平平平仄仄仄平平",
+        "仄平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "子大有游东山之约以诗相趣因次其韵 其四",
+      "author": "王炎",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平仄平平仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "和人见寄",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平仄平平仄仄平平",
+        "仄平仄仄平平仄仄仄平平仄仄平",
+        "平仄仄平平仄平平平平仄仄平平",
+        "平平?仄平平平仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "郡斋怀隠庵 其二",
+      "author": "辛棄疾",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平仄仄平",
+        "平仄平平平仄仄仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "再赋末利二绝 其二",
+      "author": "范成大",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄仄仄平平仄仄平平平仄平",
+        "平仄平平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "答范君锡 其二",
+      "author": "徐積",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "仄仄平平平仄平仄",
+        "平平仄仄平平仄仄仄仄",
+        "仄仄平平平平仄仄仄仄",
+        "平仄平平仄仄仄仄仄平平仄平仄",
+        "平平平仄仄仄平仄仄仄平仄平仄",
+        "仄平平仄仄平平平平平平平平平",
+        "仄平平平仄平?平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 7,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 3,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "偈颂二百零五首 其五七",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄平仄平仄仄平仄仄平平仄",
+        "仄仄仄仄平仄仄平平仄仄平平仄",
+        "仄平平仄仄平平仄平仄仄平仄仄",
+        "仄仄仄平平平仄平仄仄仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 4,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "二月望游齐山呈仓使二首 其一",
+      "author": "錢時",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平平仄平",
+        "仄仄仄平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "波光亭",
+      "author": "王庭珪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平平平平仄平平仄仄平",
+        "仄仄仄平平仄仄仄平平仄仄平平",
+        "平仄平仄平平仄仄仄平平仄仄平",
+        "仄仄平平平仄仄仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "立夏五首 其五",
+      "author": "方回",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平平仄仄平",
+        "平仄平平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "春暮",
+      "author": "劉應時",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平平平平",
+        "仄平平仄仄仄仄仄平平",
+        "平仄平平仄仄平平仄平",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 0,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "谢德华惠牡丹因招同官会饮",
+      "author": "彭汝礪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄平平平仄平平仄仄平",
+        "仄仄平平平仄仄平平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "次韵择之铅山道中二首 其一",
+      "author": "朱熹",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平平平仄仄仄平平",
+        "仄平仄平平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "十月旦日过云林",
+      "author": "韓淲",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平平平平平仄平",
+        "平平平平仄平平仄仄平",
+        "仄平平仄仄仄仄仄平平",
+        "仄仄平平仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 4,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "题赵希贤所藏墨竹 其二",
+      "author": "仇遠",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄仄平平仄平",
+        "平平平平仄仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "醉中信笔作四绝句既成惧观者不知野人本心也复作一绝 其五",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平平平仄平平",
+        "仄平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "和子瞻次韵陶渊明劝农诗 其一",
+      "author": "蘇轍",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平平平平平",
+        "仄平平平仄仄平平",
+        "平平平仄仄仄仄平",
+        "仄仄仄平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "思归引",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平仄平仄平平仄平仄平仄平仄",
+        "仄平平平仄平仄仄平平平平仄平仄仄",
+        "仄平仄仄平平平仄仄平平平仄仄",
+        "仄平平平平平平平平仄仄平平平",
+        "平平仄仄平仄平仄仄仄平平仄平",
+        "仄平仄平平仄仄平仄平平仄平平",
+        "平平平仄仄平仄仄仄平平仄平平",
+        "仄平仄仄仄平平平仄平平仄平平",
+        "仄仄仄仄平平仄平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 9,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 5,
+        "assonance_count": 8
+      }
+    },
+    {
+      "title": "偈颂二百零五首 其二○三",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平仄平平平平平仄仄",
+        "平平平仄平平平仄仄仄仄平仄仄",
+        "仄平仄平仄平平仄仄平平平仄仄平平仄"
+      ],
+      "rhythm": {
+        "line_count": 3,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "都尉王居士赞",
+      "author": "楊傑",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平平平平仄平平平",
+        "仄平仄平平平平仄平平平平",
+        "仄平平平平平平平",
+        "仄平仄仄仄平平平",
+        "平平仄平平仄平平",
+        "平平平平仄平仄仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 2,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "句 其七",
+      "author": "趙師秀",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "太硕人潘氏挽词",
+      "author": "樓鑰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平平仄仄平平",
+        "仄平平仄平平仄仄仄平平平仄平",
+        "仄仄仄平平平仄平平平仄平平平",
+        "平平平仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "送别胡汲古",
+      "author": "黄庚",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄仄仄平平",
+        "平仄仄平平平仄平平平",
+        "平平平仄仄仄仄仄平平",
+        "仄仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "次韵戴成叔 其一○",
+      "author": "陳著",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄仄仄平仄平",
+        "平平平平平平平平平平",
+        "仄平平平平仄仄平平平",
+        "平仄平仄仄仄仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "器之示巽中见怀次韵",
+      "author": "釋德洪",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平仄平仄平平",
+        "平平仄平平平仄仄仄平平平仄仄",
+        "平仄仄平平仄平仄平平仄仄平平",
+        "平平仄平仄平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "耿天骘许浪山千叶梅见寄",
+      "author": "王安石",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平平平平平平仄仄仄平平",
+        "仄平仄仄平平仄平仄平仄仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "颜鲁公画像",
+      "author": "朱翌",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平仄仄仄平",
+        "平仄仄平平仄仄仄平仄平平平平",
+        "平平仄仄平平仄仄平平平平仄平",
+        "仄仄平平平仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 2,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "答分守魏大夫",
+      "author": "李復",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平平平平仄平",
+        "平平平仄仄仄仄仄平平",
+        "仄平平平仄平平仄仄平",
+        "仄平平平平平仄平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "走笔代书寄岊仲七弟",
+      "author": "錢勰",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平平平平仄平平仄平平",
+        "仄仄平平仄平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 3,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "西湖观梅三首 其一",
+      "author": "章謙亨",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平平平平",
+        "仄平平仄仄仄仄平平仄",
+        "仄仄平平仄平平仄平平",
+        "平平平仄仄仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "忆和",
+      "author": "劉敞",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平平仄平平平平仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "句 其一",
+      "author": "周密",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄仄平平仄仄平平仄仄平平平",
+        "?仄平平平?仄平仄仄??"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "隆祐太后挽歌辞三首 其三",
+      "author": "劉子翬",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平仄仄平",
+        "平平仄仄仄仄仄仄平平",
+        "平仄平平仄平平仄仄平",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "颂古一百则 其六七",
+      "author": "釋正覺",
+      "dynasty": "宋代",
+      "form": "词",
+      "tone_patterns": [
+        "平仄仄仄平平平仄",
+        "平仄仄平平平平平平平平仄",
+        "平仄平平平平仄仄",
+        "平仄平平仄仄仄仄仄平平平仄平平平仄平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押五微韵",
+        "alliteration_count": 2,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "宫词 其九一",
+      "author": "宋白",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平仄平平平平平仄仄平平",
+        "平平仄平平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押三江韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "颂古一百首 其二一",
+      "author": "釋智愚",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平仄平平仄仄平",
+        "平平平仄仄平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "偈颂一百三十三首 其一五",
+      "author": "釋居簡",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄平平仄仄平",
+        "平仄平平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一尤韵",
+        "alliteration_count": 2,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "老桂古字韵",
+      "author": "陸文圭",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平平仄仄平平仄",
+        "仄仄仄仄平平仄平仄仄",
+        "仄仄仄平平平仄仄平仄",
+        "平仄仄仄平平仄仄平仄",
+        "平仄平平仄平仄平平仄",
+        "仄仄仄平平仄仄平仄仄",
+        "平平仄仄仄平仄平平仄",
+        "仄平仄平仄仄仄平仄仄"
+      ],
+      "rhythm": {
+        "line_count": 8,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "送吴敏叔待制侍郎",
+      "author": "楊萬里",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平仄仄仄平平平仄仄平平平",
+        "平仄平仄平平仄仄仄平平仄仄平",
+        "仄仄平平平仄仄平平平仄仄平平",
+        "仄平仄仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 0,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "全州道间 其二",
+      "author": "李曾伯",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平平平仄仄平",
+        "平仄平平平仄仄平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 0,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "至日建中次季真韵",
+      "author": "胡一桂",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄仄仄平平平仄平平",
+        "平平平平平平仄仄仄平平仄仄平",
+        "仄平仄平平仄仄平平平仄仄平平",
+        "平平?仄平平仄仄平平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押五微韵",
+        "alliteration_count": 4,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "和董显叔韵",
+      "author": "袁說友",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平仄平仄仄仄平平仄",
+        "平平仄仄平仄平平?仄平平?仄",
+        "平平仄仄平平平平平平仄仄仄平",
+        "仄平平仄仄平仄平仄仄平平仄平",
+        "平平平平平仄仄平平仄仄仄平仄",
+        "仄平仄平仄平平平仄平平平仄仄",
+        "平平仄仄平平平仄仄仄仄平仄平",
+        "仄平平平平平仄平仄平仄平平平",
+        "平平平平仄平仄仄平平平平仄仄",
+        "仄平仄仄平仄平仄仄平平平仄仄",
+        "仄平仄平平平平仄仄仄仄平仄平",
+        "仄平平平平平仄仄仄平平平平平",
+        "仄平平仄仄平仄平平仄平仄平仄",
+        "平平平仄仄平平仄仄平平平平仄",
+        "平平仄平平仄平仄仄平仄平仄平",
+        "仄平平平平仄仄仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 16,
+        "rhyme_scheme": "换韵或散句",
+        "alliteration_count": 13,
+        "assonance_count": 8
+      }
+    },
+    {
+      "title": "句",
+      "author": "蔡薿",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 1,
+        "rhyme_scheme": "",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "和刘师文饮城西见怀",
+      "author": "孫應時",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄平平平仄平平",
+        "仄平平平仄仄仄仄平仄",
+        "平平平平仄仄仄仄仄仄",
+        "平平仄仄平平仄仄平平",
+        "平平仄平仄平平仄平平",
+        "仄平平平仄仄平平平仄",
+        "平平平平仄仄仄平平仄",
+        "平平仄平仄平平仄平仄",
+        "平仄仄平平平平平平仄",
+        "仄平仄?仄仄仄平平仄",
+        "平平平仄仄仄仄仄平仄",
+        "仄仄仄仄平平平仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 12,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 8
+      }
+    },
+    {
+      "title": "和王总干韵",
+      "author": "衛宗武",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平平平平平仄平平仄仄平",
+        "仄仄平平仄平平平平仄仄平平平",
+        "平平仄仄平仄仄平仄平平平仄平",
+        "平仄平平平仄仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 1,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "寿范漕 其四",
+      "author": "吳泳",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平仄仄平仄平",
+        "仄平仄仄平平仄仄仄平",
+        "仄仄平仄平平仄平仄仄",
+        "平平平仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "闲身 其一",
+      "author": "釋文珦",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平平仄平仄仄",
+        "平平仄平仄仄仄平平平",
+        "平平仄平平平仄平平仄",
+        "平仄仄仄平平平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 3,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "和高路分见赠二首 其一",
+      "author": "曹勛",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄平平仄仄平平仄仄平",
+        "仄?仄平仄仄仄仄平平仄仄平平",
+        "平平平仄平平仄平仄平平仄仄平",
+        "平仄平平仄平仄仄平平平平平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 3,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "游毛公洞六首 其三",
+      "author": "王之道",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平平仄仄平平",
+        "平平平仄平平平仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "春半久雨走笔五首 其四",
+      "author": "方回",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平平平仄仄仄平平",
+        "仄平仄仄平平仄仄仄平平平仄平",
+        "平仄仄平平仄仄仄平平仄仄平平",
+        "平平仄仄平平仄仄仄平平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 5,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "偈",
+      "author": "釋凈曇",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄平平仄仄平平",
+        "仄平仄仄平平仄仄仄平仄平仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "与宁陵叔弟别后有怀兼寄赵才仲二首 其一",
+      "author": "呂本中",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄平仄仄平平仄平",
+        "平平仄仄平平平平平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "刘共甫枢密挽词三首 其二",
+      "author": "周必大",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平平平仄仄平",
+        "平平平仄仄平仄平平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平平仄仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 4,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "寿马裕斋观文 东山,二章,章四句. 其一",
+      "author": "陳著",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平平仄平仄平",
+        "仄仄平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 0,
+        "assonance_count": 0
+      }
+    },
+    {
+      "title": "郫县道中思故里",
+      "author": "陸游",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄平平平仄仄平",
+        "仄平平仄仄平平仄平平",
+        "平仄平平仄平平仄仄平",
+        "平平仄平仄仄平仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "夜思",
+      "author": "方回",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平仄仄仄仄平仄平平",
+        "仄平仄仄仄仄仄平仄平",
+        "仄仄平仄仄仄仄平平平",
+        "仄平平仄仄平仄平平平",
+        "平平平仄仄仄仄平仄平",
+        "仄平平平平仄平平仄平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押八庚韵",
+        "alliteration_count": 2,
+        "assonance_count": 5
+      }
+    },
+    {
+      "title": "庸斋再赋予亦再和",
+      "author": "高斯得",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平平平仄仄平平仄仄平",
+        "仄仄平平平平仄仄平仄平仄平仄",
+        "仄平仄仄平平仄仄平平平平仄平",
+        "仄仄平平平仄仄平仄仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 5,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "古鉴谣",
+      "author": "楊傑",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平仄平平平仄平仄",
+        "平平仄平平平平平仄仄",
+        "平平平平平平仄平平仄",
+        "仄仄仄仄仄仄仄仄平仄",
+        "仄平仄平仄平平仄平仄",
+        "仄仄平仄仄平仄仄平仄",
+        "仄仄仄平仄仄平仄平仄",
+        "平仄仄仄仄平仄平平仄",
+        "平仄仄仄仄平仄平平仄",
+        "平平仄平仄平平平平仄"
+      ],
+      "rhythm": {
+        "line_count": 10,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 5,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "句 其三",
+      "author": "張舜民",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄平平仄仄平仄平平仄仄平平",
+        "平平平仄平平仄仄仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十三元韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "中秋赏月蓬莱阁呈同官",
+      "author": "王十朋",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平平仄平平仄仄平",
+        "平仄仄平平仄仄平平仄仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄平",
+        "仄仄仄平平仄仄平平仄仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押九佳韵",
+        "alliteration_count": 1,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "陈渭老今夕开阁诚为盛事戏成二小诗以侑坐客 其二",
+      "author": "李光",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄仄平平平仄平平仄仄平",
+        "仄仄仄平平平仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "舟中追和逊卿早春即事十首 其七",
+      "author": "陸文圭",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄仄平仄平仄仄仄平平",
+        "平平仄仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押十四寒韵",
+        "alliteration_count": 2,
+        "assonance_count": 2
+      }
+    },
+    {
+      "title": "黄燕山",
+      "author": "楊琛",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平仄仄平平仄仄平平仄仄平",
+        "平平平平仄仄仄平平平仄仄平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "无韵",
+        "alliteration_count": 2,
+        "assonance_count": 3
+      }
+    },
+    {
+      "title": "冻禽",
+      "author": "梅堯臣",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平仄仄平平平仄平仄仄",
+        "平平仄仄平仄仄平仄仄",
+        "仄平平仄平仄仄仄平平",
+        "平平平平平仄仄仄平仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押一东韵",
+        "alliteration_count": 1,
+        "assonance_count": 4
+      }
+    },
+    {
+      "title": "挽黄承事三首 其三",
+      "author": "廖行之",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "平平平平平仄平平平平仄仄平平",
+        "平平仄仄仄平仄仄仄平平仄平平",
+        "仄仄平平平平仄仄平平仄仄平平",
+        "平平仄仄平平仄仄仄平平仄仄仄"
+      ],
+      "rhythm": {
+        "line_count": 4,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 2,
+        "assonance_count": 6
+      }
+    },
+    {
+      "title": "竹溪直院盛称起予草堂诗之善暇日览之多有可恨者因效颦作十首亦前人广骚反骚之意内二十九首用旧题惟岁寒知松柏被褐怀珠玉三首效山谷余十八首别命题或追录少作并存于卷以训童蒙之意 西狩获麟",
+      "author": "劉克莊",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平仄平平仄仄平",
+        "?平平平仄仄仄平仄平",
+        "平仄平平平平平仄仄平",
+        "平平平仄仄平仄仄平平",
+        "仄仄平平仄平平仄仄平",
+        "仄平仄平仄平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 6,
+        "rhyme_scheme": "主要押十一真韵",
+        "alliteration_count": 4,
+        "assonance_count": 7
+      }
+    },
+    {
+      "title": "明日子充折赠次韵谢之",
+      "author": "范成大",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄仄平平平仄平仄平平仄仄平平",
+        "仄平平仄平平仄平仄平平仄仄平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押六麻韵",
+        "alliteration_count": 0,
+        "assonance_count": 1
+      }
+    },
+    {
+      "title": "缴回太守赵庸斋照牒",
+      "author": "何基",
+      "dynasty": "宋代",
+      "form": "古体诗",
+      "tone_patterns": [
+        "仄平平仄平平平平仄平平仄仄平",
+        "仄平平平仄平仄仄平平仄平平平"
+      ],
+      "rhythm": {
+        "line_count": 2,
+        "rhyme_scheme": "主要押四支韵",
+        "alliteration_count": 1,
+        "assonance_count": 2
+      }
+    }
+  ]
+}

@@ -17,7 +17,6 @@ __version__ = '0.1.0'
 from src.core.text_utils import TextProcessor, preprocess_poem
 from src.core.pinyin_utils import PinyinConverter, ToneAnalyzer
 from src.features.rhyme_features import RhymeFeatureExtractor, extract_rhythm
-from src.features.sentiment_features import SentimentFeatureExtractor, analyze_sentiment
 from src.models.poetry_classifier import PoetryAnalyzer, identify_form, classify_theme
 
 __all__ = [
@@ -29,8 +28,6 @@ __all__ = [
     # Features
     'RhymeFeatureExtractor',
     'extract_rhythm',
-    'SentimentFeatureExtractor',
-    'analyze_sentiment',
     # Models
     'PoetryAnalyzer',
     'identify_form',

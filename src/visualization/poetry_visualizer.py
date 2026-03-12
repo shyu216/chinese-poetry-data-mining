@@ -12,45 +12,36 @@
 from typing import List, Dict, Tuple, Optional, Any
 from pathlib import Path
 import json
+import plotly
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import networkx as nx
+import jieba
+from collections import Counter
+import pandas as pd
+import pyecharts
+from pyecharts.charts import WordCloud, Map, Graph, Timeline
+from pyecharts import options as opts
+import dash
+from dash import dcc, html
+from dash.dependencies import Input, Output
 
 
 class PoetryVisualizer:
     """诗词数据可视化器"""
     
     def __init__(self):
-        self.plotly_available = False
-        self.pyecharts_available = False
-        self.dash_available = False
-        self._check_libraries()
-    
-    def _check_libraries(self):
-        """检查可用的可视化库"""
-        try:
-            import plotly
-            self.plotly_available = True
-        except ImportError:
-            pass
-        
-        try:
-            import pyecharts
-            self.pyecharts_available = True
-        except ImportError:
-            pass
-        
-        try:
-            import dash
-            self.dash_available = True
-        except ImportError:
-            pass
-        
-        print(f"可视化库检查: Plotly={self.plotly_available}, Pyecharts={self.pyecharts_available}, Dash={self.dash_available}")
+        self.plotly_available = True
+        self.pyecharts_available = True
+        self.dash_available = True
     
     # ========== Plotly 可视化 ==========
     
     def create_scatter_plot(self, data: List[Dict], x_key: str, y_key: str, 
                            color_key: Optional[str] = None, 
                            hover_keys: List[str] = None,
-                           title: str = "散点图") -> Optional[Any]:
+                           title: str = "散点图"):
         """
         创建散点图
         
@@ -65,13 +56,6 @@ class PoetryVisualizer:
         Returns:
             Plotly图表对象
         """
-        if not self.plotly_available:
-            print("Plotly 未安装")
-            return None
-        
-        import plotly.express as px
-        import pandas as pd
-        
         df = pd.DataFrame(data)
         
         fig = px.scatter(df, x=x_key, y=y_key, color=color_key,
@@ -82,7 +66,7 @@ class PoetryVisualizer:
     
     def create_heatmap(self, matrix: List[List[float]], 
                       labels: List[str],
-                      title: str = "热力图") -> Optional[Any]:
+                      title: str = "热力图"):
         """
         创建热力图
         
@@ -94,12 +78,6 @@ class PoetryVisualizer:
         Returns:
             Plotly图表对象
         """
-        if not self.plotly_available:
-            print("Plotly 未安装")
-            return None
-        
-        import plotly.graph_objects as go
-        
         fig = go.Figure(data=go.Heatmap(
             z=matrix,
             x=labels,
@@ -111,7 +89,7 @@ class PoetryVisualizer:
         return fig
     
     def create_network_graph(self, nodes: List[Dict], edges: List[Dict],
-                            title: str = "网络图") -> Optional[Any]:
+                            title: str = "网络图"):
         """
         创建网络图
         
@@ -123,13 +101,6 @@ class PoetryVisualizer:
         Returns:
             Plotly图表对象
         """
-        if not self.plotly_available:
-            print("Plotly 未安装")
-            return None
-        
-        import plotly.graph_objects as go
-        import networkx as nx
-        
         # 创建NetworkX图
         G = nx.Graph()
         
@@ -194,7 +165,7 @@ class PoetryVisualizer:
     
     def create_time_series(self, data: List[Dict], time_key: str, value_key: str,
                           group_key: Optional[str] = None,
-                          title: str = "时间序列") -> Optional[Any]:
+                          title: str = "时间序列"):
         """
         创建时间序列图
         
@@ -208,13 +179,6 @@ class PoetryVisualizer:
         Returns:
             Plotly图表对象
         """
-        if not self.plotly_available:
-            print("Plotly 未安装")
-            return None
-        
-        import plotly.express as px
-        import pandas as pd
-        
         df = pd.DataFrame(data)
         
         fig = px.line(df, x=time_key, y=value_key, color=group_key,
@@ -225,7 +189,7 @@ class PoetryVisualizer:
     # ========== Pyecharts 可视化 ==========
     
     def create_wordcloud(self, words: List[Tuple[str, int]], 
-                        title: str = "词云") -> Optional[Any]:
+                        title: str = "词云"):
         """
         创建词云图
         
@@ -237,21 +201,13 @@ class PoetryVisualizer:
             Pyecharts图表对象
         """
         if not self.pyecharts_available:
-            print("Pyecharts 未安装，使用备用方法")
             return self._fallback_wordcloud(words, title)
         
-        try:
-            from pyecharts.charts import WordCloud
-            from pyecharts import options as opts
-            
-            wc = WordCloud()
-            wc.add("", words, word_size_range=[20, 100])
-            wc.set_global_opts(title_opts=opts.TitleOpts(title=title))
-            
-            return wc
-        except Exception as e:
-            print(f"Pyecharts 词云创建失败: {e}")
-            return self._fallback_wordcloud(words, title)
+        wc = WordCloud()
+        wc.add("", words, word_size_range=[20, 100])
+        wc.set_global_opts(title_opts=opts.TitleOpts(title=title))
+        
+        return wc
     
     def _fallback_wordcloud(self, words: List[Tuple[str, int]], title: str) -> Dict:
         """备用词云（返回数据）"""
@@ -263,7 +219,7 @@ class PoetryVisualizer:
     
     def create_china_map(self, data: List[Dict], 
                         location_key: str, value_key: str,
-                        title: str = "中国地图") -> Optional[Any]:
+                        title: str = "中国地图"):
         """
         创建中国地图
         
@@ -277,30 +233,22 @@ class PoetryVisualizer:
             Pyecharts图表对象
         """
         if not self.pyecharts_available:
-            print("Pyecharts 未安装")
             return None
         
-        try:
-            from pyecharts.charts import Map
-            from pyecharts import options as opts
-            
-            # 提取数据
-            map_data = [(d[location_key], d[value_key]) for d in data]
-            
-            map_chart = Map()
-            map_chart.add("", map_data, "china")
-            map_chart.set_global_opts(
-                title_opts=opts.TitleOpts(title=title),
-                visualmap_opts=opts.VisualMapOpts()
-            )
-            
-            return map_chart
-        except Exception as e:
-            print(f"Pyecharts 地图创建失败: {e}")
-            return None
+        # 提取数据
+        map_data = [(d[location_key], d[value_key]) for d in data]
+        
+        map_chart = Map()
+        map_chart.add("", map_data, "china")
+        map_chart.set_global_opts(
+            title_opts=opts.TitleOpts(title=title),
+            visualmap_opts=opts.VisualMapOpts()
+        )
+        
+        return map_chart
     
     def create_relation_graph(self, nodes: List[Dict], links: List[Dict],
-                             title: str = "关系图") -> Optional[Any]:
+                             title: str = "关系图"):
         """
         创建关系图
         
@@ -313,25 +261,17 @@ class PoetryVisualizer:
             Pyecharts图表对象
         """
         if not self.pyecharts_available:
-            print("Pyecharts 未安装")
             return None
         
-        try:
-            from pyecharts.charts import Graph
-            from pyecharts import options as opts
-            
-            graph = Graph()
-            graph.add("", nodes, links,
-                     repulsion=8000,
-                     label_opts=opts.LabelOpts(is_show=True))
-            graph.set_global_opts(title_opts=opts.TitleOpts(title=title))
-            
-            return graph
-        except Exception as e:
-            print(f"Pyecharts 关系图创建失败: {e}")
-            return None
+        graph = Graph()
+        graph.add("", nodes, links,
+                 repulsion=8000,
+                 label_opts=opts.LabelOpts(is_show=True))
+        graph.set_global_opts(title_opts=opts.TitleOpts(title=title))
+        
+        return graph
     
-    def create_timeline(self, events: List[Dict], title: str = "时间轴") -> Optional[Any]:
+    def create_timeline(self, events: List[Dict], title: str = "时间轴"):
         """
         创建时间轴
         
@@ -343,30 +283,22 @@ class PoetryVisualizer:
             Pyecharts图表对象
         """
         if not self.pyecharts_available:
-            print("Pyecharts 未安装")
             return None
         
-        try:
-            from pyecharts.charts import Timeline
-            from pyecharts import options as opts
-            
-            timeline = Timeline()
-            
-            for event in events:
-                # 这里简化处理，实际可以创建更复杂的图表
-                pass
-            
-            timeline.add_schema(play_interval=1000, is_loop_play=False)
-            timeline.set_global_opts(title_opts=opts.TitleOpts(title=title))
-            
-            return timeline
-        except Exception as e:
-            print(f"Pyecharts 时间轴创建失败: {e}")
-            return None
+        timeline = Timeline()
+        
+        for event in events:
+            # 这里简化处理，实际可以创建更复杂的图表
+            pass
+        
+        timeline.add_schema(play_interval=1000, is_loop_play=False)
+        timeline.set_global_opts(title_opts=opts.TitleOpts(title=title))
+        
+        return timeline
     
     # ========== Dash 仪表板 ==========
     
-    def create_dashboard(self, data: Dict, title: str = "诗词分析仪表板") -> Optional[Any]:
+    def create_dashboard(self, data: Dict, title: str = "诗词分析仪表板"):
         """
         创建Dash仪表板
         
@@ -377,64 +309,55 @@ class PoetryVisualizer:
         Returns:
             Dash应用对象
         """
-        if not self.dash_available or not self.plotly_available:
-            print("Dash 或 Plotly 未安装")
+        if not self.dash_available:
             return None
         
-        try:
-            import dash
-            from dash import dcc, html
-            from dash.dependencies import Input, Output
+        app = dash.Dash(__name__)
+        
+        app.layout = html.Div([
+            html.H1(title),
             
-            app = dash.Dash(__name__)
-            
-            app.layout = html.Div([
-                html.H1(title),
-                
-                # 添加筛选器
-                html.Div([
-                    html.Label("选择诗人:"),
-                    dcc.Dropdown(
-                        id='author-dropdown',
-                        options=[{'label': author, 'value': author} 
-                                for author in data.get('authors', [])],
-                        multi=True
-                    )
-                ]),
-                
-                # 添加图表
-                html.Div([
-                    dcc.Graph(id='main-chart')
-                ]),
-                
-                # 添加统计信息
-                html.Div(id='stats-display')
-            ])
-            
-            @app.callback(
-                Output('main-chart', 'figure'),
-                Input('author-dropdown', 'value')
-            )
-            def update_chart(selected_authors):
-                # 根据选择更新图表
-                filtered_data = [d for d in data.get('poems', []) 
-                               if not selected_authors or d.get('author') in selected_authors]
-                
-                if not filtered_data:
-                    return {}
-                
-                fig = self.create_scatter_plot(
-                    filtered_data, 
-                    'char_count', 'sentiment_score',
-                    hover_keys=['title', 'author'],
-                    title="诗词特征散点图"
+            # 添加筛选器
+            html.Div([
+                html.Label("选择诗人:"),
+                dcc.Dropdown(
+                    id='author-dropdown',
+                    options=[{'label': author, 'value': author} 
+                            for author in data.get('authors', [])],
+                    multi=True
                 )
-                return fig
+            ]),
             
-            return app
-        except Exception as e:
-            print(f"Dash 仪表板创建失败: {e}")
-            return None
+            # 添加图表
+            html.Div([
+                dcc.Graph(id='main-chart')
+            ]),
+            
+            # 添加统计信息
+            html.Div(id='stats-display')
+        ])
+        
+        @app.callback(
+            Output('main-chart', 'figure'),
+            Input('author-dropdown', 'value')
+        )
+        def update_chart(selected_authors):
+            # 根据选择更新图表
+            filtered_data = [d for d in data.get('poems', []) 
+                           if not selected_authors or d.get('author') in selected_authors]
+            
+            if not filtered_data:
+                return {}
+            
+            fig = self.create_scatter_plot(
+                filtered_data, 
+                'char_count', 'sentiment_score',
+                hover_keys=['title', 'author'],
+                title="诗词特征散点图"
+            )
+            return fig
+        
+        return app
     
     # ========== 诗词专用可视化 ==========
     
@@ -451,13 +374,9 @@ class PoetryVisualizer:
         results = {}
         
         # 1. 诗人作品数量分布
-        from collections import Counter
         author_counts = Counter(poem.get('author', '未知') for poem in poems)
         
         if self.plotly_available:
-            import plotly.express as px
-            import pandas as pd
-            
             df = pd.DataFrame([
                 {'author': author, 'count': count} 
                 for author, count in author_counts.most_common(20)
@@ -470,9 +389,6 @@ class PoetryVisualizer:
         dynasty_counts = Counter(poem.get('dynasty', '未知') for poem in poems)
         
         if self.plotly_available:
-            import plotly.express as px
-            import pandas as pd
-            
             df = pd.DataFrame([
                 {'dynasty': dynasty, 'count': count} 
                 for dynasty, count in dynasty_counts.items()
@@ -484,17 +400,13 @@ class PoetryVisualizer:
         # 3. 词云
         all_text = ' '.join(poem.get('content', '') for poem in poems)
         
-        try:
-            import jieba
-            words = jieba.lcut(all_text)
-            word_counts = Counter(words)
-            top_words = [(word, count) for word, count in word_counts.most_common(100) 
-                        if len(word) > 1]
-            
-            wordcloud = self.create_wordcloud(top_words, "诗词词云")
-            results['wordcloud'] = wordcloud
-        except ImportError:
-            pass
+        words = jieba.lcut(all_text)
+        word_counts = Counter(words)
+        top_words = [(word, count) for word, count in word_counts.most_common(100) 
+                    if len(word) > 1]
+        
+        wordcloud = self.create_wordcloud(top_words, "诗词词云")
+        results['wordcloud'] = wordcloud
         
         return results
     
@@ -514,33 +426,30 @@ class PoetryVisualizer:
         filepath = Path(filepath)
         filepath.parent.mkdir(parents=True, exist_ok=True)
         
-        try:
-            if format == 'html':
-                if hasattr(fig, 'write_html'):
-                    fig.write_html(str(filepath))
-                elif hasattr(fig, 'render'):
-                    fig.render(str(filepath))
-                else:
-                    # 保存为JSON
-                    with open(filepath.with_suffix('.json'), 'w', encoding='utf-8') as f:
-                        json.dump(fig, f, ensure_ascii=False, indent=2)
-            
-            elif format == 'png':
-                if hasattr(fig, 'write_image'):
-                    fig.write_image(str(filepath))
-                else:
-                    print("不支持PNG格式保存")
-            
-            elif format == 'json':
+        if format == 'html':
+            if hasattr(fig, 'write_html'):
+                fig.write_html(str(filepath))
+            elif hasattr(fig, 'render'):
+                fig.render(str(filepath))
+            else:
+                # 保存为JSON
                 with open(filepath.with_suffix('.json'), 'w', encoding='utf-8') as f:
-                    if hasattr(fig, 'to_json'):
-                        f.write(fig.to_json())
-                    else:
-                        json.dump(fig, f, ensure_ascii=False, indent=2, default=str)
-            
-            print(f"可视化已保存: {filepath}")
-        except Exception as e:
-            print(f"保存失败: {e}")
+                    json.dump(fig, f, ensure_ascii=False, indent=2)
+        
+        elif format == 'png':
+            if hasattr(fig, 'write_image'):
+                fig.write_image(str(filepath))
+            else:
+                print("不支持PNG格式保存")
+        
+        elif format == 'json':
+            with open(filepath.with_suffix('.json'), 'w', encoding='utf-8') as f:
+                if hasattr(fig, 'to_json'):
+                    f.write(fig.to_json())
+                else:
+                    json.dump(fig, f, ensure_ascii=False, indent=2, default=str)
+        
+        print(f"可视化已保存: {filepath}")
 
 
 if __name__ == "__main__":

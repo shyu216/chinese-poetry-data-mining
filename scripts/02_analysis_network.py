@@ -18,14 +18,9 @@ sys.path.append(str(Path(__file__).parent.parent))
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-
-# 尝试导入 node2vec 进行网络嵌入
-try:
-    from node2vec import Node2Vec
-    NODE2VEC_AVAILABLE = True
-except ImportError:
-    NODE2VEC_AVAILABLE = False
-    print("提示: node2vec 未安装，跳过网络嵌入。安装: pip install node2vec")
+from node2vec import Node2Vec
+from sklearn.cluster import SpectralClustering, KMeans
+from sklearn.metrics import silhouette_score
 
 from src.models.social_network_model import SocialNetworkModel
 from src.visualization.poetry_visualizer import PoetryVisualizer
@@ -44,23 +39,16 @@ def load_cached_analysis(cache_path: Path, override: bool = False) -> Optional[D
     if override or not cache_path.exists():
         return None
     
-    try:
-        with open(cache_path, 'r', encoding='utf-8') as f:
-            print(f"加载缓存: {cache_path}")
-            return json.load(f)
-    except Exception as e:
-        print(f"缓存加载失败: {e}")
-        return None
+    with open(cache_path, 'r', encoding='utf-8') as f:
+        print(f"加载缓存: {cache_path}")
+        return json.load(f)
 
 
 def save_cached_analysis(cache_path: Path, data: Dict):
     """保存分析结果到缓存"""
-    try:
-        with open(cache_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, ensure_ascii=False, indent=2, default=str)
-        print(f"缓存已保存: {cache_path}")
-    except Exception as e:
-        print(f"缓存保存失败: {e}")
+    with open(cache_path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2, default=str)
+    print(f"缓存已保存: {cache_path}")
 
 
 def load_data(data_type: str = 'sample') -> pd.DataFrame:
@@ -150,22 +138,19 @@ def build_author_network(df: pd.DataFrame, min_poems: int = 2,
     }
     
     # 使用 node2vec 进行网络嵌入（可选）
-    if use_node2vec and NODE2VEC_AVAILABLE and len(authors_list) > 5:
+    if use_node2vec and len(authors_list) > 5:
         print("使用 node2vec 进行网络嵌入...")
-        try:
-            node2vec = Node2Vec(G, dimensions=64, walk_length=30, num_walks=200, workers=4)
-            model_n2v = node2vec.fit(window=10, min_count=1, batch_words=4)
-            
-            # 提取每个作者的嵌入向量
-            embeddings = {}
-            for author in authors_list:
-                if author in model_n2v.wv:
-                    embeddings[author] = model_n2v.wv[author].tolist()
-            
-            result['node2vec_embeddings'] = embeddings
-            print(f"  生成了 {len(embeddings)} 个作者的嵌入向量")
-        except Exception as e:
-            print(f"  node2vec 失败: {e}")
+        node2vec = Node2Vec(G, dimensions=64, walk_length=30, num_walks=200, workers=4)
+        model_n2v = node2vec.fit(window=10, min_count=1, batch_words=4)
+        
+        # 提取每个作者的嵌入向量
+        embeddings = {}
+        for author in authors_list:
+            if author in model_n2v.wv:
+                embeddings[author] = model_n2v.wv[author].tolist()
+        
+        result['node2vec_embeddings'] = embeddings
+        print(f"  生成了 {len(embeddings)} 个作者的嵌入向量")
     
     return result
 
@@ -181,9 +166,6 @@ def analyze_author_clusters(network_result: dict, n_clusters: int = 5) -> dict:
     Returns:
         聚类分析结果
     """
-    from sklearn.cluster import SpectralClustering, KMeans
-    from sklearn.metrics import silhouette_score
-    
     similarity_matrix = np.array(network_result['similarity_matrix'])
     authors = network_result['authors']
     
@@ -195,28 +177,22 @@ def analyze_author_clusters(network_result: dict, n_clusters: int = 5) -> dict:
     methods = {}
     
     # 1. 谱聚类
-    try:
-        # 修复：清空对角线（自身相似度设为0）
-        np.fill_diagonal(similarity_matrix, 0)
-        
-        clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed', random_state=42)
-        labels = clustering.fit_predict(similarity_matrix)
-        score = silhouette_score(similarity_matrix, labels, metric='precomputed')
-        methods['spectral'] = {'labels': labels, 'score': score}
-    except Exception as e:
-        print(f"谱聚类失败: {e}")
+    # 修复：清空对角线（自身相似度设为0）
+    np.fill_diagonal(similarity_matrix, 0)
+    
+    clustering = SpectralClustering(n_clusters=n_clusters, affinity='precomputed', random_state=42)
+    labels = clustering.fit_predict(similarity_matrix)
+    score = silhouette_score(similarity_matrix, labels, metric='precomputed')
+    methods['spectral'] = {'labels': labels, 'score': score}
     
     # 2. K-Means（基于 node2vec 嵌入）
     if 'node2vec_embeddings' in network_result and len(network_result['node2vec_embeddings']) > n_clusters:
-        try:
-            embeddings = np.array([network_result['node2vec_embeddings'][a] for a in authors 
-                                  if a in network_result['node2vec_embeddings']])
-            kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-            labels_km = kmeans.fit_predict(embeddings)
-            score_km = silhouette_score(embeddings, labels_km)
-            methods['kmeans_node2vec'] = {'labels': labels_km, 'score': score_km}
-        except Exception as e:
-            print(f"K-Means 失败: {e}")
+        embeddings = np.array([network_result['node2vec_embeddings'][a] for a in authors 
+                              if a in network_result['node2vec_embeddings']])
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        labels_km = kmeans.fit_predict(embeddings)
+        score_km = silhouette_score(embeddings, labels_km)
+        methods['kmeans_node2vec'] = {'labels': labels_km, 'score': score_km}
     
     # 选择最佳方法
     if methods:

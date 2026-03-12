@@ -7,25 +7,15 @@
 
 from typing import List, Tuple, Optional
 import re
+from pypinyin import lazy_pinyin, Style
 
 
 class PinyinConverter:
     """拼音转换器"""
     
     def __init__(self):
-        self._check_pypinyin()
-    
-    def _check_pypinyin(self):
-        """检查pypinyin是否可用"""
-        try:
-            from pypinyin import lazy_pinyin, Style
-            self.pypinyin = lazy_pinyin
-            self.Style = Style
-            self.has_pypinyin = True
-        except ImportError:
-            self.has_pypinyin = False
-            self.pypinyin = None
-            self.Style = None
+        self.pypinyin = lazy_pinyin
+        self.Style = Style
     
     def get_pinyin(self, text: str, style: str = 'normal') -> List[str]:
         """
@@ -38,28 +28,16 @@ class PinyinConverter:
         Returns:
             拼音列表
         """
-        if not self.has_pypinyin:
-            return self._fallback_pinyin(text)
+        style_map = {
+            'normal': Style.NORMAL,
+            'tone': Style.TONE,
+            'tone3': Style.TONE3,
+            'initials': Style.INITIALS,
+            'finals': Style.FINALS
+        }
         
-        try:
-            from pypinyin import Style
-            
-            style_map = {
-                'normal': Style.NORMAL,
-                'tone': Style.TONE,
-                'tone3': Style.TONE3,
-                'initials': Style.INITIALS,
-                'finals': Style.FINALS
-            }
-            
-            py_style = style_map.get(style, Style.NORMAL)
-            return self.pypinyin(text, style=py_style)
-        except Exception:
-            return self._fallback_pinyin(text)
-    
-    def _fallback_pinyin(self, text: str) -> List[str]:
-        """备用拼音获取（返回原字符）"""
-        return list(text)
+        py_style = style_map.get(style, Style.NORMAL)
+        return self.pypinyin(text, style=py_style)
     
     def get_tone(self, char: str) -> Optional[str]:
         """
@@ -71,16 +49,12 @@ class PinyinConverter:
         Returns:
             声调数字('1', '2', '3', '4')或None
         """
-        if not self.has_pypinyin or len(char) != 1:
+        if len(char) != 1:
             return None
         
-        try:
-            from pypinyin import lazy_pinyin, Style
-            pinyin = lazy_pinyin(char, style=Style.TONE3)[0]
-            match = re.search(r'[1-4]', pinyin)
-            return match.group(0) if match else None
-        except Exception:
-            return None
+        pinyin = lazy_pinyin(char, style=Style.TONE3)[0]
+        match = re.search(r'[1-4]', pinyin)
+        return match.group(0) if match else None
     
     def get_tones(self, text: str) -> List[Optional[str]]:
         """
@@ -104,14 +78,7 @@ class PinyinConverter:
         Returns:
             声母列表
         """
-        if not self.has_pypinyin:
-            return [''] * len(text)
-        
-        try:
-            from pypinyin import Style
-            return self.pypinyin(text, style=Style.INITIALS)
-        except Exception:
-            return [''] * len(text)
+        return self.pypinyin(text, style=Style.INITIALS)
     
     def get_finals(self, text: str) -> List[str]:
         """
@@ -123,14 +90,7 @@ class PinyinConverter:
         Returns:
             韵母列表
         """
-        if not self.has_pypinyin:
-            return [''] * len(text)
-        
-        try:
-            from pypinyin import Style
-            return self.pypinyin(text, style=Style.FINALS)
-        except Exception:
-            return [''] * len(text)
+        return self.pypinyin(text, style=Style.FINALS)
 
 
 class ToneAnalyzer:

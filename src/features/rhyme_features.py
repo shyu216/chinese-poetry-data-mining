@@ -8,8 +8,10 @@
 from typing import List, Dict, Tuple, Optional
 from collections import Counter
 import re
+import numpy as np
 
 from src.core.pinyin_utils import ToneAnalyzer, PinyinConverter
+from src.core.text_utils import normalize_poem_lines
 
 
 class RhymeFeatureExtractor:
@@ -221,7 +223,6 @@ class RhymeFeatureExtractor:
         
         # 3. 行长度标准差 (1维)
         if len(features['line_lengths']) > 1:
-            import numpy as np
             std_length = np.std(features['line_lengths'])
         else:
             std_length = 0
@@ -269,8 +270,6 @@ def extract_rhythm(content: str) -> Dict:
     Returns:
         韵律特征
     """
-    from src.core.text_utils import normalize_poem_lines
-    
     lines = normalize_poem_lines(content)
     extractor = RhymeFeatureExtractor()
     return extractor.extract_rhythm_features(lines)
@@ -286,8 +285,6 @@ def get_tone_pattern(content: str) -> List[str]:
     Returns:
         每句的平仄模式列表
     """
-    from src.core.text_utils import normalize_poem_lines
-    
     lines = normalize_poem_lines(content)
     extractor = RhymeFeatureExtractor()
     
@@ -309,8 +306,6 @@ def identify_poem_form(content: str) -> str:
     Returns:
         诗体名称
     """
-    from src.core.text_utils import normalize_poem_lines
-    
     lines = normalize_poem_lines(content)
     extractor = RhymeFeatureExtractor()
     return extractor.identify_form(lines)

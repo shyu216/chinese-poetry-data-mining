@@ -22,15 +22,18 @@
 
 ## 🛠️ Tech Stack
 
-| Category | Tools |
-|----------|-------|
-| Data Processing | Pandas, NumPy |
-| Text Processing | OpenCC (Traditional/Simplified), pypinyin, jieba |
-| Feature Extraction | Custom rhyme, sentiment, semantic extractors |
-| Visualization | Plotly, Pyecharts, Dash |
-| Machine Learning | scikit-learn (TF-IDF, similarity, clustering) |
-| Deep Learning | PyTorch, Transformers (BERT) |
-| Network Analysis | NetworkX, Node2Vec |
+| Category | Tools | Status |
+|----------|-------|--------|
+| Data Processing | Pandas, NumPy | ✅ Fully Used |
+| Text Processing | OpenCC (Traditional/Simplified), pypinyin, jieba | ✅ Fully Used |
+| Feature Extraction | Custom rhyme, sentiment, semantic extractors | ✅ Implemented |
+| Visualization | Plotly, Pyecharts, Dash | ✅ Fully Used |
+| Machine Learning | scikit-learn (TF-IDF, similarity, clustering) | ✅ Fully Used |
+| Deep Learning | PyTorch, Transformers (BERT) | ✅ Fully Used |
+| Network Analysis | NetworkX, Node2Vec | ✅ Fully Used |
+| Word Embeddings | gensim (Word2Vec) | ✅ Tested |
+| NER | HanLP | ❌ Planned |
+| Time Parsing | JioNLP | ❌ Planned |
 
 ## 📁 Project Structure
 
@@ -50,10 +53,14 @@ chinese-poetry-data-mining/
 │   ├── 03_vis_*.py            # Visualization scripts
 │   ├── 03_generate_all.py     # Run all scripts
 │   ├── 04_build_index.py      # Build visualization index
-│   └── 04_serve.py            # Local server
+│   ├── 04_serve.py            # Local server
+│   └── test/                  # Test scripts
+│       └── test_all_libraries.py # Comprehensive library tests
 ├── reports/
 │   └── visualizations/        # Generated HTML visualizations
 ├── docs/                      # Documentation
+│   ├── PROJECT_STATUS.md      # Project status
+│   └── 2026-03-12-summary.md  # Daily progress summary
 └── .github/workflows/         # CI/CD for GitHub Pages
 ```
 
@@ -119,6 +126,21 @@ python scripts/04_serve.py
 open reports/visualizations/index.html
 ```
 
+### Run Tests
+
+```bash
+# Run comprehensive library tests
+python scripts/test/test_all_libraries.py
+
+# This tests:
+# - Pandas/NumPy data processing
+# - OpenCC/pypinyin text processing
+# - Plotly visualization
+# - scikit-learn TF-IDF and clustering
+# - NetworkX social network analysis
+# - gensim Word2Vec
+```
+
 ## 📊 Live Demo
 
 Visit our **[GitHub Pages](https://shyu216.github.io/chinese-poetry-data-mining)** for interactive visualizations!
@@ -128,8 +150,17 @@ Visit our **[GitHub Pages](https://shyu216.github.io/chinese-poetry-data-mining)
 
 ## 📚 Documentation
 
+- [Project Status](docs/PROJECT_STATUS.md) - Overall project progress and module completion
+- [Daily Progress Summary](docs/2026-03-12-summary.md) - 2026-03-12 task progress and achievements
 - [Development Progress](docs/2026-03-11-progress.md) - Initial development log
 - [Refactoring Notes](docs/2026-03-11-refactor.md) - Code restructuring documentation
+- [AI Development Guide](docs/AI_DEVELOPMENT_GUIDE.md) - Guide for AI assistants
+
+## 📖 References
+
+- [Text Mining Analysis of 50,000 Tang Poems (Tencent Cloud)](https://cloud.tencent.cn/developer/article/1541499) - Comprehensive NLP analysis of classical Chinese poetry
+- [Ancient Poetry Dataset and NLP Applications (CSDN)](https://blog.csdn.net/weixin_36178216/article/details/151284411) - Dataset and practical NLP techniques for poetry analysis
+- [Text Mining 540,000 Poems (Zhihu)](https://zhuanlan.zhihu.com/p/208751653) - Deep dive into poetry corpus analysis and insights
 
 ## 🤝 Contributing
 

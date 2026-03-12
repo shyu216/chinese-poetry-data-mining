@@ -8,8 +8,10 @@
 3. 只输出 all_poetry（包含朝代和体裁信息）
 4. 生成1/1000随机采样数据集用于可行性测试
 """
-
 import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 import json
 import random
 from pathlib import Path
