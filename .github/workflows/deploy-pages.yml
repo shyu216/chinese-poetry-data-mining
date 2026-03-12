@@ -1,14 +1,17 @@
 name: Deploy to GitHub Pages
 
 on:
-  # 当可视化脚本或数据更新时触发
+  # 当相关文件更新时触发
   push:
     branches: [ main, master ]
     paths:
       - 'scripts/03_vis_*.py'
       - 'scripts/04_build_index.py'
+      - 'scripts/05_build_main_index.py'
+      - 'scripts/08_export_github_pages.py'
       - 'src/visualization/**'
-      - 'data/sample_data/**'
+      - 'data/structure_analysis/**'
+      - '.github/workflows/deploy-pages.yml'
   
   # 允许手动触发
   workflow_dispatch:
@@ -40,15 +43,40 @@ jobs:
           python -m pip install --upgrade pip
           pip install pandas numpy plotly tqdm scikit-learn networkx
 
-      - name: Generate visualizations
+      - name: Export data for GitHub Pages
         run: |
-          # 使用已有的 sample data 生成可视化
+          echo "导出诗词数据..."
+          python scripts/08_export_github_pages.py
+
+      - name: Generate visualizations (sample)
+        run: |
+          echo "生成 Sample 版本可视化..."
           python scripts/03_vis_sentiment.py --data sample
           python scripts/03_vis_network.py --data sample
           python scripts/03_vis_meter.py --data sample
           python scripts/03_vis_dynasty.py --data sample
           python scripts/03_vis_author.py --data sample
+
+      # - name: Generate visualizations (full)
+      #   run: |
+      #     echo "生成 Full 版本可视化..."
+      #     python scripts/03_vis_sentiment.py --data full
+      #     python scripts/03_vis_network.py --data full
+      #     python scripts/03_vis_meter.py --data full
+      #     python scripts/03_vis_dynasty.py --data full
+      #     python scripts/03_vis_author.py --data full
+
+      - name: Build index pages
+        run: |
+          echo "构建索引页面..."
           python scripts/04_build_index.py --data sample
+          python scripts/04_build_index.py --data full
+          python scripts/05_build_main_index.py
+
+      - name: List generated files
+        run: |
+          echo "生成的文件结构:"
+          find gh-pages -type f | head -30
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -56,7 +84,7 @@ jobs:
       - name: Upload to GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: reports/sample/visualizations/
+          path: gh-pages/
 
       - name: Deploy
         id: deployment
