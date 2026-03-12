@@ -9,8 +9,9 @@ on:
       - 'scripts/04_build_index.py'
       - 'scripts/05_build_main_index.py'
       - 'scripts/08_export_github_pages.py'
+      - 'scripts/assemble_from_chunks.py'
       - 'src/visualization/**'
-      - 'data/structure_analysis/**'
+      - 'data/github_pages/data/**'
       - '.github/workflows/deploy-pages.yml'
   
   # 允许手动触发
@@ -42,6 +43,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pandas numpy plotly tqdm scikit-learn networkx
+
+      - name: Assemble data from chunks
+        run: |
+          echo "从分片组装完整数据..."
+          python scripts/assemble_from_chunks.py
 
       - name: Export data for GitHub Pages
         run: |
