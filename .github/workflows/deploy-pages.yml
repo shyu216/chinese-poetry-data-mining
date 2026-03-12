@@ -54,14 +54,14 @@ jobs:
           echo "导出诗词数据..."
           python scripts/08_export_github_pages.py
 
-      - name: Generate visualizations (sample)
-        run: |
-          echo "生成 Sample 版本可视化..."
-          python scripts/03_vis_sentiment.py --data sample
-          python scripts/03_vis_network.py --data sample
-          python scripts/03_vis_meter.py --data sample
-          python scripts/03_vis_dynasty.py --data sample
-          python scripts/03_vis_author.py --data sample
+      # - name: Generate visualizations (sample)
+      #   run: |
+      #     echo "生成 Sample 版本可视化..."
+      #     python scripts/03_vis_sentiment.py --data sample
+      #     python scripts/03_vis_network.py --data sample
+      #     python scripts/03_vis_meter.py --data sample
+      #     python scripts/03_vis_dynasty.py --data sample
+      #     python scripts/03_vis_author.py --data sample
 
       # - name: Generate visualizations (full)
       #   run: |
