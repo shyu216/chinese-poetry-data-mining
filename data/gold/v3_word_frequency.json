@@ -1,0 +1,12 @@
+{
+  "analyzer_name": "word_frequency",
+  "version": "1.0.0",
+  "timestamp": "2026-03-13T12:22:49.639617",
+  "data": {
+    "author_count": 0,
+    "author_words": {},
+    "global_top_words": [],
+    "pos_distribution": {},
+    "vocabulary_size": 0
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "total_poems": 1000,
+  "total_authors": 656,
+  "total_dynasties": 16,
+  "genre_distribution": {
+    "诗": 1000
+  },
+  "poem_type_distribution": {
+    "杂言": 997,
+    "五言古体": 2,
+    "五言律诗": 1
+  },
+  "regular_ratio": 0.001,
+  "avg_lines": 3.432,
+  "avg_chars": 74.39,
+  "top_authors": [
+    {
+      "author": "佚名",
+      "poem_count": 22
+    },
+    {
+      "author": "白居易",
+      "poem_count": 14
+    },
+    {
+      "author": "杜甫",
+      "poem_count": 13
+    },
+    {
+      "author": "杨万里",
+      "poem_count": 12
+    },
+    {
+      "author": "苏轼",
+      "poem_count": 11
+    },
+    {
+      "author": "陆游",
+      "poem_count": 11
+    },
+    {
+      "author": "李白",
+      "poem_count": 10
+    },
+    {
+      "author": "刘禹锡",
+      "poem_count": 9
+    },
+    {
+      "author": "刘克庄",
+      "poem_count": 8
+    },
+    {
+      "author": "姚燮",
+      "poem_count": 8
+    },
+    {
+      "author": "弘历",
+      "poem_count": 8
+    },
+    {
+      "author": "王世贞",
+      "poem_count": 8
+    },
+    {
+      "author": "孟浩然",
+      "poem_count": 6
+    },
+    {
+      "author": "梅尧臣",
+      "poem_count": 6
+    },
+    {
+      "author": "胡应麟",
+      "poem_count": 6
+    },
+    {
+      "author": "李清照",
+      "poem_count": 5
+    },
+    {
+      "author": "王维",
+      "poem_count": 5
+    },
+    {
+      "author": "范成大",
+      "poem_count": 5
+    },
+    {
+      "author": "卢青山",
+      "poem_count": 4
+    },
+    {
+      "author": "文天祥",
+      "poem_count": 4
+    }
+  ]
+}

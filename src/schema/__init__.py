@@ -13,6 +13,9 @@ from .poetry import (
     PoemWithAnalysis,
     AnalysisResult,
     PipelineMetadata,
+    PipelineStep,
+    SimilarAuthor,
+    WordFrequency,
 )
 
 __all__ = [
@@ -24,4 +27,7 @@ __all__ = [
     "PoemWithAnalysis",
     "AnalysisResult",
     "PipelineMetadata",
+    "PipelineStep",
+    "SimilarAuthor",
+    "WordFrequency",
 ]

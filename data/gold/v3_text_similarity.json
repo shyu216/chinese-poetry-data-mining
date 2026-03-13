@@ -1,0 +1,9 @@
+{
+  "analyzer_name": "text_similarity",
+  "version": "1.0.0",
+  "timestamp": "2026-03-13T12:22:52.639010",
+  "data": {
+    "error": "作者数量不足，无法计算相似度",
+    "author_count": 0
+  }
+}

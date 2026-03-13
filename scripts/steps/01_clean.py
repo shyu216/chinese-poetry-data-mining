@@ -32,44 +32,28 @@ def load_poem_files(raw_dir: Path) -> List[Dict[str, Any]]:
     poems = []
     source_files = []
     
-    # 全唐诗
-    tang_dir = raw_dir / "chinese-poetry" / "poet.tang"
-    if tang_dir.exists():
-        for file in sorted(tang_dir.glob("*.json")):
-            with open(file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                for item in data:
-                    item["_source_type"] = "poet.tang"
-                    item["_dynasty"] = "唐代"
-                    item["_source_file"] = str(file)
-                poems.extend(data)
+    # chinese-gushiwen 数据格式 (JSONL: 每行一个JSON对象)
+    guwen_dir = raw_dir / "chinese-gushiwen" / "guwen"
+    if guwen_dir.exists():
+        for file in sorted(guwen_dir.glob("*.json")):
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    # 读取所有行
+                    lines = f.readlines()
+                    for line in lines:
+                        line = line.strip()
+                        if line:
+                            try:
+                                item = json.loads(line)
+                                item["_source_type"] = "guwen"
+                                item["_source_file"] = str(file)
+                                poems.append(item)
+                            except json.JSONDecodeError:
+                                continue
                 source_files.append(str(file))
-    
-    # 全宋诗
-    song_dir = raw_dir / "chinese-poetry" / "poet.song"
-    if song_dir.exists():
-        for file in sorted(song_dir.glob("*.json")):
-            with open(file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                for item in data:
-                    item["_source_type"] = "poet.song"
-                    item["_dynasty"] = "宋代"
-                    item["_source_file"] = str(file)
-                poems.extend(data)
-                source_files.append(str(file))
-    
-    # 宋词
-    ci_dir = raw_dir / "chinese-poetry" / "ci"
-    if ci_dir.exists():
-        for file in sorted(ci_dir.glob("*.json")):
-            with open(file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                for item in data:
-                    item["_source_type"] = "ci"
-                    item["_dynasty"] = "宋代"
-                    item["_source_file"] = str(file)
-                poems.extend(data)
-                source_files.append(str(file))
+                print(f"  加载 {file.name}: {len([p for p in poems if p.get('_source_file') == str(file)])} 条")
+            except Exception as e:
+                print(f"警告: 无法读取 {file}: {e}")
     
     print(f"加载完成: {len(poems)} 首诗词")
     print(f"来源文件: {len(source_files)} 个")
@@ -82,24 +66,24 @@ def unify_schema(raw_poems: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     unified = []
     
     for item in raw_poems:
-        # 提取基础字段
+        # 提取基础字段 (适配 chinese-gushiwen 格式)
         unified_item = {
-            "id": item.get("id", ""),
+            "id": item.get("_id", {}).get("$oid", item.get("id", "")),
             "title": item.get("title", item.get("rhythmic", "")),
-            "author": item.get("author", "佚名"),
-            "dynasty": item.get("_dynasty", "其他"),
+            "author": item.get("writer", item.get("author", "佚名")),
+            "dynasty": item.get("dynasty", "其他"),
             "genre": _get_genre(item.get("_source_type", "")),
-            "paragraphs": item.get("paragraphs", []),
-            "content": "",
+            "paragraphs": [],  # 从 content 分割
+            "content": item.get("content", ""),
             "content_simplified": "",
             "source_file": item.get("_source_file", ""),
             "source_type": item.get("_source_type", ""),
             "hash": "",
         }
         
-        # 拼接内容
-        if unified_item["paragraphs"]:
-            unified_item["content"] = "\n".join(unified_item["paragraphs"])
+        # 分割段落
+        if unified_item["content"]:
+            unified_item["paragraphs"] = [p.strip() for p in unified_item["content"].split("\n") if p.strip()]
         
         # 计算hash（用于去重）
         hash_content = f"{unified_item['title']}_{unified_item['author']}_{unified_item['content']}"
@@ -112,7 +96,9 @@ def unify_schema(raw_poems: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 def _get_genre(source_type: str) -> str:
     """根据来源类型判断体裁"""
-    if "poet" in source_type:
+    if "guwen" in source_type:
+        return "诗"  # 默认为诗
+    elif "poet" in source_type:
         return "诗"
     elif "ci" in source_type:
         return "词"

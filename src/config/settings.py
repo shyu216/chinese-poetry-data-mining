@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 
 class DataConfig(BaseModel):
     """数据路径配置"""
-    raw_dir: Path = Field(default=Path("data/raw"))
+    raw_dir: Path = Field(default=Path("data"))
     bronze_dir: Path = Field(default=Path("data/bronze"))
     silver_dir: Path = Field(default=Path("data/silver"))
     gold_dir: Path = Field(default=Path("data/gold"))
@@ -28,6 +28,8 @@ class AnalysisConfig(BaseModel):
     # 相似度分析
     similarity_threshold: float = Field(default=0.3)
     top_similar_authors: int = Field(default=10)
+    max_features: int = Field(default=5000)
+    min_df: int = Field(default=2)
     
     # 词汇分析
     word_freq_top_n: int = Field(default=100)
