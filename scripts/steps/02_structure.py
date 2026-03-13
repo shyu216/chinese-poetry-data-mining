@@ -134,6 +134,7 @@ def process_poem(row: pd.Series) -> Dict[str, Any]:
         'dynasty': row.get('dynasty', ''),
         'genre': genre,
         'poem_type': poem_type,
+        'content': content,
         'lines': lines,
         'line_char_counts': line_char_counts,
         'meter_pattern': pattern,

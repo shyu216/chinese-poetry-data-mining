@@ -179,3 +179,7 @@ logs/
 output/
 outputs/
 results/
+
+# Legacy archive - only track README
+archive/*
+!archive/README.md
