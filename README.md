@@ -77,16 +77,11 @@ chinese-poetry-data-mining/
 │   ├── bronze/                # Cleaned data (v1)
 │   ├── silver/                # Structured data (v2)
 │   ├── gold/                  # Analysis results (v3)
-│   ├── output/web/            # Web output (GitHub Pages)
-│   └── github_pages/          # Static site data
+│   └── output/web/            # Web output (GitHub Pages)
 ├── src/
 │   ├── analyzers/             # Analysis modules
 │   ├── config/                # Configuration
-│   ├── core/                  # Core utilities
-│   ├── features/              # Feature extraction
-│   ├── models/                # ML models
-│   ├── schema/                # Data schemas
-│   └── visualization/         # Visualization tools
+│   └── schema/                # Data schemas
 ├── scripts/
 │   ├── steps/                 # Data pipeline steps
 │   │   ├── 01_clean.py
