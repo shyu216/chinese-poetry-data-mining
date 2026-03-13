@@ -54,37 +54,95 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
         author_words = defaultdict(Counter)
         author_pos_dist = defaultdict(Counter)
         
-        for _, row in df.iterrows():
+        total_rows = len(df)
+        progress_interval = max(1000, total_rows // 100)  # 每处理1%或1000条显示一次进度
+        save_interval = 10000  # 每处理10000条保存一次中间状态
+        
+        # 检查是否有中间状态
+        import json
+        from pathlib import Path
+        
+        temp_file = Path("data/cache/word_frequency_temp.json")
+        temp_file.parent.mkdir(parents=True, exist_ok=True)
+        
+        if temp_file.exists():
+            print("发现中间状态，继续处理...")
+            with open(temp_file, "r", encoding="utf-8") as f:
+                temp_data = json.load(f)
+                author_words = defaultdict(Counter, {k: Counter(v) for k, v in temp_data["author_words"].items()})
+                author_pos_dist = defaultdict(Counter, {k: Counter(v) for k, v in temp_data["author_pos_dist"].items()})
+                start_idx = temp_data.get("last_idx", 0)
+        else:
+            start_idx = 0
+            
+        for idx, row in df.iterrows():
+            if idx < start_idx:
+                continue
+                
+            if idx % progress_interval == 0:
+                print(f"  处理: {idx}/{total_rows} ({idx/total_rows*100:.1f}%)")
+                
             author = row.get("author", "佚名")
             content = row.get("content", "")
+            
+            # 处理非字符串类型的内容
+            if not isinstance(content, str):
+                content = str(content) if content is not None else ''
             
             if not content:
                 continue
             
-            # 分词并标注词性
-            words_with_pos = pseg.cut(content)
-            
-            for word, flag in words_with_pos:
-                # 筛选条件
-                if len(word) < self.min_word_length:
-                    continue
+            try:
+                # 分词并标注词性
+                words_with_pos = pseg.cut(content)
                 
-                if word in self._get_stop_words():
-                    continue
+                for word, flag in words_with_pos:
+                    # 筛选条件
+                    if len(word) < self.min_word_length:
+                        continue
+                    
+                    if word in self._get_stop_words():
+                        continue
+                    
+                    # 只保留指定词性
+                    if not any(flag.startswith(pos) for pos in self.pos_filter):
+                        continue
+                    
+                    # 统计
+                    author_words[author][word] += 1
+                    author_pos_dist[author][flag] += 1
+            except Exception as e:
+                print(f"  警告: 处理 {author} 的诗词时出错: {e}")
+                continue
                 
-                # 只保留指定词性
-                if not any(flag.startswith(pos) for pos in self.pos_filter):
-                    continue
-                
-                # 统计
-                author_words[author][word] += 1
-                author_pos_dist[author][flag] += 1
+            # 保存中间状态
+            if idx % save_interval == 0 and idx > 0:
+                print(f"  保存中间状态: {idx}")
+                temp_data = {
+                    "author_words": {k: dict(v) for k, v in author_words.items()},
+                    "author_pos_dist": {k: dict(v) for k, v in author_pos_dist.items()},
+                    "last_idx": idx
+                }
+                with open(temp_file, "w", encoding="utf-8") as f:
+                    json.dump(temp_data, f, ensure_ascii=False, indent=2)
         
         print(f"处理完成: {len(author_words)} 位作者")
         
+        # 删除临时文件
+        if temp_file.exists():
+            temp_file.unlink()
+            print("临时文件已删除")
+        
         # 提取 Top N 高频词
+        print("提取 Top N 高频词...")
         author_top_words = {}
-        for author, word_counter in author_words.items():
+        total_authors = len(author_words)
+        author_progress_interval = max(100, total_authors // 100)  # 每处理1%或100位作者显示一次进度
+        
+        for idx, (author, word_counter) in enumerate(author_words.items()):
+            if idx % author_progress_interval == 0:
+                print(f"  处理作者: {idx}/{total_authors} ({idx/total_authors*100:.1f}%)")
+                
             top_words = [
                 {
                     "word": word,
@@ -96,8 +154,15 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
             author_top_words[author] = top_words
         
         # 全局词频统计
+        print("全局词频统计...")
         global_counter = Counter()
-        for word_counter in author_words.values():
+        total_author_counters = len(author_words)
+        global_progress_interval = max(100, total_author_counters // 100)  # 每处理1%或100位作者显示一次进度
+        
+        for idx, word_counter in enumerate(author_words.values()):
+            if idx % global_progress_interval == 0:
+                print(f"  统计作者: {idx}/{total_author_counters} ({idx/total_author_counters*100:.1f}%)")
+                
             global_counter.update(word_counter)
         
         global_top_words = [

@@ -55,6 +55,73 @@ def load_poem_files(raw_dir: Path) -> List[Dict[str, Any]]:
             except Exception as e:
                 print(f"警告: 无法读取 {file}: {e}")
     
+    # chinese-poetry 数据格式 (JSON数组)
+    poetry_dir = raw_dir / "chinese-poetry"
+    if poetry_dir.exists():
+        # 加载全唐诗
+        tangshi_dir = poetry_dir / "全唐诗"
+        if tangshi_dir.exists():
+            for file in sorted(tangshi_dir.glob("*.json")):
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        items = json.load(f)
+                        for item in items:
+                            item["_source_type"] = "tangshi"
+                            item["_source_file"] = str(file)
+                            poems.append(item)
+                    source_files.append(str(file))
+                    print(f"  加载 {file.name}: {len(items)} 条")
+                except Exception as e:
+                    print(f"警告: 无法读取 {file}: {e}")
+        
+        # 加载宋词
+        songci_dir = poetry_dir / "宋词"
+        if songci_dir.exists():
+            for file in sorted(songci_dir.glob("*.json")):
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        items = json.load(f)
+                        for item in items:
+                            item["_source_type"] = "songci"
+                            item["_source_file"] = str(file)
+                            poems.append(item)
+                    source_files.append(str(file))
+                    print(f"  加载 {file.name}: {len(items)} 条")
+                except Exception as e:
+                    print(f"警告: 无法读取 {file}: {e}")
+        
+        # 加载元曲
+        yuanqu_dir = poetry_dir / "元曲"
+        if yuanqu_dir.exists():
+            for file in sorted(yuanqu_dir.glob("*.json")):
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        items = json.load(f)
+                        for item in items:
+                            item["_source_type"] = "yuanqu"
+                            item["_source_file"] = str(file)
+                            poems.append(item)
+                    source_files.append(str(file))
+                    print(f"  加载 {file.name}: {len(items)} 条")
+                except Exception as e:
+                    print(f"警告: 无法读取 {file}: {e}")
+        
+        # 加载御定全唐诗
+        yuding_dir = poetry_dir / "御定全唐詩" / "json"
+        if yuding_dir.exists():
+            for file in sorted(yuding_dir.glob("*.json")):
+                try:
+                    with open(file, "r", encoding="utf-8") as f:
+                        items = json.load(f)
+                        for item in items:
+                            item["_source_type"] = "yuding"
+                            item["_source_file"] = str(file)
+                            poems.append(item)
+                    source_files.append(str(file))
+                    print(f"  加载 {file.name}: {len(items)} 条")
+                except Exception as e:
+                    print(f"警告: 无法读取 {file}: {e}")
+    
     print(f"加载完成: {len(poems)} 首诗词")
     print(f"来源文件: {len(source_files)} 个")
     
@@ -81,8 +148,11 @@ def unify_schema(raw_poems: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "hash": "",
         }
         
-        # 分割段落
-        if unified_item["content"]:
+        # 处理 chinese-poetry 格式
+        if "paragraphs" in item and isinstance(item["paragraphs"], list):
+            unified_item["paragraphs"] = [p.strip() for p in item["paragraphs"] if p.strip()]
+            unified_item["content"] = "\n".join(unified_item["paragraphs"])
+        elif unified_item["content"]:
             unified_item["paragraphs"] = [p.strip() for p in unified_item["content"].split("\n") if p.strip()]
         
         # 计算hash（用于去重）
@@ -98,6 +168,14 @@ def _get_genre(source_type: str) -> str:
     """根据来源类型判断体裁"""
     if "guwen" in source_type:
         return "诗"  # 默认为诗
+    elif "tangshi" in source_type:
+        return "诗"
+    elif "songci" in source_type:
+        return "词"
+    elif "yuanqu" in source_type:
+        return "曲"
+    elif "yuding" in source_type:
+        return "诗"
     elif "poet" in source_type:
         return "诗"
     elif "ci" in source_type:
@@ -179,7 +257,7 @@ def main():
     parser.add_argument(
         "--data",
         choices=["sample", "full"],
-        default="sample",
+        default="full",
         help="处理数据集类型"
     )
     parser.add_argument(

@@ -115,6 +115,10 @@ def process_poem(row: pd.Series) -> Dict[str, Any]:
     content = row.get('content', '')
     genre = row.get('genre', '其他')
     
+    # 处理非字符串类型的内容
+    if not isinstance(content, str):
+        content = str(content) if content is not None else ''
+    
     # 清理文本
     cleaned_content = clean_text(content)
     
@@ -224,7 +228,7 @@ def main():
     parser.add_argument(
         "--data",
         choices=["sample", "full"],
-        default="sample",
+        default="full",
         help="处理数据集类型"
     )
     parser.add_argument(

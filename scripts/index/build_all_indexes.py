@@ -237,11 +237,11 @@ def generate_performance_report(results: List, total_time: float, analysis: Dict
 
 def save_report(report: str):
     """保存报告到文件"""
-    report_dir = project_root / "docs" / "reports"
+    report_dir = project_root / "docs"
     report_dir.mkdir(parents=True, exist_ok=True)
     
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-    report_file = report_dir / f"index_build_report_{timestamp}.txt"
+    report_file = report_dir / f"{timestamp}_report_index_build.txt"
     
     with open(report_file, 'w', encoding='utf-8') as f:
         f.write(report)

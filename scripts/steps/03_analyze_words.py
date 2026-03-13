@@ -4,10 +4,16 @@
 使用 WordFrequencyAnalyzer 分析诗词词汇
 """
 
+import os
+import sys
 import json
 import argparse
 from pathlib import Path
 from datetime import datetime
+
+# 添加项目根目录到Python路径
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
 
 import pandas as pd
 
