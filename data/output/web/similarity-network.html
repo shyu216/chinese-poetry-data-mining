@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作者相似度网络图 - 古诗词数据分析</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 320px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            overflow-y: auto;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .sidebar p {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+        }
+        
+        .control-value {
+            text-align: right;
+            font-size: 0.85rem;
+            color: #667eea;
+            margin-top: 5px;
+        }
+        
+        .dynasty-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .dynasty-tag {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        
+        .dynasty-tag:hover {
+            background: rgba(102, 126, 234, 0.3);
+        }
+        
+        .dynasty-tag.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .stats {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .stat-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .main-content {
+            flex: 1;
+            position: relative;
+        }
+        
+        #graph {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .tooltip {
+            position: absolute;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 10px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            max-width: 250px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .tooltip h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+        
+        .tooltip p {
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+        
+        .nav-links {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            transition: background 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                max-height: 40vh;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h1>相似度网络图</h1>
+            <p>探索诗人之间的风格关联</p>
+            
+            <div class="control-group">
+                <label>相似度阈值</label>
+                <input type="range" id="thresholdSlider" min="0.1" max="0.8" step="0.05" value="0.3">
+                <div class="control-value" id="thresholdValue">0.3</div>
+            </div>
+            
+            <div class="control-group">
+                <label>节点大小</label>
+                <input type="range" id="sizeSlider" min="1" max="10" step="0.5" value="3">
+                <div class="control-value" id="sizeValue">3</div>
+            </div>
+            
+            <div class="control-group">
+                <label>朝代筛选</label>
+                <div class="dynasty-filters" id="dynastyFilters"></div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span>节点数</span>
+                    <span class="stat-value" id="nodeCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>连接数</span>
+                    <span class="stat-value" id="linkCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>平均连接度</span>
+                    <span class="stat-value" id="avgDegree">0</span>
+                </div>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <div id="graph"></div>
+            <div class="tooltip" id="tooltip"></div>
+            <div class="loading" id="loading">
+                <div class="loading-spinner"></div>
+                <p>加载网络数据...</p>
+            </div>
+            <div class="legend" id="legend"></div>
+            <nav class="nav-links">
+                <a href="index.html" class="nav-link">← 返回首页</a>
+                <a href="author-similarity.html" class="nav-link">作者相似度搜索 →</a>
+            </nav>
+        </main>
+    </div>
+
+    <script>
+        // 全局变量
+        let networkData = null;
+        let simulation = null;
+        let svg = null;
+        let g = null;
+        let width, height;
+        let selectedDynasties = new Set();
+        
+        // 朝代颜色映射
+        const dynastyColors = {
+            '先秦': '#e74c3c',
+            '两汉': '#e67e22',
+            '魏晋': '#f39c12',
+            '南北朝': '#f1c40f',
+            '隋代': '#2ecc71',
+            '唐代': '#1abc9c',
+            '五代': '#3498db',
+            '宋代': '#9b59b6',
+            '元代': '#34495e',
+            '明代': '#16a085',
+            '清代': '#27ae60',
+            '近代': '#2980b9'
+        };
+        
+        // 初始化
+        async function init() {
+            try {
+                // 加载网络数据
+                const response = await fetch('index/author_network.json');
+                if (!response.ok) throw new Error('无法加载网络数据');
+                
+                networkData = await response.json();
+                console.log('网络数据加载完成');
+                console.log(`- 节点数: ${networkData.nodes.length}`);
+                console.log(`- 边数: ${networkData.links.length}`);
+                
+                // 隐藏加载
+                document.getElementById('loading').style.display = 'none';
+                
+                // 初始化朝代筛选器
+                initDynastyFilters();
+                
+                // 初始化图例
+                initLegend();
+                
+                // 初始化可视化
+                initVisualization();
+                
+                // 绑定事件
+                bindEvents();
+                
+            } catch (error) {
+                console.error('初始化失败:', error);
+                document.getElementById('loading').innerHTML = `
+                    <p style="color: #e74c3c;">加载失败: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // 初始化朝代筛选器
+        function initDynastyFilters() {
+            // 提取所有朝代
+            const dynasties = [...new Set(networkData.nodes.map(n => n.dynasty).filter(Boolean))];
+            const container = document.getElementById('dynastyFilters');
+            
+            container.innerHTML = dynasties.map(dynasty => `
+                <span class="dynasty-tag active" data-dynasty="${dynasty}">${dynasty}</span>
+            `).join('');
+            
+            // 默认全选
+            dynasties.forEach(d => selectedDynasties.add(d));
+        }
+        
+        // 初始化图例
+        function initLegend() {
+            const legend = document.getElementById('legend');
+            const dynasties = [...new Set(networkData.nodes.map(n => n.dynasty).filter(Boolean))];
+            
+            legend.innerHTML = dynasties.map(dynasty => `
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${dynastyColors[dynasty] || '#999'}"></div>
+                    <span>${dynasty}</span>
+                </div>
+            `).join('');
+        }
+        
+        // 初始化可视化
+        function initVisualization() {
+            const container = document.getElementById('graph');
+            width = container.clientWidth;
+            height = container.clientHeight;
+            
+            // 创建SVG
+            svg = d3.select('#graph')
+                .append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .attr('viewBox', [0, 0, width, height]);
+            
+            // 添加缩放行为
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 4])
+                .on('zoom', (event) => {
+                    g.attr('transform', event.transform);
+                });
+            
+            svg.call(zoom);
+            
+            // 创建主组
+            g = svg.append('g');
+            
+            // 渲染网络
+            renderNetwork();
+        }
+        
+        // 渲染网络
+        function renderNetwork() {
+            // 获取当前阈值
+            const threshold = parseFloat(document.getElementById('thresholdSlider').value);
+            const baseSize = parseFloat(document.getElementById('sizeSlider').value);
+            
+            // 过滤数据
+            let filteredNodes = networkData.nodes.filter(n => 
+                selectedDynasties.has(n.dynasty)
+            );
+            
+            const nodeIds = new Set(filteredNodes.map(n => n.id));
+            
+            let filteredLinks = networkData.links.filter(l => 
+                nodeIds.has(l.source.id || l.source) && 
+                nodeIds.has(l.target.id || l.target) &&
+                l.value >= threshold
+            );
+            
+            // 更新统计
+            updateStats(filteredNodes, filteredLinks);
+            
+            // 清除旧元素
+            g.selectAll('*').remove();
+            
+            // 创建力导向模拟
+            simulation = d3.forceSimulation(filteredNodes)
+                .force('link', d3.forceLink(filteredLinks)
+                    .id(d => d.id)
+                    .distance(100))
+                .force('charge', d3.forceManyBody().strength(-300))
+                .force('center', d3.forceCenter(width / 2, height / 2))
+                .force('collision', d3.forceCollide().radius(d => Math.sqrt(d.poem_count || 1) * baseSize + 5));
+            
+            // 绘制边
+            const link = g.append('g')
+                .attr('stroke', 'rgba(255, 255, 255, 0.2)')
+                .selectAll('line')
+                .data(filteredLinks)
+                .join('line')
+                .attr('stroke-width', d => Math.sqrt(d.value) * 2)
+                .attr('stroke-opacity', 0.6);
+            
+            // 绘制节点
+            const node = g.append('g')
+                .selectAll('circle')
+                .data(filteredNodes)
+                .join('circle')
+                .attr('r', d => Math.sqrt(d.poem_count || 1) * baseSize)
+                .attr('fill', d => dynastyColors[d.dynasty] || '#999')
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 1.5)
+                .attr('stroke-opacity', 0.8)
+                .style('cursor', 'pointer')
+                .call(d3.drag()
+                    .on('start', dragstarted)
+                    .on('drag', dragged)
+                    .on('end', dragended));
+            
+            // 添加标签 (只显示诗词数量较多的作者)
+            const label = g.append('g')
+                .selectAll('text')
+                .data(filteredNodes.filter(n => n.poem_count >= 3))
+                .join('text')
+                .text(d => d.id)
+                .attr('font-size', '10px')
+                .attr('fill', '#fff')
+                .attr('text-anchor', 'middle')
+                .attr('dy', '.35em')
+                .attr('pointer-events', 'none')
+                .style('text-shadow', '0 1px 3px rgba(0,0,0,0.8)');
+            
+            // 鼠标事件
+            node.on('mouseover', function(event, d) {
+                // 高亮当前节点和连接的边
+                node.attr('opacity', n => {
+                    const isConnected = filteredLinks.some(l => 
+                        (l.source.id === d.id && l.target.id === n.id) ||
+                        (l.target.id === d.id && l.source.id === n.id)
+                    );
+                    return n.id === d.id || isConnected ? 1 : 0.2;
+                });
+                
+                link.attr('stroke-opacity', l => 
+                    l.source.id === d.id || l.target.id === d.id ? 1 : 0.1
+                );
+                
+                // 显示tooltip
+                showTooltip(event, d);
+            })
+            .on('mouseout', function() {
+                node.attr('opacity', 1);
+                link.attr('stroke-opacity', 0.6);
+                hideTooltip();
+            });
+            
+            // 更新位置
+            simulation.on('tick', () => {
+                link
+                    .attr('x1', d => d.source.x)
+                    .attr('y1', d => d.source.y)
+                    .attr('x2', d => d.target.x)
+                    .attr('y2', d => d.target.y);
+                
+                node
+                    .attr('cx', d => d.x)
+                    .attr('cy', d => d.y);
+                
+                label
+                    .attr('x', d => d.x)
+                    .attr('y', d => d.y + Math.sqrt(d.poem_count || 1) * baseSize + 12);
+            });
+        }
+        
+        // 更新统计
+        function updateStats(nodes, links) {
+            document.getElementById('nodeCount').textContent = nodes.length;
+            document.getElementById('linkCount').textContent = links.length;
+            
+            const avgDegree = nodes.length > 0 ? (links.length * 2 / nodes.length).toFixed(1) : 0;
+            document.getElementById('avgDegree').textContent = avgDegree;
+        }
+        
+        // 显示tooltip
+        function showTooltip(event, d) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.innerHTML = `
+                <h3>${d.id}</h3>
+                <p>朝代: ${d.dynasty || '未知'}</p>
+                <p>诗词数量: ${d.poem_count || 0} 首</p>
+                <p>连接数: ${networkData.links.filter(l => 
+                    l.source.id === d.id || l.target.id === d.id
+                ).length}</p>
+            `;
+            
+            tooltip.style.left = (event.pageX + 10) + 'px';
+            tooltip.style.top = (event.pageY + 10) + 'px';
+            tooltip.style.opacity = 1;
+        }
+        
+        // 隐藏tooltip
+        function hideTooltip() {
+            document.getElementById('tooltip').style.opacity = 0;
+        }
+        
+        // 拖拽函数
+        function dragstarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+        
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+        
+        function dragended(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+        
+        // 绑定事件
+        function bindEvents() {
+            // 阈值滑块
+            document.getElementById('thresholdSlider').addEventListener('input', function() {
+                document.getElementById('thresholdValue').textContent = this.value;
+                renderNetwork();
+            });
+            
+            // 大小滑块
+            document.getElementById('sizeSlider').addEventListener('input', function() {
+                document.getElementById('sizeValue').textContent = this.value;
+                renderNetwork();
+            });
+            
+            // 朝代筛选
+            document.getElementById('dynastyFilters').addEventListener('click', function(e) {
+                if (e.target.classList.contains('dynasty-tag')) {
+                    const dynasty = e.target.dataset.dynasty;
+                    
+                    if (selectedDynasties.has(dynasty)) {
+                        selectedDynasties.delete(dynasty);
+                        e.target.classList.remove('active');
+                    } else {
+                        selectedDynasties.add(dynasty);
+                        e.target.classList.add('active');
+                    }
+                    
+                    renderNetwork();
+                }
+            });
+            
+            // 窗口大小改变
+            window.addEventListener('resize', function() {
+                const container = document.getElementById('graph');
+                width = container.clientWidth;
+                height = container.clientHeight;
+                
+                svg.attr('width', width).attr('height', height);
+                simulation.force('center', d3.forceCenter(width / 2, height / 2));
+                simulation.alpha(0.3).restart();
+            });
+        }
+        
+        // 启动
+        init();
+    </script>
+</body>
+</html>

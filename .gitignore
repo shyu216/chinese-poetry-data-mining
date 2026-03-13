@@ -142,15 +142,6 @@ cython_debug/
 .vscode/
 
 # Project specific
-# Large data files (keep sample data, ignore full data)
-data/processed_data/
-data/chinese-poetry/
-
-# Large CSV files (>100MB)
-data/structure_analysis/poetry_structure_full.csv
-
-# Large JSON files (>100MB)
-data/github_pages/data/poems.json
 
 data/cache/
 
@@ -175,10 +166,6 @@ logs/
 *.h5
 *.model
 
-# Output files
-output/
-outputs/
-results/
 
 # Legacy archive - only track README
 archive/*
