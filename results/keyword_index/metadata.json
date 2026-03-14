@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "timestamp": "2026-03-14T22:33:29.670689",
+  "statistics": {
+    "total_poems": 332712,
+    "total_chunks": 333,
+    "total_keywords": 893638,
+    "index_chunks": 894
+  }
+}

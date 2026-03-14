@@ -7,10 +7,16 @@ Silver层结构化处理脚本
 3. 判断是否为格律诗
 4. 分类诗体类型
 
+输入:
+- results/bronze/poems_chunk_*.csv (分块文件)
+
 输出:
-- data/silver/v2_poems_structured.csv
-- data/silver/v2_metadata.json
-- data/silver/v2_stats.json
+- results/silver/poems_chunk_*.csv (原始分块文件)
+- results/silver/poems_chunk_processed_*.csv (处理后分块文件)
+- results/silver/poems_chunk_metadata.json (元数据)
+- results/silver/poems_chunk_state.json (状态文件)
+- data/silver/v2_stats.json (统计信息)
+- data/silver/v2_metadata.json (管线元数据)
 """
 
 import re
@@ -19,23 +25,27 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from datetime import datetime
 from collections import Counter
+import sys
+
+# 添加项目根目录到Python路径
+project_root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(project_root))
 
 import pandas as pd
 
 from src.schema import PoemProcessed, PipelineMetadata, PipelineStep
 from src.config import get_settings
+from src.chunk import AdvancedChunkManager, create_chunk_manager
 
 
 def clean_text(text: str) -> str:
     """清理文本，去除标点"""
-    # 保留中文字符和换行
     cleaned = re.sub(r'[^\u4e00-\u9fa5\n]', '', text)
     return cleaned
 
 
 def split_lines(content: str) -> List[str]:
     """将内容分割为诗句"""
-    # 按换行分割
     lines = [line.strip() for line in content.split('\n') if line.strip()]
     return lines
 
@@ -70,18 +80,12 @@ def classify_poem_type(pattern: str, genre: str) -> Tuple[bool, str, str]:
         meter_category: 格律类别（五言/七言）
     """
     if genre != "诗":
-        # 词和曲不做格律判断
         return False, "其他", None
     
-    # 解析模式
     counts = [int(x) for x in pattern.split(',') if x.isdigit()]
     
     if not counts:
         return False, "其他", None
-    
-    # 判断是否为格律诗
-    # 绝句: 4句，每句5或7字
-    # 律诗: 8句，每句5或7字
     
     unique_counts = set(counts)
     
@@ -106,29 +110,20 @@ def classify_poem_type(pattern: str, genre: str) -> Tuple[bool, str, str]:
             else:
                 return False, "七言古体", meter_category
     
-    # 混合字数，非格律诗
     return False, "杂言", None
 
 
-def process_poem(row: pd.Series) -> Dict[str, Any]:
+def process_poem_row(row: pd.Series) -> Dict[str, Any]:
     """处理单首诗词"""
     content = row.get('content', '')
     genre = row.get('genre', '其他')
     
-    # 处理非字符串类型的内容
     if not isinstance(content, str):
         content = str(content) if content is not None else ''
     
-    # 清理文本
     cleaned_content = clean_text(content)
-    
-    # 分割诗句
     lines = split_lines(cleaned_content)
-    
-    # 分析格律
     pattern, line_char_counts, total_lines, total_chars = analyze_meter_pattern(lines)
-    
-    # 分类诗体
     is_regular, poem_type, meter_category = classify_poem_type(pattern, genre)
     
     return {
@@ -149,8 +144,26 @@ def process_poem(row: pd.Series) -> Dict[str, Any]:
     }
 
 
+def process_chunk(df: pd.DataFrame) -> pd.DataFrame:
+    """处理一个chunk的数据"""
+    print(f"  处理chunk: {len(df)} 条记录")
+    processed = []
+    for idx, row in df.iterrows():
+        if (idx + 1) % 1000 == 0:
+            print(f"    进度: {idx+1}/{len(df)}")
+        processed.append(process_poem_row(row))
+    result_df = pd.DataFrame(processed)
+    print(f"  完成处理: {len(result_df)} 条记录")
+    return result_df
+
+
 def calculate_stats(df: pd.DataFrame) -> Dict[str, Any]:
     """计算统计信息"""
+    print(f"  计算统计信息...")
+    print(f"    总诗词数: {len(df)}")
+    print(f"    总作者数: {df['author'].nunique()}")
+    print(f"    总朝代数: {df['dynasty'].nunique()}")
+    
     stats = {
         'total_poems': len(df),
         'total_authors': df['author'].nunique(),
@@ -162,7 +175,10 @@ def calculate_stats(df: pd.DataFrame) -> Dict[str, Any]:
         'avg_chars': df['total_chars'].mean(),
     }
     
-    # 作者统计
+    print(f"    格律诗比例: {stats['regular_ratio']:.2%}")
+    print(f"    平均行数: {stats['avg_lines']:.1f}")
+    print(f"    平均字数: {stats['avg_chars']:.1f}")
+    
     author_stats = df.groupby('author').agg({
         'id': 'count',
         'genre': lambda x: x.value_counts().to_dict(),
@@ -172,15 +188,9 @@ def calculate_stats(df: pd.DataFrame) -> Dict[str, Any]:
     author_stats.columns = ['author', 'poem_count', 'genre_distribution', 'avg_lines', 'avg_chars']
     
     stats['top_authors'] = author_stats.nlargest(20, 'poem_count')[['author', 'poem_count']].to_dict('records')
+    print(f"    Top 20作者: {[a['author'] for a in stats['top_authors'][:5]]}...")
     
     return stats
-
-
-def save_to_csv(df: pd.DataFrame, output_path: Path):
-    """保存为CSV"""
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(output_path, index=False, encoding="utf-8-sig")
-    print(f"保存: {output_path}")
 
 
 def save_stats(stats: Dict[str, Any], output_path: Path):
@@ -226,17 +236,16 @@ def save_metadata(
 def main():
     parser = argparse.ArgumentParser(description="Silver层结构化处理")
     parser.add_argument(
-        "--data",
-        choices=["sample", "full"],
-        default="full",
-        help="处理数据集类型"
-    )
-    parser.add_argument(
         "--force",
         action="store_true",
         help="强制重新生成"
     )
     args = parser.parse_args()
+    
+    print("=" * 60)
+    print("Silver层结构化处理脚本启动")
+    print("=" * 60)
+    print(f"参数: force={args.force}")
     
     settings = get_settings()
     
@@ -244,69 +253,118 @@ def main():
     bronze_dir = settings.data.bronze_dir
     silver_dir = settings.data.silver_dir
     
-    # 输入文件
-    if args.data == "sample":
-        input_csv = bronze_dir / "v1_sample_1000.csv"
-    else:
-        input_csv = bronze_dir / "v1_poems_merged.csv"
+    print(f"\n>>> 配置信息:")
+    print(f"  Bronze目录: {bronze_dir}")
+    print(f"  Silver目录: {silver_dir}")
     
-    output_csv = silver_dir / "v2_poems_structured.csv"
     output_stats = silver_dir / "v2_stats.json"
     output_metadata = silver_dir / "v2_metadata.json"
     
-    # 检查输入是否存在
-    if not input_csv.exists():
-        print(f"错误: 输入文件不存在 {input_csv}")
-        print("请先运行: python scripts/steps/01_clean.py")
-        return
+    # 创建chunk管理器
+    print(f"\n>>> 创建Silver层chunk管理器...")
+    chunk_manager = create_chunk_manager(
+        data_type="silver",
+        prefix="poems_chunk",
+        step_name="structure"
+    )
+    print(f"  Silver Chunk基础目录: {chunk_manager.base_dir}")
+    print(f"  Chunk前缀: {chunk_manager.prefix}")
+    print(f"  Chunk大小: {chunk_manager.chunk_size}")
     
     # 检查是否已存在
-    if not args.force and output_csv.exists():
-        print(f"已存在: {output_csv}，使用 --force 重新生成")
+    print(f"\n>>> 检查现有Silver层数据...")
+    existing_chunks = chunk_manager.get_chunk_count()
+    print(f"  现有chunk数: {existing_chunks}")
+    
+    if not args.force and existing_chunks > 0:
+        progress = chunk_manager.get_progress()
+        print(f"\n>>> 已存在处理进度:")
+        print(f"  总chunk数: {progress['total_chunks']}")
+        print(f"  已完成: {progress['completed_chunks']}")
+        print(f"  进度: {progress['progress_percent']:.1f}%")
+        print(f"  使用 --force 重新生成")
         return
     
-    print("=" * 50)
+    if args.force:
+        print(f"\n>>> 清理现有Silver层数据...")
+        chunk_manager.clear_chunks()
+        print(f"  清理完成")
+    
+    print("\n" + "=" * 60)
     print("Silver层结构化处理")
-    print("=" * 50)
+    print("=" * 60)
     
-    # 1. 加载数据
-    print(f"\n[1/3] 加载数据: {input_csv}")
-    df = pd.read_csv(input_csv)
-    print(f"加载: {len(df)} 首诗词")
+    # 1. 处理数据（使用chunk）
+    print("\n[1/3] 处理数据...")
+    print(f">>> 创建Bronze层chunk管理器...")
+    bronze_chunk_manager = create_chunk_manager(
+        data_type="bronze",
+        prefix="poems_chunk",
+        step_name="clean"
+    )
+    print(f"  Bronze Chunk基础目录: {bronze_chunk_manager.base_dir}")
     
-    # 2. 结构化处理
-    print("\n[2/3] 结构化处理...")
-    processed = []
-    for idx, row in df.iterrows():
-        if idx % 1000 == 0:
-            print(f"  处理: {idx}/{len(df)}")
-        processed.append(process_poem(row))
+    bronze_chunk_count = bronze_chunk_manager.get_chunk_count()
+    print(f"  Bronze chunk数量: {bronze_chunk_count}")
     
-    df_processed = pd.DataFrame(processed)
-    print(f"完成: {len(df_processed)} 首")
+    if bronze_chunk_count == 0:
+        print(f"\n错误: 未找到bronze层数据")
+        print(f"请先运行: python scripts/steps/01_clean.py")
+        return
     
-    # 3. 保存数据
-    print("\n[3/3] 保存数据...")
-    save_to_csv(df_processed, output_csv)
+    print(f"\n>>> 开始处理所有chunk...")
+    print(f"  总chunk数: {bronze_chunk_count}")
     
-    # 4. 计算统计
-    stats = calculate_stats(df_processed)
+    # 使用process_chunks处理所有chunk
+    chunk_manager.process_chunks(
+        process_func=process_chunk,
+        input_path=None,
+        input_chunk_manager=bronze_chunk_manager,
+        output_format="csv",
+        resume=True,
+        force=False
+    )
+    
+    # 2. 计算统计
+    print("\n[2/3] 计算统计...")
+    print(f">>> 加载处理后的数据...")
+    all_dfs = []
+    chunk_count = chunk_manager.get_chunk_count()
+    print(f"  Silver chunk数量: {chunk_count}")
+    
+    for idx, chunk_df in enumerate(chunk_manager.iter_chunks(processed=True), 1):
+        print(f"  加载chunk {idx}/{chunk_count}: {len(chunk_df)} 条记录")
+        all_dfs.append(chunk_df)
+    
+    print(f">>> 合并所有chunk...")
+    df = pd.concat(all_dfs, ignore_index=True)
+    print(f"  合并完成: {len(df)} 条记录")
+    
+    print(f"\n>>> 计算统计信息...")
+    stats = calculate_stats(df)
     save_stats(stats, output_stats)
     
-    # 5. 保存元数据
+    # 3. 保存元数据
+    print("\n[3/3] 保存元数据...")
+    print(f">>> 保存元数据...")
+    print(f"  元数据路径: {output_metadata}")
     save_metadata(
         output_metadata,
         input_version="v1",
         output_version="v2",
-        total_records=len(df_processed),
-        params={"data": args.data, "force": args.force}
+        total_records=len(df),
+        params={"force": args.force}
     )
     
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print("完成!")
-    print(f"总记录: {len(df_processed)}")
-    print(f"格律诗比例: {stats['regular_ratio']:.2%}")
-    print("=" * 50)
+    print(f"  总记录: {len(df)}")
+    print(f"  格律诗比例: {stats['regular_ratio']:.2%}")
+    print(f"  分块数量: {chunk_manager.get_chunk_count()}")
+    print(f"  状态文件: {chunk_manager.state_file}")
+    print(f"  统计文件: {output_stats}")
+    print(f"  元数据文件: {output_metadata}")
+    print("=" * 60)
 
 
 if __name__ == "__main__":

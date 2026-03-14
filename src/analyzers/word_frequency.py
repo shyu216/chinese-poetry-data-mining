@@ -2,11 +2,13 @@
 词汇频率分析器
 
 统计每位作者的高频词汇，用于分析用词习惯
+支持按chunk保存结果
 """
 
 from datetime import datetime
 from typing import Dict, Any, List, Tuple
 from collections import Counter, defaultdict
+from pathlib import Path
 
 import pandas as pd
 
@@ -20,6 +22,7 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
     
     使用 jieba 分词，统计每位作者的高频实词
     排除停用词，保留名词、动词、形容词
+    支持按chunk保存结果
     """
     
     NAME = "word_frequency"
@@ -32,6 +35,8 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
         self.top_n = config.get("top_n", 100)  # Top N 高频词
         self.min_word_length = config.get("min_word_length", 2)  # 最小词长
         self.pos_filter = config.get("pos_filter", ["n", "v", "a"])  # 词性筛选
+        self.output_dir = Path(config.get("output_dir", "results/gold/word_frequency"))
+        self.chunk_size = config.get("chunk_size", 100)  # 每个chunk的作者数量
     
     def analyze(self, df: pd.DataFrame) -> AnalysisResult:
         """执行词汇频率分析
@@ -53,6 +58,7 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
         # 统计每位作者的词汇
         author_words = defaultdict(Counter)
         author_pos_dist = defaultdict(Counter)
+        author_poem_counts = defaultdict(int)
         
         total_rows = len(df)
         progress_interval = max(1000, total_rows // 100)  # 每处理1%或1000条显示一次进度
@@ -71,6 +77,7 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
                 temp_data = json.load(f)
                 author_words = defaultdict(Counter, {k: Counter(v) for k, v in temp_data["author_words"].items()})
                 author_pos_dist = defaultdict(Counter, {k: Counter(v) for k, v in temp_data["author_pos_dist"].items()})
+                author_poem_counts = defaultdict(int, temp_data.get("author_poem_counts", {}))
                 start_idx = temp_data.get("last_idx", 0)
         else:
             start_idx = 0
@@ -84,6 +91,8 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
                 
             author = row.get("author", "佚名")
             content = row.get("content", "")
+            
+            author_poem_counts[author] += 1
             
             # 处理非字符串类型的内容
             if not isinstance(content, str):
@@ -121,6 +130,7 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
                 temp_data = {
                     "author_words": {k: dict(v) for k, v in author_words.items()},
                     "author_pos_dist": {k: dict(v) for k, v in author_pos_dist.items()},
+                    "author_poem_counts": dict(author_poem_counts),
                     "last_idx": idx
                 }
                 with open(temp_file, "w", encoding="utf-8") as f:
@@ -151,7 +161,11 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
                 }
                 for word, count in word_counter.most_common(self.top_n)
             ]
-            author_top_words[author] = top_words
+            author_top_words[author] = {
+                "words": top_words,
+                "poem_count": author_poem_counts.get(author, 0),
+                "total_word_count": sum(word_counter.values())
+            }
         
         # 全局词频统计
         print("全局词频统计...")
@@ -170,16 +184,23 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
             for word, count in global_counter.most_common(self.top_n)
         ]
         
+        # 按chunk保存作者数据
+        print(f"按chunk保存作者数据 (每chunk {self.chunk_size} 位作者)...")
+        self._save_author_chunks(author_top_words)
+        
         # 构建结果
         result_data = {
             "author_count": len(author_words),
-            "author_words": author_top_words,
             "global_top_words": global_top_words,
             "pos_distribution": dict(author_pos_dist),
-            "vocabulary_size": len(global_counter)
+            "vocabulary_size": len(global_counter),
+            "chunk_size": self.chunk_size,
+            "chunk_count": (len(author_words) + self.chunk_size - 1) // self.chunk_size,
+            "output_dir": str(self.output_dir)
         }
         
         print(f"词汇表大小: {result_data['vocabulary_size']}")
+        print(f"保存了 {result_data['chunk_count']} 个chunk")
         
         return AnalysisResult(
             analyzer_name=self.NAME,
@@ -187,6 +208,51 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
             timestamp=datetime.now().isoformat(),
             data=result_data
         )
+    
+    def _save_author_chunks(self, author_data: Dict[str, Dict[str, Any]]):
+        """按chunk保存作者数据
+        
+        Args:
+            author_data: 作者数据字典
+        """
+        import json
+        
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+        authors = list(author_data.keys())
+        chunk_count = (len(authors) + self.chunk_size - 1) // self.chunk_size
+        
+        for chunk_idx in range(chunk_count):
+            start = chunk_idx * self.chunk_size
+            end = start + self.chunk_size
+            chunk_authors = authors[start:end]
+            
+            chunk_data = {
+                "chunk_id": chunk_idx,
+                "authors": chunk_authors,
+                "author_count": len(chunk_authors),
+                "data": {author: author_data[author] for author in chunk_authors}
+            }
+            
+            chunk_file = self.output_dir / f"authors_chunk_{chunk_idx:04d}.json"
+            with open(chunk_file, "w", encoding="utf-8") as f:
+                json.dump(chunk_data, f, ensure_ascii=False, indent=2)
+            
+            print(f"  保存 chunk {chunk_idx}: {len(chunk_authors)} 位作者")
+        
+        # 保存索引文件
+        index_data = {
+            "total_authors": len(authors),
+            "chunk_count": chunk_count,
+            "chunk_size": self.chunk_size,
+            "authors": authors
+        }
+        
+        index_file = self.output_dir / "authors_index.json"
+        with open(index_file, "w", encoding="utf-8") as f:
+            json.dump(index_data, f, ensure_ascii=False, indent=2)
+        
+        print(f"  保存索引: {index_file}")
     
     def _get_main_pos(self, word: str, df: pd.DataFrame, author: str) -> str:
         """获取词汇的主要词性
@@ -246,8 +312,25 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
         Returns:
             List[Dict]: 词汇列表
         """
-        author_words = data.get("author_words", {})
-        return author_words.get(author, [])
+        # 从chunk文件中读取
+        index_file = self.output_dir / "authors_index.json"
+        if not index_file.exists():
+            return []
+        
+        with open(index_file, "r", encoding="utf-8") as f:
+            index_data = json.load(f)
+        
+        # 找到作者所在的chunk
+        chunk_idx = index_data["authors"].index(author) // self.chunk_size
+        chunk_file = self.output_dir / f"authors_chunk_{chunk_idx:04d}.json"
+        
+        if not chunk_file.exists():
+            return []
+        
+        with open(chunk_file, "r", encoding="utf-8") as f:
+            chunk_data = json.load(f)
+        
+        return chunk_data["data"].get(author, {}).get("words", [])
     
     def compare_authors(
         self,
@@ -265,26 +348,27 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
         Returns:
             Dict: 比较结果
         """
-        author_words = data.get("author_words", {})
+        words1 = self.get_author_words(author1, data)
+        words2 = self.get_author_words(author2, data)
         
-        words1 = {w["word"]: w for w in author_words.get(author1, [])}
-        words2 = {w["word"]: w for w in author_words.get(author2, [])}
+        words1_dict = {w["word"]: w for w in words1}
+        words2_dict = {w["word"]: w for w in words2}
         
         # 共同词汇
-        common_words = set(words1.keys()) & set(words2.keys())
+        common_words = set(words1_dict.keys()) & set(words2_dict.keys())
         
         # 独有词汇
-        unique_to_1 = set(words1.keys()) - set(words2.keys())
-        unique_to_2 = set(words2.keys()) - set(words1.keys())
+        unique_to_1 = set(words1_dict.keys()) - set(words2_dict.keys())
+        unique_to_2 = set(words2_dict.keys()) - set(words1_dict.keys())
         
         # 共同词汇详情
         common_details = []
         for word in common_words:
             common_details.append({
                 "word": word,
-                "author1_count": words1[word]["count"],
-                "author2_count": words2[word]["count"],
-                "pos": words1[word].get("pos", "unknown")
+                "author1_count": words1_dict[word]["count"],
+                "author2_count": words2_dict[word]["count"],
+                "pos": words1_dict[word].get("pos", "unknown")
             })
         
         # 按总频次排序
@@ -300,5 +384,5 @@ class WordFrequencyAnalyzer(BaseAnalyzer):
             "common_words": common_details[:20],  # Top 20
             "unique_to_author1": list(unique_to_1)[:20],
             "unique_to_author2": list(unique_to_2)[:20],
-            "similarity_score": len(common_words) / max(len(words1), len(words2))
+            "similarity_score": len(common_words) / max(len(words1_dict), len(words2_dict))
         }

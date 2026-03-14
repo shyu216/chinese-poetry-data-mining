@@ -16,6 +16,7 @@ class DataConfig(BaseModel):
     bronze_dir: Path = Field(default=Path("data/bronze"))
     silver_dir: Path = Field(default=Path("data/silver"))
     gold_dir: Path = Field(default=Path("data/gold"))
+    results_dir: Path = Field(default=Path("results"))
     output_dir: Path = Field(default=Path("data/output"))
     cache_dir: Path = Field(default=Path("data/cache"))
     
@@ -36,7 +37,7 @@ class AnalysisConfig(BaseModel):
     min_word_length: int = Field(default=2)
     
     # 分片导出
-    chunk_size: int = Field(default=10000)  # 每片诗词数
+    chunk_size: int = Field(default=1000)  # 每片诗词数
     max_chunk_size_mb: int = Field(default=10)  # 每片最大MB
 
 
