@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background -->
+  <rect width="100" height="100" rx="20" fill="#8b2635"/>
+  
+  <!-- Chinese character "诗" (poem) -->
+  <text x="50" y="72" 
+        font-family="Noto Serif SC, Source Han Serif SC, serif" 
+        font-size="60" 
+        fill="#f5f0e8" 
+        text-anchor="middle"
+        font-weight="bold">诗</text>
+  
+  <!-- Decorative seal circle -->
+  <circle cx="50" cy="50" r="45" fill="none" stroke="#d4a574" stroke-width="2" opacity="0.5"/>
+</svg>

@@ -4,35 +4,93 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'web/**'
+      - 'results/**'
+      - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  group: 'pages'
+  cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Setup data directory (cross-platform symlink workaround)
+        run: |
+          # Create data directory in web/public
+          mkdir -p web/public/data
+
+          # Copy only necessary data files from results to web/public/data
+          # This avoids symlink issues between Windows and Ubuntu
+
+          # 1. Copy author chunks (needed for author browsing)
+          echo "Copying author chunks..."
+          cp -r results/author web/public/data/
+
+          # 2. Copy preprocessed data (needed for search and poem display)
+          echo "Copying preprocessed data..."
+          cp -r results/preprocessed web/public/data/
+
+          # 3. Copy wordcount data (needed for word cloud)
+          echo "Copying wordcount data..."
+          cp -r results/wordcount web/public/data/
+
+          # Verify data directory structure
+          echo "Data directory structure:"
+          find web/public/data -type d | head -20
+          echo "File counts:"
+          echo "Author chunks: $(find web/public/data/author -name '*.json' | wc -l)"
+          echo "Preprocessed files: $(find web/public/data/preprocessed -type f | wc -l)"
+          echo "Wordcount files: $(find web/public/data/wordcount -type f | wc -l)"
+
+      - name: Install dependencies
+        working-directory: ./web
+        run: npm ci
+
+      - name: Generate index and summary
+        working-directory: ./web
+        run: |
+          # Generate index.json and summary files from preprocessed data
+          node scripts/generate-index.cjs
+          node scripts/generate-summary.cjs
+
+      - name: Build
+        working-directory: ./web
+        run: npm run build
+
+      - name: Copy data to dist (for static serving)
+        run: |
+          # Ensure data is in dist folder for GitHub Pages
+          cp -r web/public/data web/dist/ || true
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './data/output/web'
-      
+          path: ./web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

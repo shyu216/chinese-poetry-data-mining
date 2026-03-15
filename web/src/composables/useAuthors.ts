@@ -72,4 +72,66 @@ export function useAuthors() {
         
         loadedCount.value = authors.length
         
-        // Notify incremental loading - top authors first (already sorted by
+        // Notify incremental loading - top authors first (already sorted by poem count)
+        if (incremental && batchStart < 100) { // Only for first 100
+          const progress = Math.round((batchEnd / Math.min(100, totalChunks)) * 100)
+          notifyIncrementalLoad([...authors], progress)
+        }
+      }
+      
+      // Sort by poem count descending (should already be sorted)
+      authors.sort((a, b) => b.poem_count - a.poem_count)
+      
+      authorsCache.value = authors
+      totalAuthors.value = authors.length
+      
+      // Cache to IndexedDB
+      await cacheAuthors(authors)
+      
+      return authors
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Unknown error'
+      throw e
+    } finally {
+      loading.value = false
+      isIncrementalLoading.value = false
+    }
+  }
+
+  const getTopAuthors = (limit: number = 100): AuthorStats[] => {
+    return authorsCache.value.slice(0, limit)
+  }
+
+  const getAuthorsByDynasty = (dynasty: string): AuthorStats[] => {
+    return authorsCache.value
+  }
+
+  const searchAuthors = (query: string): AuthorStats[] => {
+    if (!query.trim()) return authorsCache.value
+    
+    const lowerQuery = query.toLowerCase()
+    return authorsCache.value.filter(author => 
+      author.author.toLowerCase().includes(lowerQuery)
+    )
+  }
+
+  const getAuthorStats = () => ({
+    total: totalAuthors.value,
+    topAuthor: authorsCache.value[0]?.author || '',
+    maxPoems: authorsCache.value[0]?.poem_count || 0
+  })
+
+  return {
+    loadAllAuthors,
+    getTopAuthors,
+    getAuthorsByDynasty,
+    searchAuthors,
+    getAuthorStats,
+    onIncrementalLoad,
+    authors: computed(() => authorsCache.value),
+    loading,
+    error,
+    loadedCount,
+    isIncrementalLoading
+  }
+}

@@ -7,17 +7,16 @@ import {
   PeopleOutline as PeopleIcon,
   BarChartOutline as StatsIcon,
   CloudOutline as CloudIcon,
-  SettingsOutline as SettingsIcon
+  ServerOutline as DataIcon
 } from '@vicons/ionicons5'
-import SettingsPanel from '@/components/SettingsPanel.vue'
 
 const collapsed = ref(false)
-const showSettings = ref(false)
 
 const menuOptions = [
   { label: '寻幽探微', key: 'home', path: '/', icon: SearchIcon },
   { label: '翰墨集珍', key: 'poems', path: '/poems', icon: BookIcon },
   { label: '文人雅士', key: 'authors', path: '/authors', icon: PeopleIcon },
+  { label: '数据管理', key: 'data', path: '/data', icon: DataIcon },
   { label: '数据经纬', key: 'stats', path: '/stats', icon: StatsIcon },
   { label: '词林万象', key: 'wordcloud', path: '/wordcloud', icon: CloudIcon }
 ]
@@ -80,14 +79,7 @@ const themeOverrides = {
                 <path v-else d="M10 4l-4 4 4 4V4z"/>
               </svg>
             </button>
-
-            <button class="settings-btn" @click="showSettings = true" :title="collapsed ? '数据管理' : ''">
-              <SettingsIcon class="nav-icon" />
-              <span class="nav-label" v-if="!collapsed">数据管理</span>
-            </button>
           </aside>
-
-          <SettingsPanel v-model:show="showSettings" />
 
           <main class="main-content">
             <RouterView v-slot="{ Component }">

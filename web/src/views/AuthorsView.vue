@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import {
   NCard, NSpin, NEmpty, NInput, NSpace, NTag,
   NButton, NPagination, NScrollbar, NStatistic, NGrid, NGridItem,
-  NProgress, NDivider, NAvatar
+  NProgress, NDivider
 } from 'naive-ui'
 import {
   TrophyOutline, PersonOutline, BookOutline,
@@ -12,17 +12,33 @@ import {
 import { useAuthors } from '@/composables/useAuthors'
 import type { AuthorStats } from '@/types/author'
 
-const { loadAllAuthors, searchAuthors, getAuthorStats, authors, loading } = useAuthors()
+const { 
+  loadAllAuthors, 
+  searchAuthors, 
+  getAuthorStats, 
+  authors, 
+  loading,
+  loadedCount,
+  onIncrementalLoad 
+} = useAuthors()
 
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
+const incrementalAuthors = ref<AuthorStats[]>([])
+const loadProgress = ref(0)
+const isIncremental = ref(false)
 
 const stats = computed(() => getAuthorStats())
 
-const filteredAuthors = computed(() => {
+const displayAuthors = computed(() => {
+  // Use incremental data during loading, full data after
+  const source = isIncremental.value && incrementalAuthors.value.length > 0 
+    ? incrementalAuthors.value 
+    : authors.value
+  
   if (!searchQuery.value.trim()) {
-    return authors.value
+    return source
   }
   return searchAuthors(searchQuery.value)
 })
@@ -30,13 +46,13 @@ const filteredAuthors = computed(() => {
 const paginatedAuthors = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
-  return filteredAuthors.value.slice(start, end).map((author, index) => ({
+  return displayAuthors.value.slice(start, end).map((author, index) => ({
     ...author,
     rank: start + index + 1
   }))
 })
 
-const totalPages = computed(() => Math.ceil(filteredAuthors.value.length / pageSize.value))
+const totalPages = computed(() => Math.ceil(displayAuthors.value.length / pageSize.value))
 
 const getRankColor = (rank: number) => {
   if (rank === 1) return '#FFD700' // Gold
@@ -71,8 +87,38 @@ const getTypeDistribution = (typeCounts: Record<string, number>) => {
   }))
 }
 
+// Animation for new items
+const newItemRanks = ref<Set<number>>(new Set())
+
+const triggerItemAnimation = (ranks: number[]) => {
+  ranks.forEach(rank => newItemRanks.value.add(rank))
+  setTimeout(() => {
+    ranks.forEach(rank => newItemRanks.value.delete(rank))
+  }, 600)
+}
+
 onMounted(() => {
-  loadAllAuthors()
+  // Subscribe to incremental loading
+  const unsubscribe = onIncrementalLoad((newAuthors, progress) => {
+    isIncremental.value = true
+    incrementalAuthors.value = newAuthors
+    loadProgress.value = progress
+    
+    // Trigger animation for newly loaded items
+    const newRanks = newAuthors.slice(incrementalAuthors.value.length - 10)
+      .map((_, i) => incrementalAuthors.value.length - 10 + i + 1)
+      .filter(r => r > 0)
+    triggerItemAnimation(newRanks)
+  })
+  
+  // Start loading with incremental mode
+  loadAllAuthors(true).then(() => {
+    isIncremental.value = false
+  })
+  
+  onUnmounted(() => {
+    unsubscribe()
+  })
 })
 
 watch(searchQuery, () => {
@@ -125,7 +171,10 @@ watch(searchQuery, () => {
       </NGridItem>
       <NGridItem>
         <NCard class="stat-card">
-          <NStatistic label="平均产量" :value="Math.round(authors.reduce((a, b) => a + b.poem_count, 0) / (authors.length || 1))">
+          <NStatistic 
+            label="平均产量" 
+            :value="authors.length > 0 ? Math.round(authors.reduce((a, b) => a + b.poem_count, 0) / authors.length) : 0"
+          >
             <template #prefix>
               <BarChartOutline style="color: #8b2635;" />
             </template>
@@ -136,6 +185,27 @@ watch(searchQuery, () => {
         </NCard>
       </NGridItem>
     </NGrid>
+
+    <!-- Loading Progress -->
+    <NCard v-if="loading && isIncremental" class="loading-card">
+      <div class="loading-header">
+        <span class="loading-title">🚀 正在加载诗人数据</span>
+        <span class="loading-count">{{ incrementalAuthors.length }} / 857</span>
+      </div>
+      <NProgress
+        type="line"
+        :percentage="loadProgress"
+        :indicator-placement="'inside'"
+        status="success"
+        :height="12"
+        :border-radius="6"
+      />
+      <div class="loading-hint">
+        <span v-if="incrementalAuthors.length < 3">🏆 金牌诗人即将登场...</span>
+        <span v-else-if="incrementalAuthors.length < 10">🥇 前十名正在加载...</span>
+        <span v-else>📚 加载更多诗人...</span>
+      </div>
+    </NCard>
 
     <NCard class="search-card">
       <NInput
@@ -150,51 +220,56 @@ watch(searchQuery, () => {
       </NInput>
     </NCard>
 
-    <NSpin :show="loading" size="large">
+    <NSpin :show="loading && !isIncremental" size="large">
       <NEmpty v-if="!loading && paginatedAuthors.length === 0" description="暂无数据" />
       
       <div v-else class="authors-list">
-        <div
-          v-for="author in paginatedAuthors"
-          :key="author.author"
-          class="author-card"
-          :class="{ 'top-three': author.rank <= 3 }"
-        >
-          <div class="rank-badge" :style="{ backgroundColor: getRankColor(author.rank) }">
-            <span class="rank-number">{{ author.rank }}</span>
-            <span class="rank-icon">{{ getRankIcon(author.rank) }}</span>
-          </div>
-          
-          <div class="author-info">
-            <h3 class="author-name">{{ author.author }}</h3>
-            <div class="author-stats">
-              <NTag type="primary" size="small">
-                {{ author.poem_count }} 首诗词
-              </NTag>
-              <span class="top-type">
-                擅长：{{ getTopPoemType(author.poem_type_counts) }}
-              </span>
+        <TransitionGroup name="author-item">
+          <div
+            v-for="author in paginatedAuthors"
+            :key="author.author"
+            class="author-card"
+            :class="{ 
+              'top-three': author.rank <= 3,
+              'is-new': newItemRanks.has(author.rank)
+            }"
+          >
+            <div class="rank-badge" :style="{ backgroundColor: getRankColor(author.rank) }">
+              <span class="rank-number">{{ author.rank }}</span>
+              <span class="rank-icon">{{ getRankIcon(author.rank) }}</span>
+            </div>
+            
+            <div class="author-info">
+              <h3 class="author-name">{{ author.author }}</h3>
+              <div class="author-stats">
+                <NTag type="primary" size="small">
+                  {{ author.poem_count }} 首诗词
+                </NTag>
+                <span class="top-type">
+                  擅长：{{ getTopPoemType(author.poem_type_counts) }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="type-distribution">
+              <div
+                v-for="item in getTypeDistribution(author.poem_type_counts)"
+                :key="item.type"
+                class="type-bar"
+              >
+                <span class="type-label">{{ item.type }}</span>
+                <NProgress
+                  type="line"
+                  :percentage="item.percentage"
+                  :show-indicator="false"
+                  :height="6"
+                  status="success"
+                />
+                <span class="type-count">{{ item.count }}</span>
+              </div>
             </div>
           </div>
-          
-          <div class="type-distribution">
-            <div
-              v-for="item in getTypeDistribution(author.poem_type_counts)"
-              :key="item.type"
-              class="type-bar"
-            >
-              <span class="type-label">{{ item.type }}</span>
-              <NProgress
-                type="line"
-                :percentage="item.percentage"
-                :show-indicator="false"
-                :height="6"
-                status="success"
-              />
-              <span class="type-count">{{ item.count }}</span>
-            </div>
-          </div>
-        </div>
+        </TransitionGroup>
       </div>
     </NSpin>
 
@@ -252,6 +327,43 @@ watch(searchQuery, () => {
   text-align: center;
 }
 
+.loading-card {
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+}
+
+.loading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.loading-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.loading-count {
+  font-size: 14px;
+  color: #8b2635;
+  font-weight: 600;
+}
+
+.loading-hint {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 14px;
+  color: #666;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
 .search-card {
   margin-bottom: 24px;
 }
@@ -283,6 +395,24 @@ watch(searchQuery, () => {
   border: 1px solid #e8d5c4;
 }
 
+.author-card.is-new {
+  animation: slideIn 0.6s ease-out;
+}
+
+@keyframes slideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-30px) scale(0.95);
+  }
+  50% {
+    transform: translateX(5px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
 .rank-badge {
   display: flex;
   flex-direction: column;
@@ -294,6 +424,7 @@ watch(searchQuery, () => {
   color: #fff;
   font-weight: 600;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .rank-number {
@@ -361,6 +492,22 @@ watch(searchQuery, () => {
   margin-top: 32px;
   display: flex;
   justify-content: center;
+}
+
+/* Transition Group Animations */
+.author-item-enter-active,
+.author-item-leave-active {
+  transition: all 0.5s ease;
+}
+
+.author-item-enter-from {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+.author-item-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
 }
 
 @media (max-width: 768px) {
