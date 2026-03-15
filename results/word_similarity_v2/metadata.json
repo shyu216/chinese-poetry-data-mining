@@ -1,0 +1,7 @@
+{
+  "total_words": 115191,
+  "chunk_size": 500,
+  "total_chunks": 231,
+  "format": "compact",
+  "description": "每条格式: [word, frequency, [[word, similarity], ...]]"
+}

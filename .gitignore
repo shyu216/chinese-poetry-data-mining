@@ -1,5 +1,7 @@
 results/ngram_index/
 results/wordcount_*/
 results/fasttext/*.npy
+results/word_similarity/
+results/author-full/
 
 web/public/data/

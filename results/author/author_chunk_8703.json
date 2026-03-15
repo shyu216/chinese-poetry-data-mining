@@ -1,0 +1,1523 @@
+[
+  {
+    "author": "叶甲",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "29f899b4-8ff9-4fdf-861e-dbddedf8c445"
+    ],
+    "word_frequency": {
+      "滁阳富": 1,
+      "山水": 1,
+      "秀拔": 1,
+      "独琅": 1,
+      "琊": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "周文",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "bc6cba1c-e757-4392-9c3f-d2531b08d03d"
+    ],
+    "word_frequency": {
+      "河分": 1,
+      "隋柳尽": 1,
+      "路入": 1,
+      "楚云深": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "许表时",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "dff413fe-16d4-4e6b-96db-b4518d903dcc"
+    ],
+    "word_frequency": {
+      "千载": 1,
+      "兴亡": 1,
+      "莫浪": 1,
+      "愁": 1,
+      "汉家": 1,
+      "功业": 1,
+      "亦": 1,
+      "荒丘": 1,
+      "空余": 1,
+      "原": 1,
+      "上虞": 1,
+      "姬": 1,
+      "草": 1,
+      "舞": 1,
+      "尽": 1,
+      "春风": 1,
+      "未": 1,
+      "肯休": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "毛季子",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "bb8cf7c6-e6eb-4bb8-b3f7-4a6a3fbfc526"
+    ],
+    "word_frequency": {
+      "独上": 1,
+      "云梯": 1,
+      "三": 1,
+      "百级": 1,
+      "回眸": 1,
+      "失笑": 1,
+      "万山": 1,
+      "低": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "戴孚中",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "4d3ed47a-78f1-4593-bfc1-75981479af96"
+    ],
+    "word_frequency": {
+      "唐室": 1,
+      "未": 1,
+      "应嫌": 1,
+      "季晚": 1,
+      "相为": 1,
+      "不朽": 1,
+      "有": 1,
+      "元": 1,
+      "颜": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "李徽卿",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "5d1a182e-c6c6-4c11-b1f1-b094d185f4a3"
+    ],
+    "word_frequency": {
+      "臣奸": 1,
+      "虽": 1,
+      "杜": 1,
+      "前朝": 1,
+      "失": 1,
+      "国体": 1,
+      "终轻": 1,
+      "二子": 1,
+      "闲": 1,
+      "不使": 1,
+      "忠": 1,
+      "嘉传": 1,
+      "后世": 1,
+      "祇": 1,
+      "将": 1,
+      "词": 1,
+      "翰": 1,
+      "许": 1,
+      "元": 1,
+      "颜": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "洙泗钧翁",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5,5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "4b2db181-0a96-4622-8aac-aa51c63afb65"
+    ],
+    "word_frequency": {
+      "巍巍": 1,
+      "颜鲁公": 1,
+      "笔": 1,
+      "正心": 1,
+      "亦": 1,
+      "正": 1,
+      "凛凛": 1,
+      "元道州": 1,
+      "高节": 1,
+      "抱": 1,
+      "幽贞": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "李当遇",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "e406b024-0e76-4642-94a8-5beed6dab371"
+    ],
+    "word_frequency": {
+      "零陵": 1,
+      "郡": 1,
+      "北云帆": 1,
+      "落": 1,
+      "信美": 1,
+      "台前": 1,
+      "江月明": 1,
+      "石浅风": 1,
+      "高滩濑": 1,
+      "急": 1,
+      "孤舟": 1,
+      "一夜": 1,
+      "听": 1,
+      "寒声": 1
+    },
+    "similar_authors": [
+      {
+        "author": "李当",
+        "similarity": 0.6048
+      }
+    ]
+  },
+  {
+    "author": "翟天翼",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "0afa1cd1-aee6-43f0-b3ba-8a081bf4c73b"
+    ],
+    "word_frequency": {
+      "元公": 1,
+      "具述": 1,
+      "鲁公书": 1,
+      "文象": 1,
+      "相参翼": 1,
+      "轸": 1,
+      "区": 1,
+      "语气": 1,
+      "一时": 1,
+      "扬": 1,
+      "盛德": 1,
+      "词锋": 1,
+      "千古": 1,
+      "挫": 1,
+      "凶徒": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "史化尧",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "e1006ac7-e005-4068-a11e-890a85d9b7f3"
+    ],
+    "word_frequency": {
+      "文仙亭": 1,
+      "与": 1,
+      "远峰齐": 1,
+      "纵目": 1,
+      "凭栏": 1,
+      "似此": 1,
+      "稀": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "宋成",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "ecf306a2-70bd-4c5c-a730-90e1f9e6cdc3"
+    ],
+    "word_frequency": {
+      "湘": 1,
+      "是": 1,
+      "相分义": 1,
+      "漓": 1,
+      "为": 1,
+      "离": 1,
+      "别名": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "吕延嗣",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "27f973b8-d237-4951-9f7a-ad2140a3f40b"
+    ],
+    "word_frequency": {
+      "拟向": 1,
+      "苍梧": 1,
+      "叫": 1,
+      "虞舜": 1,
+      "更": 1,
+      "于": 1,
+      "橘井": 1,
+      "访苏": 1,
+      "仙": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "杜圭",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "14f5c61f-aae1-473b-ac5d-1b315ef2b7ba"
+    ],
+    "word_frequency": {
+      "鹿头": 1,
+      "屹立": 1,
+      "青疑染": 1,
+      "龙渡": 1,
+      "横飞": 1,
+      "势": 1,
+      "欲": 1,
+      "来": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "高华",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5,5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "693e23fd-557d-47eb-95cf-49c306ac6e3f"
+    ],
+    "word_frequency": {
+      "故国": 1,
+      "兴亡": 1,
+      "数": 1,
+      "勤民": 1,
+      "土木": 1,
+      "嘉": 1,
+      "废台": 1,
+      "称": 1,
+      "是": 1,
+      "楚": 1,
+      "辨": 1,
+      "物": 1,
+      "愧": 1,
+      "非": 1,
+      "华": 1
+    },
+    "similar_authors": [
+      {
+        "author": "高道华",
+        "similarity": 1.0
+      }
+    ]
+  },
+  {
+    "author": "时定钦",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "cce779ce-b4ea-46ab-8659-cef1dcd8d2ca"
+    ],
+    "word_frequency": {
+      "白云": 1,
+      "黄鹤": 1,
+      "自来": 1,
+      "去": 1,
+      "绿水青山": 1,
+      "无": 1,
+      "古今": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "关韪",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "a3922299-3e1c-4abc-929b-5e5811758a2d"
+    ],
+    "word_frequency": {
+      "流水": 1,
+      "洞门": 1,
+      "三": 1,
+      "数里": 1,
+      "落花": 1,
+      "松": 1,
+      "迳": 1,
+      "几千年": 1,
+      "山南": 1,
+      "蜀国": 1,
+      "新开路": 1,
+      "洞": 1,
+      "下": 1,
+      "秦": 1,
+      "人": 1,
+      "旧": 1,
+      "种田": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "陈彦敏",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "ec735555-5711-4881-a93c-794d49fa3a30"
+    ],
+    "word_frequency": {
+      "方离": 1,
+      "岭": 1,
+      "海": 1,
+      "逾": 1,
+      "千里": 1,
+      "才": 1,
+      "出": 1,
+      "潇湘": 1,
+      "第一": 1,
+      "州": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "彭浚明",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "67125c4a-cdc0-4fff-ab7a-2c6cec940f44"
+    ],
+    "word_frequency": {
+      "一境": 1,
+      "并吞": 1,
+      "云梦": 1,
+      "国": 1,
+      "四时": 1,
+      "闲": 1,
+      "澹": 1,
+      "洞庭": 1,
+      "天": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "丁亶",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "814887ec-a04b-449c-9f90-f6767b5dbb67"
+    ],
+    "word_frequency": {
+      "帘卷": 1,
+      "一番": 1,
+      "衡岳雨": 1,
+      "帆": 1,
+      "开": 1,
+      "千艇": 1,
+      "洞庭": 1,
+      "风": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "李延永",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5,5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "a9c8e1fe-0846-4f46-a2c4-4c67136c97e8"
+    ],
+    "word_frequency": {
+      "转": 1,
+      "地": 1,
+      "倾": 1,
+      "荆水": 1,
+      "连天": 1,
+      "涨": 1,
+      "洞庭": 1,
+      "势疑": 1,
+      "吞": 1,
+      "郡": 1,
+      "邑": 1,
+      "怒欲辟": 1,
+      "雷霆": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "常均",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "80559053-9dae-4f9e-b73e-5a7ba598729f"
+    ],
+    "word_frequency": {
+      "波翻": 1,
+      "雪浪": 1,
+      "养云涛": 1,
+      "亭压": 1,
+      "兰江": 1,
+      "意气": 1,
+      "高": 1,
+      "楚国": 1,
+      "兴亡": 1,
+      "何处": 1,
+      "问": 1,
+      "佩兰": 1,
+      "人": 1,
+      "去": 1,
+      "有": 1,
+      "离骚": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "张权",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "492f2d27-5210-4b59-adf0-314da9417f19"
+    ],
+    "word_frequency": {
+      "江": 1,
+      "转": 1,
+      "荆湖": 1,
+      "第二": 1,
+      "州": 1,
+      "巴": 1,
+      "渝": 1,
+      "东畔": 1,
+      "楚": 1,
+      "西头": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "钱某",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5,5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "c9af4952-a9a3-4ecb-a6fd-5f3471bdee26"
+    ],
+    "word_frequency": {
+      "倏忽": 1,
+      "经狼": 1,
+      "尾": 1,
+      "回旋": 1,
+      "过": 1,
+      "虎头": 1,
+      "相看": 1,
+      "逢": 1,
+      "白狗": 1,
+      "犹自": 1,
+      "见": 1,
+      "黄牛": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "秦惟肖",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "38aeb128-0b56-4962-ba57-cf6cebc4edb7"
+    ],
+    "word_frequency": {
+      "枫": 1,
+      "落": 1,
+      "楚江": 1,
+      "寒雁静": 1,
+      "月": 1,
+      "高": 1,
+      "巫峡": 1,
+      "夜": 1,
+      "猿": 1,
+      "哀": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "萧庭直",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "f9a29603-bd0a-433b-955c-746e7c857a15"
+    ],
+    "word_frequency": {
+      "山势": 1,
+      "低": 1,
+      "连": 1,
+      "巫峡": 1,
+      "远": 1,
+      "水流": 1,
+      "初": 1,
+      "放": 1,
+      "蜀": 1,
+      "江平": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "赵纲立",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "1c5484fc-0bdc-4975-a7ff-eccb921aaf9e"
+    ],
+    "word_frequency": {
+      "水际": 1,
+      "疑逢": 1,
+      "陆": 1,
+      "文学": 1,
+      "草间": 1,
+      "恐": 1,
+      "有": 1,
+      "鬭": 1,
+      "於": 1,
+      "菟": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "余叔英",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "6dfd63e7-b0d1-4c48-8d0a-bc344cf08e25"
+    ],
+    "word_frequency": {
+      "野": 1,
+      "市人": 1,
+      "来": 1,
+      "郢": 1,
+      "毗邻": 1,
+      "水接": 1,
+      "襄": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "林𫖳",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "681e4f6f-3902-45c3-913f-50fd41a234c3"
+    ],
+    "word_frequency": {
+      "西": 1,
+      "来": 1,
+      "汉水": 1,
+      "接": 1,
+      "江流": 1,
+      "大别山": 1,
+      "前": 1,
+      "旧": 1,
+      "沔州": 1,
+      "看到": 1,
+      "夕阳": 1,
+      "无": 1,
+      "尽兴": 1,
+      "一行": 1,
+      "飞鹭": 1,
+      "下": 1,
+      "汀洲": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "曾纻",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "cf4edcef-a30a-4076-954d-22bf6a3ee00d"
+    ],
+    "word_frequency": {
+      "汉江": 1,
+      "水": 1,
+      "涨": 1,
+      "鸭头": 1,
+      "绿": 1,
+      "宜城": 1,
+      "酒熟": 1,
+      "鹅儿": 1,
+      "黄": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "王璜",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "70dfe7bc-8e27-45ef-8601-88d68cfcee5b"
+    ],
+    "word_frequency": {
+      "村": 1,
+      "近": 1,
+      "莫": 1,
+      "愁": 1,
+      "连": 1,
+      "竹": 1,
+      "坞": 1,
+      "人歌楚": 1,
+      "些": 1,
+      "下": 1,
+      "苹洲": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "张众",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "cc04d40c-1f5b-40b2-89d7-bdbdf321707e"
+    ],
+    "word_frequency": {
+      "伤心": 1,
+      "白雪阳春": 1,
+      "丽": 1,
+      "极目": 1,
+      "朝云暮雨": 1,
+      "非": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "张适正",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "08c8bc3f-34e7-464d-ab0b-f8a521a05beb"
+    ],
+    "word_frequency": {
+      "是": 2,
+      "纷纷": 1,
+      "花雨": 1,
+      "暗": 1,
+      "江头": 1,
+      "隔岸": 1,
+      "烟村": 1,
+      "唤": 1,
+      "莫": 1,
+      "愁": 1,
+      "艇子": 1,
+      "只今": 1,
+      "谁": 1,
+      "主": 1,
+      "方知": 1,
+      "身世": 1,
+      "虚舟": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "周海",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "291586d4-7dd0-498b-b96c-5a36256f1346"
+    ],
+    "word_frequency": {
+      "十里": 1,
+      "平郊": 1,
+      "连": 1,
+      "郡": 1,
+      "堞": 1,
+      "一": 1,
+      "溪": 1,
+      "清水": 1,
+      "溉": 1,
+      "民田": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "邵勉",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "9e624e5e-0325-41dd-84f2-c087bbd91273"
+    ],
+    "word_frequency": {
+      "房陵": 1,
+      "郡": 1,
+      "僻": 1,
+      "皆": 1,
+      "山川": 1,
+      "竹山": 1,
+      "更": 1,
+      "在": 1,
+      "房": 1,
+      "西偏": 1,
+      "道": 1,
+      "由": 1,
+      "房城": 1,
+      "绝": 1,
+      "险阻": 1,
+      "高崖": 1,
+      "峻岭": 1,
+      "相": 1,
+      "绵延": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "廖知彰",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "51a8e647-3ea8-4752-ab58-c39760585f41"
+    ],
+    "word_frequency": {
+      "天匠": 1,
+      "矜功": 1,
+      "价": 1,
+      "不赀": 1,
+      "神机": 1,
+      "刳": 1,
+      "石": 1,
+      "漏": 1,
+      "新": 1,
+      "晖": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "傅彦济",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "496e360a-6efe-40a3-9f9f-dbd44f23657e"
+    ],
+    "word_frequency": {
+      "千里": 1,
+      "江山": 1,
+      "供": 1,
+      "眺望": 1,
+      "四围": 1,
+      "天地": 1,
+      "入": 1,
+      "帘": 1,
+      "栊": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "许翁",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "1f05fbbf-8377-4e7c-a3fc-e9e9ff999fe3"
+    ],
+    "word_frequency": {
+      "亭": 1,
+      "名": 1,
+      "燕喜": 1,
+      "经": 1,
+      "品题": 1,
+      "至今": 1,
+      "增重": 1,
+      "湟川": 1,
+      "地": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "东方某",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言律诗": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7,7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "b446674a-9946-4937-a761-a868e5356e6f"
+    ],
+    "word_frequency": {
+      "能": 2,
+      "重": 1,
+      "寻": 1,
+      "佳景": 1,
+      "冠": 1,
+      "南州": 1,
+      "天与邦": 1,
+      "人作": 1,
+      "胜游": 1,
+      "百尺": 1,
+      "台": 1,
+      "成": 1,
+      "偏": 1,
+      "得": 1,
+      "月": 1,
+      "四时": 1,
+      "花放": 1,
+      "不知": 1,
+      "秋": 1,
+      "当": 1,
+      "轩": 1,
+      "叠嶂": 1,
+      "高": 1,
+      "还": 1,
+      "下": 1,
+      "傍": 1,
+      "槛": 1,
+      "长": 1,
+      "溪": 1,
+      "咽": 1,
+      "复流": 1,
+      "只道": 1,
+      "史君": 1,
+      "共乐": 1,
+      "有": 1,
+      "谁": 1,
+      "会": 1,
+      "史君忧": 1
+    },
+    "similar_authors": [
+      {
+        "author": "方希觉",
+        "similarity": 0.8141
+      }
+    ]
+  },
+  {
+    "author": "彭德远",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "68220cab-a422-477e-a76c-a35fd015563e"
+    ],
+    "word_frequency": {
+      "雨": 1,
+      "过画": 1,
+      "桥": 1,
+      "跨": 1,
+      "蝃": 1,
+      "𬟽": 1,
+      "月": 1,
+      "明玉塔": 1,
+      "卧": 1,
+      "晴澜": 1,
+      "景全堪": 1,
+      "作": 1,
+      "吾": 1,
+      "乡冠": 1,
+      "还有": 1,
+      "沈碑客": 1,
+      "未": 1,
+      "看": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "潮州士人",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "0cd458de-2ae1-47e9-8107-d8126a877e70"
+    ],
+    "word_frequency": {
+      "潮民": 1,
+      "遗爱": 1,
+      "处": 1,
+      "八十里": 1,
+      "长堤": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "徐庾",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "8efb4904-968f-4599-8812-5f1ae620525b"
+    ],
+    "word_frequency": {
+      "程": 1,
+      "旼": 1,
+      "当年": 1,
+      "一": 1,
+      "匹夫": 1,
+      "不": 1,
+      "操": 1,
+      "三尺": 1,
+      "正群愚": 1,
+      "片言": 1,
+      "能": 1,
+      "使": 1,
+      "争心息": 1,
+      "万里": 1,
+      "江山": 1,
+      "姓": 1,
+      "与": 1,
+      "俱": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "古某",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "f2f183f7-ffd9-46c0-8c33-4ff0389c7869"
+    ],
+    "word_frequency": {
+      "仙客": 1,
+      "有": 1,
+      "灵": 1,
+      "千古": 1,
+      "在": 1,
+      "洞门": 1,
+      "无": 1,
+      "钥": 1,
+      "四时": 1,
+      "开": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "释道光",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "b13e0750-dc19-4cf6-b3ac-fe2909e7d80a"
+    ],
+    "word_frequency": {
+      "纵横": 1,
+      "出": 1,
+      "岫": 1,
+      "长天": 1,
+      "窄": 1,
+      "消散": 1,
+      "归": 1,
+      "山片": 1,
+      "月": 1,
+      "孤": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "李廉访",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言绝句": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7,7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "a3d8e164-aefe-4b11-b3d8-e227620394c2"
+    ],
+    "word_frequency": {
+      "蒙泉": 1,
+      "崇福": 1,
+      "僧道": 1,
+      "光": 1,
+      "只有": 1,
+      "诗肠": 1,
+      "无": 1,
+      "酒肠": 1,
+      "野鹤": 1,
+      "性情": 1,
+      "猿": 1,
+      "伴侣": 1,
+      "啸吟": 1,
+      "风月": 1,
+      "独": 1,
+      "昂藏": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "任推官",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "五言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "5,5",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "89894247-da20-49cb-a10b-071a792f183b"
+    ],
+    "word_frequency": {
+      "南国": 1,
+      "冠": 1,
+      "儒林": 1,
+      "年": 1,
+      "高": 1,
+      "便息": 1,
+      "心": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "宗提刑",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "c69b494a-88fe-4aee-aa4b-46f3f033221e"
+    ],
+    "word_frequency": {
+      "龙田": 1,
+      "亦": 1,
+      "有": 1,
+      "耕痕": 1,
+      "在": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "黄提举",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "2415ae12-16de-479c-88e2-c2fc2b072e83"
+    ],
+    "word_frequency": {
+      "耕": 1,
+      "余龙跃": 1,
+      "云津": 1,
+      "去": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "陈般",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "78cd53d2-5c20-420f-90a9-2d0bf11c2fb1"
+    ],
+    "word_frequency": {
+      "四十三年": 1,
+      "住": 1,
+      "此间": 1,
+      "八": 1,
+      "十八岁": 1,
+      "尚": 1,
+      "红颜": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "江施",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7,7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "51240d80-83cd-41b1-840f-9504df74dda6"
+    ],
+    "word_frequency": {
+      "深": 1,
+      "随": 1,
+      "石": 1,
+      "窦千寻": 1,
+      "去": 1,
+      "远自云峰": 1,
+      "十里": 1,
+      "来": 1
+    },
+    "similar_authors": []
+  },
+  {
+    "author": "陈嗣昭",
+    "poem_count": 1,
+    "poem_type_counts": {
+      "七言古体": 1
+    },
+    "meter_patterns": [
+      {
+        "pattern": "7",
+        "count": 1
+      }
+    ],
+    "poem_ids": [
+      "97d75c32-4280-4556-847d-718a5638cde4"
+    ],
+    "word_frequency": {
+      "二十四": 1,
+      "州": 1,
+      "称": 1,
+      "小桂": 1
+    },
+    "similar_authors": []
+  }
+]

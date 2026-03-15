@@ -1,68 +1,75 @@
-import { ref, shallowRef } from 'vue'
+import { ref, shallowRef, computed } from 'vue'
+import type { AuthorStats } from '@/types/author'
+import { cacheAuthors, getCachedAuthors } from './usePoemCache'
 
-export interface Author {
-  dynasty: string
-  poem_count: number
-  genres: string[]
-}
-
-interface AuthorsIndex {
-  metadata: { total_authors: number }
-  authors: Record<string, Author>
-}
-
-const authorsCache = shallowRef<AuthorsIndex | null>(null)
+const authorsCache = shallowRef<AuthorStats[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
+const totalAuthors = ref(0)
+const loadedCount = ref(0)
+const isIncrementalLoading = ref(false)
+
+// Event emitter for incremental loading
+const loadingCallbacks: ((authors: AuthorStats[], progress: number) => void)[] = []
 
 export function useAuthors() {
-  const loadAuthors = async (): Promise<AuthorsIndex> => {
-    if (authorsCache.value) return authorsCache.value
-
-    loading.value = true
-    error.value = null
-
-    try {
-      const response = await fetch('/data/poems/author_index.json')
-      if (!response.ok) throw new Error('Failed to load authors index')
-      const data = await response.json()
-      authorsCache.value = data
-      return data
-    } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Unknown error'
-      throw e
-    } finally {
-      loading.value = false
+  const onIncrementalLoad = (callback: (authors: AuthorStats[], progress: number) => void) => {
+    loadingCallbacks.push(callback)
+    return () => {
+      const index = loadingCallbacks.indexOf(callback)
+      if (index > -1) loadingCallbacks.splice(index, 1)
     }
   }
 
-  const getAuthor = async (name: string): Promise<Author | null> => {
-    const authors = await loadAuthors()
-    return authors.authors[name] || null
+  const notifyIncrementalLoad = (authors: AuthorStats[], progress: number) => {
+    loadingCallbacks.forEach(cb => cb(authors, progress))
   }
 
-  const getTopAuthors = async (limit: number = 50): Promise<Array<{ name: string } & Author>> => {
-    const authors = await loadAuthors()
-    return Object.entries(authors.authors)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.poem_count - a.poem_count)
-      .slice(0, limit)
-  }
+  const loadAllAuthors = async (incremental = false): Promise<AuthorStats[]> => {
+    if (authorsCache.value.length > 0) {
+      return authorsCache.value
+    }
 
-  const getAuthorsByDynasty = async (dynasty: string): Promise<Array<{ name: string } & Author>> => {
-    const authors = await loadAuthors()
-    return Object.entries(authors.authors)
-      .filter(([_, data]) => data.dynasty === dynasty)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.poem_count - a.poem_count)
-  }
+    // Try cache first
+    const cached = await getCachedAuthors()
+    if (cached && cached.length > 0) {
+      authorsCache.value = cached
+      totalAuthors.value = cached.length
+      return cached
+    }
 
-  return {
-    loadAuthors,
-    getAuthor,
-    getTopAuthors,
-    getAuthorsByDynasty,
-    loading,
-    error
-  }
-}
+    loading.value = true
+    isIncrementalLoading.value = incremental
+    error.value = null
+    loadedCount.value = 0
+
+    try {
+      const authors: AuthorStats[] = []
+      const totalChunks = 857 // Total author chunks
+      
+      // Load chunks in batches for incremental display
+      const batchSize = 10 // Load 10 at a time
+      
+      for (let batchStart = 0; batchStart < totalChunks; batchStart += batchSize) {
+        const batchEnd = Math.min(batchStart + batchSize, totalChunks)
+        const batchPromises = []
+        
+        for (let i = batchStart; i < batchEnd; i++) {
+          const chunkId = i.toString().padStart(4, '0')
+          batchPromises.push(
+            fetch(`/data/author/author_chunk_${chunkId}.json`)
+              .then(response => {
+                if (!response.ok) throw new Error(`Failed to load ${i}`)
+                return response.json()
+              })
+              .catch(() => null)
+          )
+        }
+        
+        const batchResults = await Promise.all(batchPromises)
+        const validAuthors = batchResults.filter((a): a is AuthorStats => a !== null)
+        authors.push(...validAuthors)
+        
+        loadedCount.value = authors.length
+        
+        // Notify incremental loading - top authors first (already sorted by
