@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+  base: '/chinese-poetry-data-mining/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
