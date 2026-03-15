@@ -1,0 +1,23 @@
+// WordSimilarity.fbs
+// FlatBuffers schema for word similarity data
+
+namespace WordSimilarity;
+
+table SimilarWord {
+  word_id: int;
+  similarity: int;  // similarity * 10000 as int
+}
+
+table WordEntry {
+  word_id: int;
+  frequency: int;
+  similar_words: [SimilarWord];
+}
+
+table WordSimilarityFile {
+  words: [WordEntry];
+  vocab: [string];  // word_id -> word
+}
+
+root_type: WordSimilarityFile;
+file_identifier: "WRSV";

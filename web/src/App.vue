@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import {
   SearchOutline as SearchIcon,
@@ -7,10 +7,30 @@ import {
   PeopleOutline as PeopleIcon,
   BarChartOutline as StatsIcon,
   CloudOutline as CloudIcon,
-  ServerOutline as DataIcon
+  ServerOutline as DataIcon,
+  MenuOutline,
+  CloseOutline
 } from '@vicons/ionicons5'
 
 const collapsed = ref(false)
+const mobileMenuOpen = ref(false)
+const isMobile = ref(false)
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+  if (!isMobile.value) {
+    mobileMenuOpen.value = false
+  }
+}
+
+onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
+})
 
 const menuOptions = [
   { label: '寻幽探微', key: 'home', path: '/', icon: SearchIcon },
@@ -46,7 +66,20 @@ const themeOverrides = {
     <n-message-provider>
       <n-dialog-provider>
         <div class="app-container">
-          <aside class="sidebar" :class="{ collapsed }">
+          <!-- Mobile Header -->
+          <header class="mobile-header" v-if="isMobile">
+            <button class="menu-toggle" @click="mobileMenuOpen = !mobileMenuOpen">
+              <MenuOutline v-if="!mobileMenuOpen" class="menu-icon" />
+              <CloseOutline v-else class="menu-icon" />
+            </button>
+            <div class="mobile-brand">
+              <span class="brand-seal">诗词</span>
+              <span class="mobile-title">中华诗词库</span>
+            </div>
+          </header>
+
+          <!-- Sidebar / Mobile Drawer -->
+          <aside class="sidebar" :class="{ collapsed, 'mobile-open': mobileMenuOpen }">
             <div class="sidebar-header">
               <div class="brand" v-if="!collapsed">
                 <span class="brand-seal">诗词</span>
@@ -59,27 +92,31 @@ const themeOverrides = {
                 <span class="brand-seal">诗</span>
               </div>
             </div>
-            
+
             <nav class="sidebar-nav">
-              <RouterLink 
-                v-for="item in menuOptions" 
+              <RouterLink
+                v-for="item in menuOptions"
                 :key="item.key"
                 :to="item.path"
                 class="nav-item"
                 :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path) && item.path !== '/') }"
+                @click="isMobile && (mobileMenuOpen = false)"
               >
                 <component :is="item.icon" class="nav-icon" />
                 <span class="nav-label" v-if="!collapsed">{{ item.label }}</span>
               </RouterLink>
             </nav>
 
-            <button class="collapse-btn" @click="collapsed = !collapsed">
+            <button v-if="!isMobile" class="collapse-btn" @click="collapsed = !collapsed">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                 <path v-if="collapsed" d="M6 12l4-4-4-4v8z"/>
                 <path v-else d="M10 4l-4 4 4 4V4z"/>
               </svg>
             </button>
           </aside>
+
+          <!-- Mobile Overlay -->
+          <div v-if="isMobile && mobileMenuOpen" class="mobile-overlay" @click="mobileMenuOpen = false"></div>
 
           <main class="main-content">
             <RouterView v-slot="{ Component }">
@@ -376,4 +413,151 @@ a { color: inherit; text-decoration: none; }
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+  .mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--color-bg-paper);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    z-index: 300;
+    gap: 12px;
+  }
+
+  .menu-toggle {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--color-ink);
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .menu-toggle:hover {
+    background: rgba(139, 38, 53, 0.08);
+  }
+
+  .menu-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .mobile-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-brand .brand-seal {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .mobile-title {
+    font-family: "Noto Serif SC", serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px;
+    top: 56px;
+    height: calc(100vh - 56px);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .mobile-overlay {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 150;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    margin-top: 56px;
+    padding: 16px;
+    padding-bottom: 80px;
+    min-height: calc(100vh - 56px);
+  }
+
+  .app-footer {
+    left: 0 !important;
+    padding: 0 16px;
+    height: 48px;
+  }
+
+  .footer-inner {
+    font-size: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .footer-inner .divider {
+    display: none;
+  }
+
+  .footer-inner span:not(.divider) {
+    white-space: nowrap;
+  }
+}
+
+/* Tablet Styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .sidebar.collapsed {
+    width: 64px;
+  }
+
+  .main-content {
+    margin-left: 220px;
+    padding: 24px 32px;
+  }
+
+  .sidebar.collapsed ~ .main-content {
+    margin-left: 64px;
+  }
+
+  .app-footer {
+    left: 220px;
+    padding: 0 32px;
+  }
+
+  .sidebar.collapsed ~ .app-footer {
+    left: 64px;
+  }
+}
+
+/* Hide mobile elements on desktop */
+@media (min-width: 769px) {
+  .mobile-header,
+  .mobile-overlay {
+    display: none;
+  }
+}
 </style>

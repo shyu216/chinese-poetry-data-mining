@@ -96,8 +96,8 @@ export function useSearchIndex() {
       return { keyword: '', poems: [], totalMatches: 0 }
     }
     
-    const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)]
-    const poemIds = keywordData[randomKeyword] || []
+    const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)] || ''
+    const poemIds = randomKeyword ? (keywordData[randomKeyword] || []) : []
     
     const results: SearchResult[] = []
     for (const id of poemIds.slice(0, 20)) {
@@ -140,7 +140,7 @@ export function useSearchIndex() {
       if (!keywordData) continue
       
       if (keyword in keywordData) {
-        const poemIds = keywordData[keyword]
+        const poemIds = keywordData[keyword] || []
         for (const id of poemIds.slice(0, 30)) {
           if (!seenIds.has(id)) {
             seenIds.add(id)

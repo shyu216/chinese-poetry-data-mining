@@ -104,13 +104,14 @@ const downloadAllPoemChunks = async () => {
         const text = await response.text()
         // Parse and cache
         const lines = text.split('\n').filter(line => line.trim())
-        const poems = lines.slice(1).map(line => {
+        const poems: { id: string; title: string; author: string; dynasty: string; genre: string }[] = lines.slice(1).map(line => {
           const parts = line.split(',')
           return {
             id: parts[0] || '',
             title: parts[1] || '',
             author: parts[2] || '',
-            dynasty: parts[3] || ''
+            dynasty: parts[3] || '',
+            genre: parts[4] || ''
           }
         }).filter(p => p.id)
         
@@ -514,5 +515,62 @@ onMounted(() => {
   margin-left: auto;
   font-size: 14px;
   color: #999;
+}
+
+@media (max-width: 768px) {
+  .data-dashboard {
+    padding: 16px 0;
+  }
+
+  .page-header {
+    padding: 0 16px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
+
+  .page-subtitle {
+    font-size: 14px;
+  }
+
+  .dashboard-tabs {
+    padding: 0 16px;
+  }
+
+  .dashboard-tabs :deep(.n-tabs-nav) {
+    overflow-x: auto;
+  }
+
+  .dashboard-tabs :deep(.n-tabs-tab) {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .stat-card :deep(.n-statistic__label) {
+    font-size: 12px;
+  }
+
+  .stat-card :deep(.n-statistic-value) {
+    font-size: 20px;
+  }
+
+  .storage-viz :deep(.n-grid) {
+    grid-template-columns: 1fr !important;
+  }
+
+  .download-card :deep(.n-button) {
+    font-size: 14px;
+  }
+
+  .download-status {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .status-item {
+    width: 100%;
+  }
 }
 </style>

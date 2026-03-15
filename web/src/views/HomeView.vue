@@ -655,4 +655,46 @@ onMounted(() => {
   border-radius: 4px;
   flex-shrink: 0;
 }
+
+@media (max-width: 768px) {
+  .search-container {
+    padding: 24px 16px;
+  }
+
+  .search-title {
+    font-size: 24px;
+  }
+
+  .search-subtitle {
+    font-size: 14px;
+  }
+
+  .search-box {
+    flex-direction: column;
+  }
+
+  .search-input {
+    min-width: auto;
+  }
+
+  .search-btn {
+    width: 100%;
+  }
+
+  .poems-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .results-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .results-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
 </style>

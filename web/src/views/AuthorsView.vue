@@ -78,7 +78,8 @@ const getRankIcon = (rank: number) => {
 const getTopPoemType = (typeCounts: Record<string, number>) => {
   const entries = Object.entries(typeCounts)
   if (entries.length === 0) return '-'
-  return entries.sort((a, b) => b[1] - a[1])[0][0]
+  const sorted = entries.sort((a, b) => b[1] - a[1])
+  return sorted[0]?.[0] || '-'
 }
 
 const getTypeDistribution = (typeCounts: Record<string, number>) => {

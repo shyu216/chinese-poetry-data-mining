@@ -33,12 +33,12 @@ const availableGenres = ref<string[]>([])
 const globalTotal = ref(332712)
 
 const dynastyOptions = computed(() => [
-  { label: '全部朝代', value: null },
+  { label: '全部朝代', value: '' },
   ...availableDynasties.value.map(d => ({ label: d, value: d }))
 ])
 
 const genreOptions = computed(() => [
-  { label: '全部体裁', value: null },
+  { label: '全部体裁', value: '' },
   ...availableGenres.value.map(g => ({ label: g, value: g }))
 ])
 
@@ -196,8 +196,10 @@ const initialLoad = async () => {
   const relevantChunks = await getRelevantChunkIds()
   if (relevantChunks.length > 0 && loadedChunkIds.value.length === 0) {
     const firstChunkId = relevantChunks[0]
-    await loadChunkSummaries(firstChunkId)
-    loadedChunkIds.value = [firstChunkId]
+    if (firstChunkId !== undefined) {
+      await loadChunkSummaries(firstChunkId)
+      loadedChunkIds.value = [firstChunkId]
+    }
   }
   await loadPoems()
 }
@@ -488,6 +490,40 @@ const initialLoad = async () => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .poems-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filters-row .n-space {
+    flex-wrap: wrap;
+  }
+
+  .filters-row .n-select,
+  .filters-row .n-input {
+    width: 100% !important;
+  }
+
+  .stats-bar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 16px;
+  }
+
+  .stat-item {
+    min-width: auto;
+  }
+
+  .stat-divider {
+    display: none;
+  }
 }
 
 .poem-card-compact {

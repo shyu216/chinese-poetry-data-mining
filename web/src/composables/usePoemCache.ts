@@ -22,6 +22,7 @@ interface PoemCacheSchema extends DBSchema {
   index: {
     key: string
     value: {
+      key: string
       data: any
       timestamp: number
     }
@@ -29,6 +30,7 @@ interface PoemCacheSchema extends DBSchema {
   metadata: {
     key: string
     value: {
+      key: string
       loadedChunkIds: number[]
       timestamp: number
     }
@@ -36,6 +38,7 @@ interface PoemCacheSchema extends DBSchema {
   authors: {
     key: string
     value: {
+      key: string
       data: AuthorStats[]
       timestamp: number
     }

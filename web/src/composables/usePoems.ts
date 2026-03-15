@@ -133,11 +133,11 @@ export function usePoems() {
         const [id, title, author, dynasty, genre] = cols
         
         poems.push({
-          id,
+          id: id || '',
           title: title || '',
           author: author || '佚名',
-          dynasty,
-          genre
+          dynasty: dynasty || '',
+          genre: genre || ''
         })
       }
       
@@ -174,18 +174,19 @@ export function usePoems() {
       if (cols.length < 10) continue
       
       const [id, title, author, dynasty, genre, poemType, sentences, meterPattern, hash, words] = cols
+      const poemId = id || ''
       
-      poemMap.set(id, {
-        id,
+      poemMap.set(poemId, {
+        id: poemId,
         title: title || '',
         author: author || '佚名',
-        dynasty,
-        genre,
+        dynasty: dynasty || '',
+        genre: genre || '',
         poem_type: poemType,
         meter_pattern: meterPattern,
         sentences: sentences ? sentences.split(' ').filter(s => s) : [],
         words: words ? words.split(' ').filter(w => w) : [],
-        hash
+        hash: hash || ''
       })
     }
     
@@ -280,12 +281,14 @@ export function usePoems() {
     
     // Preload next chunk if exists and we're near the end
     const nextChunkIndex = endChunkIndex + 1
-    if (nextChunkIndex < relevantChunkIds.length && nextChunkIndex < relevantChunkIds.length) {
+    if (nextChunkIndex < relevantChunkIds.length) {
       const nextChunkId = relevantChunkIds[nextChunkIndex]
-      // Preload in background without awaiting
-      setTimeout(() => {
-        loadChunkSummaries(nextChunkId).catch(console.error)
-      }, 100)
+      if (nextChunkId !== undefined) {
+        // Preload in background without awaiting
+        setTimeout(() => {
+          loadChunkSummaries(nextChunkId).catch(console.error)
+        }, 100)
+      }
     }
     
     // Apply text search filter
