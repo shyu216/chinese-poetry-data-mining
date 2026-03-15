@@ -1,0 +1,11 @@
+{
+  "total_words": 115191,
+  "total_chunks": 231,
+  "vocab_size": 88227,
+  "similarity_threshold": 0.7,
+  "format": "flatbuffers",
+  "file_pattern": "word_chunk_*.bin",
+  "vocab": "vocab.json",
+  "description": "FlatBuffers 二进制格式，每 chunk 独立文件 (单次扫描生成)",
+  "similarity_unit": 0.0001
+}

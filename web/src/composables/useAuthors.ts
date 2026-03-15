@@ -57,7 +57,7 @@ export function useAuthors() {
         for (let i = batchStart; i < batchEnd; i++) {
           const chunkId = i.toString().padStart(4, '0')
           batchPromises.push(
-            fetch(`/data/author/author_chunk_${chunkId}.json`)
+            fetch(`${import.meta.env.BASE_URL}data/author/author_chunk_${chunkId}.json`)
               .then(response => {
                 if (!response.ok) throw new Error(`Failed to load ${i}`)
                 return response.json()

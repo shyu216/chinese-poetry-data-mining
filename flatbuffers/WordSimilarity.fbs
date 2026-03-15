@@ -19,5 +19,5 @@ table WordSimilarityFile {
   vocab: [string];  // word_id -> word
 }
 
-root_type: WordSimilarityFile;
-file_identifier: "WRSV";
+root_type WordSimilarityFile;
+file_identifier "WRSV";

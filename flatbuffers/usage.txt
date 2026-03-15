@@ -1,0 +1,3 @@
+flatc --ts --gen-mutable --gen-object-api -o web/src/flatbuffers flatbuffers/WordSimilarity.fbs
+
+flatc -o scripts/flatbuffers_generated/ --python flatbuffers/WordSimilarity.fbs

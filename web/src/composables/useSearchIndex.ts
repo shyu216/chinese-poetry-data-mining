@@ -65,7 +65,7 @@ export function useSearchIndex() {
     const key = `keyword_${indexNum.toString().padStart(4, '0')}`
     
     try {
-      const response = await fetch(`/data/keyword_index/${key}.json`)
+      const response = await fetch(`${import.meta.env.BASE_URL}data/keyword_index/${key}.json`)
       if (!response.ok) return null
       const data: KeywordIndex = await response.json()
       
