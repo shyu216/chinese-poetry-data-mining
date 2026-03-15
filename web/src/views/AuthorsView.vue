@@ -31,6 +31,13 @@ const isIncremental = ref(false)
 
 const stats = computed(() => getAuthorStats())
 
+const averagePoems = computed(() => {
+  const list = authors.value
+  if (!list || list.length === 0) return 0
+  const total = list.reduce((sum, author) => sum + (author.poem_count || 0), 0)
+  return Math.round(total / list.length)
+})
+
 const displayAuthors = computed(() => {
   // Use incremental data during loading, full data after
   const source = isIncremental.value && incrementalAuthors.value.length > 0 
@@ -173,7 +180,7 @@ watch(searchQuery, () => {
         <NCard class="stat-card">
           <NStatistic 
             label="平均产量" 
-            :value="authors.length > 0 ? Math.round(authors.reduce((a, b) => a + b.poem_count, 0) / authors.length) : 0"
+            :value="averagePoems"
           >
             <template #prefix>
               <BarChartOutline style="color: #8b2635;" />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { RouterLink, RouterView } from 'vue-router'
 import {
   SearchOutline as SearchIcon,
@@ -21,7 +21,7 @@ const menuOptions = [
   { label: '词林万象', key: 'wordcloud', path: '/wordcloud', icon: CloudIcon }
 ]
 
-const footerLeft = computed(() => collapsed.value ? '72px' : '260px')
+
 
 const themeOverrides = {
   common: {
@@ -89,7 +89,7 @@ const themeOverrides = {
             </RouterView>
           </main>
 
-          <footer class="app-footer" :style="{ left: footerLeft }">
+          <footer class="app-footer">
             <div class="footer-inner">
               <span class="copyright">© 2026 中华诗词数据挖掘</span>
               <span class="divider">|</span>
@@ -145,7 +145,10 @@ body {
   border-right: 1px solid var(--color-border);
   display: flex;
   flex-direction: column;
-  position: relative;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: var(--shadow-subtle);
   z-index: 200;
@@ -313,13 +316,20 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  margin-left: 260px;
   padding: 32px 40px;
   padding-bottom: 80px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: 72px;
 }
 
 .app-footer {
   position: fixed;
   bottom: 0;
+  left: 260px;
   right: 0;
   background: var(--color-bg-paper);
   border-top: 1px solid var(--color-border);
@@ -329,6 +339,10 @@ body {
   align-items: center;
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
+}
+
+.sidebar.collapsed ~ .app-footer {
+  left: 72px;
 }
 
 .footer-inner {

@@ -9,7 +9,7 @@ import {
 import {
   BookOutline, PersonOutline, CubeOutline, HardwareChipOutline,
   DownloadOutline, TrashOutline, CheckmarkCircleOutline,
-  CloudDownloadOutline, StorageOutline, SpeedometerOutline
+  CloudDownloadOutline, ServerOutline, SpeedometerOutline
 } from '@vicons/ionicons5'
 import { useAuthors } from '@/composables/useAuthors'
 import { 
@@ -178,7 +178,7 @@ onMounted(() => {
   <div class="data-dashboard">
     <header class="page-header">
       <h1 class="page-title">
-        <StorageOutline class="title-icon" />
+        <ServerOutline class="title-icon" />
         数据管理中心
       </h1>
       <p class="page-subtitle">
@@ -214,7 +214,7 @@ onMounted(() => {
                     </template>
                     <NNumberAnimation :from="0" :to="authorStats.count" />
                     <template #suffix>
-                      <span style="font-size: 14px; color: #999;">/ 857</span>
+                      <span style="font-size: 14px; color: #999;">位</span>
                     </template>
                   </NStatistic>
                 </NCard>
@@ -268,15 +268,15 @@ onMounted(() => {
                     <div class="storage-header">
                       <PersonOutline style="color: #8b2635;" />
                       <span>诗人数据</span>
-                      <NTag :type="authorStats.cached ? 'success' : 'default'" size="small">
-                        {{ authorStats.cached ? '已缓存' : '未缓存' }}
+                      <NTag :type="authorStats.count > 0 ? 'success' : 'default'" size="small">
+                        {{ authorStats.count > 0 ? `${authorStats.count} 位` : '未缓存' }}
                       </NTag>
                     </div>
                     <NProgress
                       type="line"
-                      :percentage="authorStats.cached ? 100 : 0"
+                      :percentage="authorStats.count > 0 ? 100 : 0"
                       :indicator-placement="'inside'"
-                      :status="authorStats.cached ? 'success' : 'default'"
+                      :status="authorStats.count > 0 ? 'success' : 'default'"
                       :height="20"
                     />
                     <div class="storage-size">{{ formatBytes(authorStats.totalSize) }}</div>
@@ -352,14 +352,14 @@ onMounted(() => {
           <!-- Authors Download -->
           <NCard title="👥 诗人数据" class="download-card">
             <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-              诗人数据库包含 857 位诗人的统计信息，包括诗词数量、诗体分布等。约 51MB。
+              诗人数据库包含诗人统计信息，包括诗词数量、诗体分布等。约 51MB。
             </NAlert>
-            
+
             <div class="download-status">
               <div class="status-item">
                 <span class="status-label">当前缓存:</span>
-                <NTag :type="authorStats.cached ? 'success' : 'default'">
-                  {{ authorStats.cached ? '已缓存' : '未缓存' }}
+                <NTag :type="authorStats.count > 0 ? 'success' : 'default'">
+                  {{ authorStats.count > 0 ? `${authorStats.count} 位诗人` : '未缓存' }}
                 </NTag>
                 <span class="status-size">{{ formatBytes(authorStats.totalSize) }}</span>
               </div>
@@ -369,14 +369,14 @@ onMounted(() => {
               type="primary"
               size="large"
               :loading="isDownloadingAuthors"
-              :disabled="isDownloadingAuthors || authorStats.cached"
+              :disabled="isDownloadingAuthors || authorStats.count > 0"
               @click="downloadAllAuthors"
               block
             >
               <template #icon>
                 <DownloadOutline />
               </template>
-              {{ isDownloadingAuthors ? authorDownloadStatus : (authorStats.cached ? '已下载' : '下载全部诗人数据') }}
+              {{ isDownloadingAuthors ? authorDownloadStatus : (authorStats.count > 0 ? '已下载' : '下载全部诗人数据') }}
             </NButton>
             
             <NProgress

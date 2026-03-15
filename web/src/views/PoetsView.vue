@@ -225,15 +225,15 @@ const initialLoad = async () => {
         </div>
         <div class="stat-divider" />
         <div class="stat-item">
-          <span class="stat-value">{{ loadedChunkIds.length }}/{{ totalChunksCount }}</span>
+          <span class="stat-value">{{ loadedChunksCount }}/{{ totalChunksCount }}</span>
           <span class="stat-label">已加载分块</span>
         </div>
-        <div class="stat-divider" v-if="loadedChunkIds.length < totalChunksCount" />
-        <div class="stat-item loading-hint" v-if="loadedChunkIds.length < totalChunksCount">
-          <span class="stat-value">{{ (loadedChunkIds.length / totalChunksCount * 100).toFixed(1) }}%</span>
+        <div class="stat-divider" v-if="loadedChunksCount < totalChunksCount" />
+        <div class="stat-item loading-hint" v-if="loadedChunksCount < totalChunksCount">
+          <span class="stat-value">{{ (loadedChunksCount / totalChunksCount * 100).toFixed(1) }}%</span>
           <span class="stat-label">数据量</span>
         </div>
-        <div class="stat-actions" v-if="loadedChunkIds.length < totalChunksCount">
+        <div class="stat-actions" v-if="loadedChunksCount < totalChunksCount">
           <NButton 
             size="small" 
             :loading="loadingChunk"
