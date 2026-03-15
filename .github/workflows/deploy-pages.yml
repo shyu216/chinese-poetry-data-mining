@@ -36,9 +36,10 @@ jobs:
           # Copy only necessary data files from results to web/public/data
           # This avoids symlink issues between Windows and Ubuntu
 
-          # 1. Copy author chunks (needed for author browsing)
-          echo "Copying author chunks..."
-          cp -r results/author web/public/data/
+          # 1. Copy author chunks v2 (FlatBuffers format - needed for author browsing)
+          echo "Copying author chunks v2 (FBS format)..."
+          mkdir -p web/public/data/author_v2
+          cp -r results/author_v2/*.fbs web/public/data/author_v2/
 
           # 2. Copy preprocessed data (needed for search and poem display)
           echo "Copying preprocessed data..."
@@ -52,13 +53,19 @@ jobs:
           echo "Data directory structure:"
           find web/public/data -type d | head -20
           echo "File counts:"
-          echo "Author chunks: $(find web/public/data/author -name '*.json' | wc -l)"
+          echo "Author chunks v2 (FBS): $(find web/public/data/author_v2 -name '*.fbs' | wc -l)"
           echo "Preprocessed files: $(find web/public/data/preprocessed -type f | wc -l)"
           echo "Wordcount files: $(find web/public/data/wordcount -type f | wc -l)"
 
       - name: Install dependencies
         working-directory: ./web
         run: npm ci
+
+      - name: Generate authors metadata for v2
+        run: |
+          echo "Generating authors metadata for v2 (FBS format)..."
+          python scripts/generate-authors-meta-v2.py
+          echo "Metadata generated successfully"
 
       - name: Generate index and summary
         working-directory: ./web

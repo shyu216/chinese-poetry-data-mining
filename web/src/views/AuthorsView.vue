@@ -19,7 +19,10 @@ const {
   authors, 
   loading,
   loadedCount,
-  onIncrementalLoad 
+  totalChunks,
+  onIncrementalLoad,
+  totalAuthors: totalAuthorsCount,
+  abortLoading
 } = useAuthors()
 
 const searchQuery = ref('')
@@ -29,20 +32,34 @@ const incrementalAuthors = ref<AuthorStats[]>([])
 const loadProgress = ref(0)
 const isIncremental = ref(false)
 
-const stats = computed(() => getAuthorStats())
+// Dynamic stats based on currently loaded data (incremental or full)
+const currentAuthorsList = computed(() => {
+  return isIncremental.value && incrementalAuthors.value.length > 0
+    ? incrementalAuthors.value
+    : authors.value
+})
 
-const averagePoems = computed(() => {
-  const list = authors.value
-  if (!list || list.length === 0) return 0
-  const total = list.reduce((sum, author) => sum + (author.poem_count || 0), 0)
-  return Math.round(total / list.length)
+// Real-time stats that update as data loads
+const dynamicStats = computed(() => {
+  const list = currentAuthorsList.value
+  const total = list.length
+  const topAuthor = list[0]?.author || '-'
+  const maxPoems = list[0]?.poem_count || 0
+  const totalPoems = list.reduce((sum, a) => sum + (a.poem_count || 0), 0)
+  const average = total > 0 ? Math.round(totalPoems / total) : 0
+  
+  return {
+    total,
+    topAuthor,
+    maxPoems,
+    totalPoems,
+    average
+  }
 })
 
 const displayAuthors = computed(() => {
-  // Use incremental data during loading, full data after
-  const source = isIncremental.value && incrementalAuthors.value.length > 0 
-    ? incrementalAuthors.value 
-    : authors.value
+  // Use current list (incremental during loading, full after)
+  const source = currentAuthorsList.value
   
   if (!searchQuery.value.trim()) {
     return source
@@ -105,6 +122,19 @@ const triggerItemAnimation = (ranks: number[]) => {
   }, 600)
 }
 
+// Loading state message
+const loadingHint = computed(() => {
+  const count = incrementalAuthors.value.length
+  if (count === 0) return '🚀 正在连接...'
+  if (count === 1) return `🏆 冠军登场：${incrementalAuthors.value[0]?.author}！`
+  if (count === 2) return `🥈 亚军揭晓：${incrementalAuthors.value[1]?.author}！`
+  if (count === 3) return `🥉 季军出炉：${incrementalAuthors.value[2]?.author}！`
+  if (count < 10) return `✨ 前十名加载中... (${count}/10)`
+  if (count < 50) return `📚 前五十名加载中... (${count}/50)`
+  if (count < 100) return `📖 前一百名加载中... (${count}/100)`
+  return `📚 已加载 ${count} 位诗人...`
+})
+
 onMounted(() => {
   // Subscribe to incremental loading
   const unsubscribe = onIncrementalLoad((newAuthors, progress) => {
@@ -112,11 +142,16 @@ onMounted(() => {
     incrementalAuthors.value = newAuthors
     loadProgress.value = progress
     
-    // Trigger animation for newly loaded items
-    const newRanks = newAuthors.slice(incrementalAuthors.value.length - 10)
-      .map((_, i) => incrementalAuthors.value.length - 10 + i + 1)
-      .filter(r => r > 0)
-    triggerItemAnimation(newRanks)
+    // Trigger animation for newly loaded items (last batch)
+    const prevLength = incrementalAuthors.value.length
+    const newCount = newAuthors.length - prevLength
+    if (newCount > 0) {
+      const newRanks = []
+      for (let i = prevLength + 1; i <= newAuthors.length; i++) {
+        newRanks.push(i)
+      }
+      triggerItemAnimation(newRanks)
+    }
   })
   
   // Start loading with incremental mode
@@ -126,6 +161,8 @@ onMounted(() => {
   
   onUnmounted(() => {
     unsubscribe()
+    // Abort ongoing loading when leaving page
+    abortLoading()
   })
 })
 
@@ -142,14 +179,14 @@ watch(searchQuery, () => {
         诗人排行榜
       </h1>
       <p class="page-subtitle">
-        收录 {{ stats.total }} 位诗人，按诗词数量排序
+        收录 {{ dynamicStats.total }} 位诗人，按诗词数量排序
       </p>
     </header>
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
       <NGridItem>
-        <NCard class="stat-card">
-          <NStatistic label="总收录诗人" :value="stats.total">
+        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
+          <NStatistic label="总收录诗人" :value="dynamicStats.total">
             <template #prefix>
               <PersonOutline style="color: #8b2635;" />
             </template>
@@ -157,8 +194,8 @@ watch(searchQuery, () => {
         </NCard>
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card">
-          <NStatistic label="诗词最多" :value="stats.topAuthor">
+        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
+          <NStatistic label="诗词最多" :value="dynamicStats.topAuthor">
             <template #prefix>
               <MedalOutline style="color: #8b2635;" />
             </template>
@@ -166,8 +203,8 @@ watch(searchQuery, () => {
         </NCard>
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card">
-          <NStatistic label="最高产量" :value="stats.maxPoems">
+        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
+          <NStatistic label="最高产量" :value="dynamicStats.maxPoems">
             <template #prefix>
               <BookOutline style="color: #8b2635;" />
             </template>
@@ -178,10 +215,10 @@ watch(searchQuery, () => {
         </NCard>
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card">
+        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
           <NStatistic 
             label="平均产量" 
-            :value="averagePoems"
+            :value="dynamicStats.average"
           >
             <template #prefix>
               <BarChartOutline style="color: #8b2635;" />
@@ -194,11 +231,11 @@ watch(searchQuery, () => {
       </NGridItem>
     </NGrid>
 
-    <!-- Loading Progress -->
-    <NCard v-if="loading && isIncremental" class="loading-card">
+    <!-- Loading Progress - Only show during incremental loading -->
+    <NCard v-if="isIncremental" class="loading-card">
       <div class="loading-header">
-        <span class="loading-title">🚀 正在加载诗人数据</span>
-        <span class="loading-count">{{ incrementalAuthors.length }} / 857</span>
+        <span class="loading-title">{{ loadingHint }}</span>
+        <span class="loading-count">{{ incrementalAuthors.length }} / {{ totalAuthorsCount || '...' }}</span>
       </div>
       <NProgress
         type="line"
@@ -207,11 +244,11 @@ watch(searchQuery, () => {
         status="success"
         :height="12"
         :border-radius="6"
+        :processing="true"
       />
-      <div class="loading-hint">
-        <span v-if="incrementalAuthors.length < 3">🏆 金牌诗人即将登场...</span>
-        <span v-else-if="incrementalAuthors.length < 10">🥇 前十名正在加载...</span>
-        <span v-else>📚 加载更多诗人...</span>
+      <div class="loading-stats" v-if="incrementalAuthors.length > 0">
+        <span class="stat-item">已收录诗词: {{ dynamicStats.totalPoems.toLocaleString() }} 首</span>
+        <span class="stat-item">当前平均: {{ dynamicStats.average }} 首/人</span>
       </div>
     </NCard>
 
@@ -333,6 +370,16 @@ watch(searchQuery, () => {
 
 .stat-card {
   text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stat-card.stat-updating {
+  animation: pulse-bg 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-bg {
+  0%, 100% { background-color: #fff; }
+  50% { background-color: #f0f7ff; }
 }
 
 .loading-card {
@@ -359,17 +406,17 @@ watch(searchQuery, () => {
   font-weight: 600;
 }
 
-.loading-hint {
-  text-align: center;
+.loading-stats {
+  display: flex;
+  gap: 24px;
   margin-top: 12px;
-  font-size: 14px;
-  color: #666;
-  animation: pulse 1.5s ease-in-out infinite;
+  padding-top: 12px;
+  border-top: 1px dashed #ddd;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+.stat-item {
+  font-size: 13px;
+  color: #666;
 }
 
 .search-card {
@@ -527,6 +574,11 @@ watch(searchQuery, () => {
   
   .type-distribution {
     width: 100%;
+  }
+  
+  .loading-stats {
+    flex-direction: column;
+    gap: 8px;
   }
 }
 </style>

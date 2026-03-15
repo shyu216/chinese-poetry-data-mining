@@ -138,8 +138,18 @@ const downloadAllAuthors = async () => {
   authorDownloadStatus.value = '正在加载诗人数据...'
   
   try {
-    const { loadAllAuthors } = useAuthors()
-    const authors = await loadAllAuthors()
+    const { loadAllAuthors, onIncrementalLoad } = useAuthors()
+    
+    // Subscribe to progress updates
+    const unsubscribe = onIncrementalLoad((authors, progress) => {
+      authorDownloadProgress.value = progress
+      authorDownloadStatus.value = `已加载 ${authors.length} 位诗人...`
+    })
+    
+    const authors = await loadAllAuthors(true)
+    
+    // Unsubscribe after loading
+    unsubscribe()
     
     // Cache authors
     await cacheAuthors(authors)

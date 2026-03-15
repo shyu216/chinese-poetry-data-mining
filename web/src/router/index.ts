@@ -43,6 +43,11 @@ const router = createRouter({
       path: '/wordcloud',
       name: 'wordcloud',
       component: () => import('@/views/WordcloudView.vue')
+    },
+    {
+      path: '/word-similarity',
+      name: 'word-similarity',
+      component: () => import('@/views/WordSimilarityView.vue')
     }
   ]
 })

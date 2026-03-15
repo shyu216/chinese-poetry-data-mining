@@ -1,0 +1,43 @@
+// AuthorChunk.fbs
+// FlatBuffers schema for author analysis data
+
+namespace AuthorChunk;
+
+// 格律模式统计
+table MeterPattern {
+  pattern: string;
+  count: int;
+}
+
+// 相似诗人
+table SimilarAuthor {
+  author: string;
+  similarity: float;  // 0.0 - 1.0
+}
+
+// 词频条目
+table WordFreq {
+  word: string;
+  count: int;
+}
+
+// 单个诗人的完整数据
+table Author {
+  author: string;
+  poem_count: int;
+  poem_ids: [string];
+  poem_type_counts: [WordFreq];  // 诗体类型计数
+  meter_patterns: [MeterPattern];
+  word_frequency: [WordFreq];    // Top 100 词频
+  similar_authors: [SimilarAuthor];
+}
+
+// Chunk文件包含多个作者
+table AuthorChunkFile {
+  authors: [Author];
+  chunk_index: int;      // chunk序号
+  total_authors: int;    // 本chunk中的作者数
+}
+
+root_type AuthorChunkFile;
+file_identifier "ATCH";

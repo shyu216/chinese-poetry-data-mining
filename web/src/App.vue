@@ -8,6 +8,7 @@ import {
   BarChartOutline as StatsIcon,
   CloudOutline as CloudIcon,
   ServerOutline as DataIcon,
+  GitNetworkOutline as NetworkIcon,
   MenuOutline,
   CloseOutline
 } from '@vicons/ionicons5'
@@ -36,9 +37,10 @@ const menuOptions = [
   { label: '寻幽探微', key: 'home', path: '/', icon: SearchIcon },
   { label: '翰墨集珍', key: 'poems', path: '/poems', icon: BookIcon },
   { label: '文人雅士', key: 'authors', path: '/authors', icon: PeopleIcon },
-  { label: '数据管理', key: 'data', path: '/data', icon: DataIcon },
+  { label: '词境探索', key: 'word-similarity', path: '/word-similarity', icon: NetworkIcon },
+  { label: '词林万象', key: 'wordcloud', path: '/wordcloud', icon: CloudIcon },
   { label: '数据经纬', key: 'stats', path: '/stats', icon: StatsIcon },
-  { label: '词林万象', key: 'wordcloud', path: '/wordcloud', icon: CloudIcon }
+  { label: '数据管理', key: 'data', path: '/data', icon: DataIcon }
 ]
 
 

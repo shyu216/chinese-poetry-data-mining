@@ -196,7 +196,9 @@ export class WordSimilarityLoader {
     // 缓存管理
     if (this.chunkCache.size >= this.maxCacheSize) {
       const firstKey = this.chunkCache.keys().next().value;
-      this.chunkCache.delete(firstKey);
+      if (firstKey !== undefined) {
+        this.chunkCache.delete(firstKey);
+      }
     }
     this.chunkCache.set(chunkIndex, entries);
 
@@ -300,6 +302,10 @@ export class WordSimilarityLoader {
 
           for (const word of chunkWords) {
             const wordId = this.vocab[word];
+            if (wordId === undefined) {
+              result.set(word, []);
+              continue;
+            }
             const entry = entryMap.get(wordId);
 
             if (!entry) {
