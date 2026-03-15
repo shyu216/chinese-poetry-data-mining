@@ -1,3 +1,5 @@
 results/ngram_index/
 results/wordcount_*/
 results/fasttext/*.npy
+
+web/public/data/
