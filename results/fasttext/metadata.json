@@ -1,0 +1,12 @@
+{
+  "version": "v1",
+  "timestamp": "2026-03-15T12:06:59.558173",
+  "statistics": {
+    "vector_size": 100,
+    "min_count": 5,
+    "window": 5,
+    "epochs": 10,
+    "vocab_size": 115255,
+    "total_poems": 332509
+  }
+}
