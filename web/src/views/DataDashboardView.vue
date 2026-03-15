@@ -90,7 +90,7 @@ const downloadAllPoemChunks = async () => {
   
   try {
     // Load index first
-    const indexResponse = await fetch('/data/index.json')
+    const indexResponse = await fetch(`${import.meta.env.BASE_URL}data/index.json`)
     const index = await indexResponse.json()
     const totalChunks = index.metadata.chunks
     
@@ -99,7 +99,7 @@ const downloadAllPoemChunks = async () => {
       
       // Load chunk
       const chunkId = i.toString().padStart(4, '0')
-      const response = await fetch(`/data/preprocessed/poems_chunk_${chunkId}.csv`)
+      const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_${chunkId}.csv`)
       if (response.ok) {
         const text = await response.text()
         // Parse and cache

@@ -38,7 +38,7 @@ export function useSearchIndex() {
 
     loading.value = true
     try {
-      const response = await fetch('/data/preprocessed/summary.json')
+      const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/summary.json`)
       const data: PoemsSummary = await response.json()
       
       const map = new Map<string, PoemSummary>()

@@ -85,7 +85,7 @@ export function usePoems() {
     error.value = null
 
     try {
-      const response = await fetch('/data/preprocessed/index.json')
+      const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/index.json`)
       if (!response.ok) throw new Error('Failed to load index')
       const data: IndexData = await response.json()
       indexCache.value = data
@@ -115,7 +115,7 @@ export function usePoems() {
     loadingChunk.value = true
     try {
       const chunkId = chunkNum.toString().padStart(4, '0')
-      const response = await fetch(`/data/preprocessed/poems_chunk_${chunkId}.csv`)
+      const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_${chunkId}.csv`)
       if (!response.ok) throw new Error(`Failed to load chunk ${chunkNum}`)
       
       const csvText = await response.text()
@@ -160,13 +160,13 @@ export function usePoems() {
 
   const loadChunkDetails = async (chunkNum: number): Promise<Map<string, PoemDetail>> => {
     const chunkId = chunkNum.toString().padStart(4, '0')
-    const response = await fetch(`/data/preprocessed/poems_chunk_${chunkId}.csv`)
+    const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_${chunkId}.csv`)
     if (!response.ok) throw new Error(`Failed to load chunk ${chunkNum}`)
-    
+
     const csvText = await response.text()
     const lines = csvText.trim().split('\n')
     const dataLines = lines.slice(1)
-    
+
     const poemMap = new Map<string, PoemDetail>()
     
     for (const line of dataLines) {
