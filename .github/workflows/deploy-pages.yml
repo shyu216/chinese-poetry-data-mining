@@ -46,17 +46,13 @@ jobs:
 
           # 3. Copy wordcount data (needed for word cloud)
           echo "Copying wordcount data..."
-          cp -r results/wordcount web/public/data/
+          cp -r results/wordcount_v2 web/public/data/
 
           # 4. Copy word similarity data (needed for word similarity)
           echo "Copying word similarity data..."
           cp -r results/word_similarity_v3 web/public/data/
 
-          # 5. Word count data (needed for word cloud)
-          echo "Copying word count data..."
-          cp -r results/wordcount_v2 web/public/data/
-
-          # 6. Poem search index (needed for search)
+          # 5. Poem search index (needed for search)
           echo "Copying poem search index..."
           cp -r results/poem_index web/public/data/
 
@@ -66,9 +62,8 @@ jobs:
           echo "File counts:"
           echo "Author chunks v2 (FBS): $(find web/public/data/author_v2 -name '*.fbs' | wc -l)"
           echo "Preprocessed files: $(find web/public/data/preprocessed -type f | wc -l)"
-          echo "Wordcount files: $(find web/public/data/wordcount -type f | wc -l)"
+          echo "Wordcount files: $(find web/public/data/wordcount_v2 -type f | wc -l)"
           echo "Word similarity files: $(find web/public/data/word_similarity_v3 -type f | wc -l)"
-          echo "Word count files: $(find web/public/data/wordcount_v2 -type f | wc -l)"
           echo "Poem search index files: $(find web/public/data/poem_index -type f | wc -l)"
 
       - name: Install dependencies
