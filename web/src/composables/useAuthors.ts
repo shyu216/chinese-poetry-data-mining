@@ -1,6 +1,16 @@
 import { ref, shallowRef, computed } from 'vue'
 import type { AuthorStats } from '@/types/author'
-import { cacheAuthors, getCachedAuthors } from './usePoemCache'
+import { 
+  cacheAuthors, 
+  getCachedAuthors,
+  cacheAuthorChunk,
+  getCachedAuthorChunk,
+  updateAuthorMetadata,
+  getAuthorMetadata,
+  getAllCachedAuthorChunks,
+  areAllAuthorChunksCached,
+  getCachedAuthorChunkIds
+} from './usePoemCache'
 import { loadAuthorChunkFbs, parseAuthorChunkFbs } from './useAuthorsFbs'
 
 const authorsCache = shallowRef<AuthorStats[]>([])
@@ -16,6 +26,7 @@ const loadingCallbacks: ((authors: AuthorStats[], progress: number) => void)[] =
 
 // Loading control for pause/resume
 let isLoadingPaused = false
+let pauseResolver: (() => void) | null = null
 let abortController: AbortController | null = null
 
 /**
@@ -40,6 +51,46 @@ async function waitForVisible(): Promise<void> {
     }
     document.addEventListener('visibilitychange', handler)
   })
+}
+
+/**
+ * Wait until loading is resumed
+ */
+async function waitForResume(): Promise<void> {
+  if (!isLoadingPaused) return
+  
+  return new Promise(resolve => {
+    pauseResolver = () => {
+      pauseResolver = null
+      resolve()
+    }
+  })
+}
+
+/**
+ * Pause loading
+ */
+export function pauseLoading(): void {
+  isLoadingPaused = true
+  console.log('⏸️ Author loading paused')
+}
+
+/**
+ * Resume loading
+ */
+export function resumeLoading(): void {
+  isLoadingPaused = false
+  if (pauseResolver) {
+    pauseResolver()
+  }
+  console.log('▶️ Author loading resumed')
+}
+
+/**
+ * Check if loading is paused
+ */
+export function isPaused(): boolean {
+  return isLoadingPaused
 }
 
 // Metadata cache
@@ -80,6 +131,8 @@ async function loadAuthorsMeta(): Promise<AuthorsMeta> {
   return metaPromise
 }
 
+
+
 export function useAuthors() {
   const onIncrementalLoad = (callback: (authors: AuthorStats[], progress: number) => void) => {
     loadingCallbacks.push(callback)
@@ -97,18 +150,21 @@ export function useAuthors() {
    * Load authors sequentially from FBS files - fetch one by one for better UX
    * Since files are already sorted (0000 = #1, 0001 = #2, etc.)
    * we can render immediately as each file loads
+   * 
+   * NEW: Incremental caching - each chunk is cached to IndexedDB as soon as loaded
+   * This allows resuming from where user left off if they close the browser
    */
   const loadAllAuthors = async (incremental = false, options?: { delay?: number; batchSize?: number }): Promise<AuthorStats[]> => {
-    if (authorsCache.value.length > 0) {
-      return authorsCache.value
-    }
-
-    // Try cache first - now stores FBS binary data
-    const cached = await getCachedAuthors()
-    if (cached && cached.length > 0) {
-      authorsCache.value = cached
-      totalAuthors.value = cached.length
-      return cached
+    // Priority 1: Check if already loading
+    if (loading.value) {
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!loading.value && authorsCache.value.length > 0) {
+            clearInterval(checkInterval)
+            resolve(authorsCache.value)
+          }
+        }, 100)
+      })
     }
 
     loading.value = true
@@ -129,14 +185,47 @@ export function useAuthors() {
       
       // Get total authors count from meta if available
       const totalAuthorsCount = meta.totalAuthors || meta.total
+      totalAuthors.value = totalAuthorsCount  // Update the global ref
+      
+      // Check which chunks are already cached in IndexedDB
+      const cachedChunkIds = await getCachedAuthorChunkIds()
+      const chunksToLoad = meta.chunks.filter(chunk => !cachedChunkIds.includes(chunk.index))
+      
+      // If all chunks are cached, load from IndexedDB
+      if (chunksToLoad.length === 0 && cachedChunkIds.length === meta.total) {
+        const allCached = await getAllCachedAuthorChunks()
+        if (allCached && allCached.length > 0) {
+          authorsCache.value = allCached
+          totalAuthors.value = allCached.length
+          loading.value = false
+          isIncrementalLoading.value = false
+          return allCached
+        }
+      }
+      
+      // Load already cached chunks first for immediate display
+      if (cachedChunkIds.length > 0) {
+        for (const chunkId of cachedChunkIds) {
+          const cachedChunk = await getCachedAuthorChunk(chunkId)
+          if (cachedChunk) {
+            authors.push(...cachedChunk)
+          }
+        }
+        loadedCount.value = authors.length
+        
+        // Notify with cached data immediately
+        if (incremental && authors.length > 0) {
+          const progress = Math.round(authors.length / totalAuthorsCount * 100)
+          notifyIncrementalLoad([...authors], progress)
+        }
+      }
       
       // Create abort controller for this loading session
       abortController = new AbortController()
       const signal = abortController.signal
       
-      // Sequential loading with rate limiting and visibility check
-      // This prevents browser from being overwhelmed by too many concurrent requests
-      for (let i = 0; i < meta.chunks.length; i++) {
+      // Load remaining chunks that are not cached
+      for (let i = 0; i < chunksToLoad.length; i++) {
         // Check if loading was aborted
         if (signal.aborted) {
           console.log('Author loading aborted')
@@ -150,18 +239,32 @@ export function useAuthors() {
           console.log('Page visible, resuming author loading...')
         }
         
-        const chunkMeta = meta.chunks[i]
+        // Check if manually paused
+        if (isLoadingPaused) {
+          console.log('⏸️ Loading manually paused, waiting...')
+          await waitForResume()
+          console.log('▶️ Loading manually resumed')
+        }
+        
+        const chunkMeta = chunksToLoad[i]
         if (!chunkMeta) continue
         const chunkId = chunkMeta.index.toString().padStart(4, '0')
+        const chunkIndex = chunkMeta.index
         
         try {
           // Load FBS format
           const chunkAuthors = await loadAuthorChunkFbs(chunkId)
+          
+          // Add to memory
           authors.push(...chunkAuthors)
           loadedCount.value = authors.length
           
+          // IMMEDIATELY cache this chunk to IndexedDB (incremental caching)
+          await cacheAuthorChunk(chunkIndex, chunkAuthors)
+          await updateAuthorMetadata(chunkIndex, meta.total)
+          
           // Notify for incremental rendering (every batchSize chunks)
-          if (incremental && (i + 1) % batchSize === 0) {
+          if (incremental) {
             const progress = Math.round(authors.length / totalAuthorsCount * 100)
             notifyIncrementalLoad([...authors], progress)
             // Give UI time to render
@@ -174,7 +277,7 @@ export function useAuthors() {
         
         // Rate limiting: add delay between requests to prevent overwhelming the browser
         // Skip delay for the last chunk
-        if (i < meta.chunks.length - 1) {
+        if (i < chunksToLoad.length - 1) {
           await new Promise(resolve => setTimeout(resolve, delay))
         }
       }
@@ -187,7 +290,7 @@ export function useAuthors() {
       authorsCache.value = authors
       totalAuthors.value = authors.length
       
-      // Cache to IndexedDB (stores the parsed AuthorStats)
+      // Also cache all authors as a single entry for backward compatibility
       await cacheAuthors(authors)
       
       return authors
@@ -257,11 +360,19 @@ export function useAuthors() {
 
   /**
    * Abort ongoing loading
+   * When aborted, clear memory cache so next visit will reload
    */
   const abortLoading = () => {
     if (abortController) {
       abortController.abort()
       abortController = null
+    }
+    // Clear memory cache if loading was aborted (incomplete data)
+    // IndexedDB cache is only written after complete load, so it's safe
+    if (loading.value) {
+      authorsCache.value = []
+      loading.value = false
+      isIncrementalLoading.value = false
     }
   }
 
@@ -274,6 +385,9 @@ export function useAuthors() {
     getAuthorStats,
     onIncrementalLoad,
     abortLoading,
+    pauseLoading,
+    resumeLoading,
+    isPaused,
     authors: computed(() => authorsCache.value),
     loading,
     error,
@@ -283,3 +397,6 @@ export function useAuthors() {
     isIncrementalLoading
   }
 }
+
+// Export meta loading function for external use
+export { loadAuthorsMeta }

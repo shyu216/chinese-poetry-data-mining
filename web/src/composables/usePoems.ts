@@ -85,7 +85,7 @@ export function usePoems() {
     error.value = null
 
     try {
-      const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/index.json`)
+      const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_meta.json`)
       if (!response.ok) throw new Error('Failed to load index')
       const data: IndexData = await response.json()
       indexCache.value = data

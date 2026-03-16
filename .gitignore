@@ -2,6 +2,9 @@ results/ngram_index/
 results/wordcount_*/
 results/fasttext/*.npy
 results/word_similarity/
+results/word_similarity_v2/
+results/author/
 results/author-full/
+results/simplified_title_author/
 
 web/public/data/

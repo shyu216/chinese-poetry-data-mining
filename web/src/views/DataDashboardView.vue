@@ -9,18 +9,33 @@ import {
 import {
   BookOutline, PersonOutline, CubeOutline, HardwareChipOutline,
   DownloadOutline, TrashOutline, CheckmarkCircleOutline,
-  CloudDownloadOutline, ServerOutline, SpeedometerOutline
+  CloudDownloadOutline, ServerOutline, SpeedometerOutline,
+  GitNetworkOutline
 } from '@vicons/ionicons5'
-import { useAuthors } from '@/composables/useAuthors'
-import { 
-  getCacheStats, 
-  getCacheDetails, 
+import { useAuthors, loadAuthorsMeta } from '@/composables/useAuthors'
+import { useWordSimilarity } from '@/composables/useWordSimilarity'
+import {
+  getCacheStats,
+  getCacheDetails,
   clearCache,
   getCachedAuthors,
   cacheAuthors,
-  clearAuthorsCache
+  clearAuthorsCache,
+  getWordSimilarityCacheDetails,
+  clearWordSimilarityCache,
+  getAllCachedAuthorChunks,
+  getCachedAuthorChunkIds
 } from '@/composables/usePoemCache'
 import * as d3 from 'd3'
+
+// Authors meta info
+const authorsMetaTotal = ref(0)
+
+// Word Similarity meta info
+const wordSimMeta = ref({
+  totalChunks: 231,
+  vocabSize: 88227
+})
 
 // Tabs
 const activeTab = ref('overview')
@@ -40,6 +55,13 @@ const authorStats = ref({
   totalSize: 0
 })
 
+const wordSimStats = ref({
+  vocabCached: false,
+  vocabSize: 0,
+  chunks: 0,
+  totalSize: 0
+})
+
 const isLoadingStats = ref(false)
 
 // Download states
@@ -51,6 +73,10 @@ const isDownloadingAuthors = ref(false)
 const authorDownloadProgress = ref(0)
 const authorDownloadStatus = ref('')
 
+const isDownloadingWordSim = ref(false)
+const wordSimDownloadProgress = ref(0)
+const wordSimDownloadStatus = ref('')
+
 // Load stats
 const loadStats = async () => {
   isLoadingStats.value = true
@@ -58,15 +84,57 @@ const loadStats = async () => {
     const stats = await getCacheStats()
     const details = await getCacheDetails()
     poemStats.value = { ...stats, totalSize: details.totalSize }
-    
-    // Check authors cache
-    const cachedAuthors = await getCachedAuthors()
-    if (cachedAuthors) {
+
+    // Update chunk data for table
+    chunkData.value = details.chunks.map(c => ({
+      id: c.id,
+      count: c.count,
+      time: new Date(c.timestamp).toLocaleString('zh-CN')
+    }))
+
+    // Load authors meta to get total count
+    try {
+      const meta = await loadAuthorsMeta()
+      authorsMetaTotal.value = meta.totalAuthors || meta.total
+    } catch {
+      authorsMetaTotal.value = 0
+    }
+
+    // Check authors cache (try new chunked cache first, then fallback to old format)
+    let cachedAuthors = await getAllCachedAuthorChunks()
+    if (!cachedAuthors) {
+      // Fallback to old format
+      cachedAuthors = await getCachedAuthors()
+    }
+    if (cachedAuthors && cachedAuthors.length > 0) {
       authorStats.value = {
         cached: true,
         count: cachedAuthors.length,
         totalSize: JSON.stringify(cachedAuthors).length * 2
       }
+    } else {
+      // Check if we have partial chunked cache
+      const cachedChunkIds = await getCachedAuthorChunkIds()
+      if (cachedChunkIds.length > 0) {
+        // We have partial cache, load it to get count
+        const partialAuthors = await getAllCachedAuthorChunks()
+        if (partialAuthors) {
+          authorStats.value = {
+            cached: true,
+            count: partialAuthors.length,
+            totalSize: JSON.stringify(partialAuthors).length * 2
+          }
+        }
+      }
+    }
+
+    // Check word similarity cache
+    const wordSimDetails = await getWordSimilarityCacheDetails()
+    wordSimStats.value = {
+      vocabCached: wordSimDetails.vocabCached,
+      vocabSize: wordSimDetails.vocabSize,
+      chunks: wordSimDetails.chunks.length,
+      totalSize: wordSimDetails.totalSize
     }
   } finally {
     isLoadingStats.value = false
@@ -82,49 +150,100 @@ const formatBytes = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
+// Parse CSV line handling quoted fields
+const parseCSVLine = (line: string): string[] => {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    const nextChar = line[i + 1]
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        // Escaped quote
+        current += '"'
+        i++
+      } else {
+        // Toggle quote state
+        inQuotes = !inQuotes
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current)
+      current = ''
+    } else {
+      current += char
+    }
+  }
+  result.push(current)
+  return result
+}
+
 // Download all poem chunks
 const downloadAllPoemChunks = async () => {
   isDownloadingPoems.value = true
   poemDownloadProgress.value = 0
   poemDownloadStatus.value = '正在加载索引...'
-  
+
   try {
     // Load index first
-    const indexResponse = await fetch(`${import.meta.env.BASE_URL}data/index.json`)
+    const indexResponse = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_meta.json`)
+    if (!indexResponse.ok) {
+      throw new Error('无法加载索引文件')
+    }
     const index = await indexResponse.json()
     const totalChunks = index.metadata.chunks
-    
+
+    console.log(`[Download] Starting download of ${totalChunks} chunks`)
+
     for (let i = 0; i < totalChunks; i++) {
       poemDownloadStatus.value = `正在下载分块 ${i + 1}/${totalChunks}...`
-      
+
       // Load chunk
       const chunkId = i.toString().padStart(4, '0')
       const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_${chunkId}.csv`)
+
       if (response.ok) {
         const text = await response.text()
         // Parse and cache
         const lines = text.split('\n').filter(line => line.trim())
-        const poems: { id: string; title: string; author: string; dynasty: string; genre: string }[] = lines.slice(1).map(line => {
-          const parts = line.split(',')
-          return {
-            id: parts[0] || '',
-            title: parts[1] || '',
-            author: parts[2] || '',
-            dynasty: parts[3] || '',
-            genre: parts[4] || ''
+        const poems: { id: string; title: string; author: string; dynasty: string; genre: string }[] = []
+
+        for (let j = 1; j < lines.length; j++) {
+          const line = lines[j]
+          if (!line) continue
+          const parts = parseCSVLine(line)
+          if (parts[0]) {
+            poems.push({
+              id: parts[0] || '',
+              title: parts[1] || '',
+              author: parts[2] || '',
+              dynasty: parts[3] || '',
+              genre: parts[4] || ''
+            })
           }
-        }).filter(p => p.id)
-        
+        }
+
         const { cacheChunkSummaries } = await import('@/composables/usePoemCache')
         await cacheChunkSummaries(i, poems)
+        console.log(`[Download] Chunk ${i} cached: ${poems.length} poems`)
+      } else {
+        console.warn(`[Download] Failed to load chunk ${i}: ${response.status}`)
       }
-      
+
       poemDownloadProgress.value = Math.round(((i + 1) / totalChunks) * 100)
+
+      // Allow UI to update every 10 chunks
+      if (i % 10 === 0) {
+        await new Promise(resolve => setTimeout(resolve, 0))
+      }
     }
-    
+
     poemDownloadStatus.value = '下载完成！'
     await loadStats()
   } catch (e) {
+    console.error('[Download] Error:', e)
     poemDownloadStatus.value = '下载失败: ' + (e as Error).message
   } finally {
     isDownloadingPoems.value = false
@@ -168,7 +287,58 @@ const downloadAllAuthors = async () => {
 const handleClearCache = async () => {
   await clearCache()
   await clearAuthorsCache()
+  await clearWordSimilarityCache()
   await loadStats()
+}
+
+// Word Similarity composable instance
+const wordSimilarity = useWordSimilarity()
+
+// Download all word similarity data
+const downloadAllWordSim = async () => {
+  isDownloadingWordSim.value = true
+  wordSimDownloadProgress.value = 0
+  wordSimDownloadStatus.value = '正在加载词表...'
+
+  try {
+    // Initialize to load vocab and metadata
+    await wordSimilarity.initialize()
+    wordSimDownloadProgress.value = 10
+    wordSimDownloadStatus.value = '词表加载完成，准备下载 chunks...'
+
+    // 使用实际的 vocabSize 而不是硬编码的值
+    const actualVocabSize = wordSimilarity.vocabSize.value
+    const totalChunks = wordSimMeta.value.totalChunks
+    const wordIds = Array.from({ length: actualVocabSize }, (_, i) => i)
+
+    console.log(`[downloadAllWordSim] Actual vocab size: ${actualVocabSize}, total chunks: ${totalChunks}`)
+
+    // Batch preload chunks
+    const batchSize = 10
+    const wordsPerChunk = Math.ceil(actualVocabSize / totalChunks)
+    
+    for (let i = 0; i < totalChunks; i += batchSize) {
+      const startWordId = i * wordsPerChunk
+      const endWordId = Math.min((i + batchSize) * wordsPerChunk, actualVocabSize)
+      const batch = wordIds.slice(startWordId, endWordId)
+      
+      console.log(`[downloadAllWordSim] Loading batch ${i}-${Math.min(i + batchSize, totalChunks)}: wordIds ${startWordId}-${endWordId}`)
+      
+      await wordSimilarity.preloadChunks(batch)
+
+      wordSimDownloadProgress.value = Math.round(10 + ((i + batchSize) / totalChunks * 90))
+      wordSimDownloadStatus.value = `已下载 ${Math.min(i + batchSize, totalChunks)}/${totalChunks} 个分块...`
+    }
+
+    wordSimDownloadProgress.value = 100
+    wordSimDownloadStatus.value = '下载完成！'
+    await loadStats()
+  } catch (e) {
+    wordSimDownloadStatus.value = '下载失败: ' + (e as Error).message
+    console.error('[downloadAllWordSim] Error:', e)
+  } finally {
+    isDownloadingWordSim.value = false
+  }
 }
 
 // Table columns for chunks
@@ -232,13 +402,16 @@ onMounted(() => {
               </NGridItem>
               <NGridItem>
                 <NCard class="stat-card">
-                  <NStatistic label="缓存索引">
+                  <NStatistic label="相似词数据">
                     <template #prefix>
-                      <BookOutline style="color: #8b2635; font-size: 24px;" />
+                      <GitNetworkOutline style="color: #8b2635; font-size: 24px;" />
                     </template>
-                    <NTag :type="poemStats.hasIndex ? 'success' : 'default'" size="small">
-                      {{ poemStats.hasIndex ? '已缓存' : '未缓存' }}
+                    <NTag :type="wordSimStats.vocabCached ? 'success' : 'default'" size="small">
+                      {{ wordSimStats.vocabCached ? '已缓存' : '未缓存' }}
                     </NTag>
+                    <template #suffix v-if="wordSimStats.vocabCached">
+                      <span style="font-size: 12px; color: #999;">{{ wordSimStats.chunks }} chunks</span>
+                    </template>
                   </NStatistic>
                 </NCard>
               </NGridItem>
@@ -248,7 +421,7 @@ onMounted(() => {
                     <template #prefix>
                       <HardwareChipOutline style="color: #8b2635; font-size: 24px;" />
                     </template>
-                    {{ formatBytes(poemStats.totalSize + authorStats.totalSize) }}
+                    {{ formatBytes(poemStats.totalSize + authorStats.totalSize + wordSimStats.totalSize) }}
                   </NStatistic>
                 </NCard>
               </NGridItem>
@@ -256,7 +429,7 @@ onMounted(() => {
 
             <!-- Storage Visualization -->
             <NCard title="存储分布" class="storage-viz">
-              <NGrid :cols="2" :x-gap="24">
+              <NGrid :cols="3" :x-gap="24">
                 <NGridItem>
                   <div class="storage-item">
                     <div class="storage-header">
@@ -280,17 +453,41 @@ onMounted(() => {
                       <PersonOutline style="color: #8b2635;" />
                       <span>诗人数据</span>
                       <NTag :type="authorStats.count > 0 ? 'success' : 'default'" size="small">
-                        {{ authorStats.count > 0 ? `${authorStats.count} 位` : '未缓存' }}
+                        <template v-if="authorsMetaTotal > 0">
+                          {{ authorStats.count }}/{{ authorsMetaTotal.toLocaleString() }} 位
+                        </template>
+                        <template v-else>
+                          {{ authorStats.count > 0 ? `${authorStats.count} 位` : '未缓存' }}
+                        </template>
                       </NTag>
                     </div>
                     <NProgress
                       type="line"
-                      :percentage="authorStats.count > 0 ? 100 : 0"
+                      :percentage="authorsMetaTotal > 0 ? Math.round(authorStats.count / authorsMetaTotal * 100) : (authorStats.count > 0 ? 100 : 0)"
                       :indicator-placement="'inside'"
                       :status="authorStats.count > 0 ? 'success' : 'default'"
                       :height="20"
                     />
                     <div class="storage-size">{{ formatBytes(authorStats.totalSize) }}</div>
+                  </div>
+                </NGridItem>
+                <NGridItem>
+                  <div class="storage-item">
+                    <div class="storage-header">
+                      <GitNetworkOutline style="color: #8b2635;" />
+                      <span>相似词数据</span>
+                      <NTag :type="wordSimStats.vocabCached ? 'success' : 'default'" size="small">
+                        {{ wordSimStats.vocabCached ? `${wordSimStats.chunks}/${wordSimMeta.totalChunks} chunks` : '未缓存' }}
+                      </NTag>
+                    </div>
+                    <NProgress
+                      type="line"
+                      :percentage="wordSimStats.vocabCached ? Math.round(wordSimStats.chunks / wordSimMeta.totalChunks * 100) : 0"
+                      :indicator-placement="'inside'"
+                      :status="wordSimStats.vocabCached ? 'success' : 'default'"
+                      :height="20"
+                    />
+                    <div class="storage-size">{{ formatBytes(wordSimStats.totalSize) }}</div>
                   </div>
                 </NGridItem>
               </NGrid>
@@ -363,14 +560,22 @@ onMounted(() => {
           <!-- Authors Download -->
           <NCard title="👥 诗人数据" class="download-card">
             <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-              诗人数据库包含诗人统计信息，包括诗词数量、诗体分布等。约 51MB。
+              诗人数据库包含诗人统计信息，包括诗词数量、诗体分布等。
+              <template v-if="authorsMetaTotal > 0">
+                共 {{ authorsMetaTotal.toLocaleString() }} 位诗人。
+              </template>
             </NAlert>
 
             <div class="download-status">
               <div class="status-item">
                 <span class="status-label">当前缓存:</span>
                 <NTag :type="authorStats.count > 0 ? 'success' : 'default'">
-                  {{ authorStats.count > 0 ? `${authorStats.count} 位诗人` : '未缓存' }}
+                  <template v-if="authorsMetaTotal > 0">
+                    {{ authorStats.count }}/{{ authorsMetaTotal.toLocaleString() }} 位诗人
+                  </template>
+                  <template v-else>
+                    {{ authorStats.count > 0 ? `${authorStats.count} 位诗人` : '未缓存' }}
+                  </template>
                 </NTag>
                 <span class="status-size">{{ formatBytes(authorStats.totalSize) }}</span>
               </div>
@@ -380,20 +585,61 @@ onMounted(() => {
               type="primary"
               size="large"
               :loading="isDownloadingAuthors"
-              :disabled="isDownloadingAuthors || authorStats.count > 0"
+              :disabled="isDownloadingAuthors || (authorsMetaTotal > 0 && authorStats.count >= authorsMetaTotal)"
               @click="downloadAllAuthors"
               block
             >
               <template #icon>
                 <DownloadOutline />
               </template>
-              {{ isDownloadingAuthors ? authorDownloadStatus : (authorStats.count > 0 ? '已下载' : '下载全部诗人数据') }}
+              {{ isDownloadingAuthors ? authorDownloadStatus : ((authorsMetaTotal > 0 && authorStats.count >= authorsMetaTotal) ? '已全部下载' : '下载全部诗人数据') }}
             </NButton>
             
             <NProgress
-              v-if="isDownloadingAuthors"
+              v-if="isDownloadingAuthors || (authorsMetaTotal > 0 && authorStats.count > 0 && authorStats.count < authorsMetaTotal)"
               type="line"
-              :percentage="authorDownloadProgress"
+              :percentage="authorsMetaTotal > 0 ? Math.round(authorStats.count / authorsMetaTotal * 100) : authorDownloadProgress"
+              :indicator-placement="'inside'"
+              status="success"
+              style="margin-top: 12px;"
+            />
+          </NCard>
+
+          <!-- Word Similarity Download -->
+          <NCard title="🔗 词境探索数据" class="download-card">
+            <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
+              词境探索数据库包含 {{ wordSimMeta.vocabSize.toLocaleString() }} 个词汇的相似度数据，共 {{ wordSimMeta.totalChunks }} 个分块。
+              下载后可离线使用词境探索功能。
+            </NAlert>
+
+            <div class="download-status">
+              <div class="status-item">
+                <span class="status-label">当前缓存:</span>
+                <NTag :type="wordSimStats.vocabCached ? 'success' : 'default'">
+                  {{ wordSimStats.vocabCached ? `${wordSimStats.chunks}/${wordSimMeta.totalChunks} 分块` : '未缓存' }}
+                </NTag>
+                <span class="status-size">{{ formatBytes(wordSimStats.totalSize) }}</span>
+              </div>
+            </div>
+
+            <NButton
+              type="primary"
+              size="large"
+              :loading="isDownloadingWordSim"
+              :disabled="isDownloadingWordSim || (wordSimStats.vocabCached && wordSimStats.chunks >= wordSimMeta.totalChunks)"
+              @click="downloadAllWordSim"
+              block
+            >
+              <template #icon>
+                <DownloadOutline />
+              </template>
+              {{ isDownloadingWordSim ? wordSimDownloadStatus : (wordSimStats.vocabCached && wordSimStats.chunks >= wordSimMeta.totalChunks ? '已全部下载' : '下载全部词境数据') }}
+            </NButton>
+
+            <NProgress
+              v-if="isDownloadingWordSim"
+              type="line"
+              :percentage="wordSimDownloadProgress"
               :indicator-placement="'inside'"
               status="success"
               style="margin-top: 12px;"
@@ -404,15 +650,57 @@ onMounted(() => {
 
       <!-- Cache Details Tab -->
       <NTabPane name="details" tab="缓存详情">
-        <NCard title="诗词分块缓存">
-          <NEmpty v-if="poemStats.chunks === 0" description="暂无缓存数据" />
-          <div v-else>
-            <p style="margin-bottom: 16px; color: #666;">
-              已缓存 {{ poemStats.chunks }} 个分块，共 {{ formatBytes(poemStats.totalSize) }}
-            </p>
-            <!-- Chunk list would go here -->
-          </div>
-        </NCard>
+        <NSpace vertical size="large">
+          <!-- Poem Cache Details -->
+          <NCard title="诗词分块缓存">
+            <NEmpty v-if="poemStats.chunks === 0" description="暂无诗词缓存数据" />
+            <div v-else>
+              <p style="margin-bottom: 16px; color: #666;">
+                已缓存 {{ poemStats.chunks }} 个分块，共 {{ formatBytes(poemStats.totalSize) }}
+              </p>
+              <NDataTable
+                :columns="chunkColumns"
+                :data="chunkData"
+                :pagination="{ pageSize: 10 }"
+                size="small"
+              />
+            </div>
+          </NCard>
+
+          <!-- Author Cache Details -->
+          <NCard title="诗人缓存">
+            <NEmpty v-if="authorStats.count === 0" description="暂无诗人缓存数据" />
+            <div v-else>
+              <p style="margin-bottom: 16px; color: #666;">
+                已缓存 {{ authorStats.count.toLocaleString() }} 位诗人
+                <template v-if="authorsMetaTotal > 0">
+                  / 共 {{ authorsMetaTotal.toLocaleString() }} 位
+                  ({{ Math.round(authorStats.count / authorsMetaTotal * 100) }}%)
+                </template>
+                ，占用 {{ formatBytes(authorStats.totalSize) }}
+              </p>
+              <NTag type="success" size="small">
+                <template #icon>
+                  <CheckmarkCircleOutline />
+                </template>
+                诗人数据已缓存
+              </NTag>
+            </div>
+          </NCard>
+
+          <!-- Word Similarity Cache Details -->
+          <NCard title="相似词缓存">
+            <NEmpty v-if="!wordSimStats.vocabCached" description="暂无相似词缓存数据" />
+            <div v-else>
+              <p style="margin-bottom: 16px; color: #666;">
+                词表已缓存 ({{ wordSimStats.vocabSize.toLocaleString() }} 词)
+                <br>
+                已缓存 {{ wordSimStats.chunks }} / {{ wordSimMeta.totalChunks }} 个分块
+                ，占用 {{ formatBytes(wordSimStats.totalSize) }}
+              </p>
+            </div>
+          </NCard>
+        </NSpace>
       </NTabPane>
     </NTabs>
   </div>
@@ -567,6 +855,14 @@ onMounted(() => {
 
   .storage-viz :deep(.n-grid) {
     grid-template-columns: 1fr !important;
+  }
+
+  .storage-viz :deep(.n-grid-item) {
+    margin-bottom: 16px;
+  }
+
+  .storage-viz :deep(.n-grid-item:last-child) {
+    margin-bottom: 0;
   }
 
   .download-card :deep(.n-button) {

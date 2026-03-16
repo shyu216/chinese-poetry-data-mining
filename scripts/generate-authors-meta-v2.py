@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """
 Generate authors metadata for the web app (v2 - FlatBuffers format).
-This script scans the results/author_v2/ directory and creates a JSON file
-with metadata about available author chunks in FBS format.
+This script scans the results/author/ directory (v1 JSON files) to get author counts,
+and creates a JSON file with metadata about available author chunks in FBS format.
+
+Note: v1 JSON filenames are ordered by author index (e.g., author_chunk_13203.json),
+but v2 FBS filenames are ordered by chunk sequence (e.g., author_chunk_0855.fbs).
+The files are matched by their sorted order (1-to-1 correspondence).
 
 Run this during build time to keep the web app in sync with data.
 """
@@ -19,58 +23,69 @@ def generate_authors_meta_v2():
     script_dir = Path(__file__).parent
     project_root = script_dir.parent
     
-    # Path to author chunks v2 (FBS format)
-    author_dir = project_root / "results" / "author_v2"
-    output_dir = project_root / "web" / "public" / "data" / "author_v2"
+    # Path to author chunks v1 (JSON format) - used to determine author counts
+    json_dir = project_root / "results" / "author"
+    # Path to author chunks v2 (FBS format) - for actual filenames
+    fbs_dir = project_root / "results" / "author_v2"
+    output_dir = fbs_dir
     
-    if not author_dir.exists():
-        print(f"❌ Author v2 directory not found: {author_dir}")
+    if not json_dir.exists():
+        print(f"❌ Author v1 directory not found: {json_dir}")
         return False
     
-    # Get all chunk files (FBS format)
-    chunk_files = sorted(author_dir.glob("author_chunk_*.fbs"))
-    
-    if not chunk_files:
-        print(f"⚠️ No author chunks found in {author_dir}")
+    if not fbs_dir.exists():
+        print(f"❌ Author v2 directory not found: {fbs_dir}")
         return False
     
-    # Extract chunk indices and count authors per chunk
+    # Get all v1 JSON and v2 FBS chunk files, sorted by filename
+    # They correspond 1-to-1 in sorted order
+    json_files = sorted(json_dir.glob("author_chunk_*.json"))
+    fbs_files = sorted(fbs_dir.glob("author_chunk_*.fbs"))
+    
+    if not json_files:
+        print(f"⚠️ No author chunks found in {json_dir}")
+        return False
+    
+    if len(json_files) != len(fbs_files):
+        print(f"⚠️ Mismatch: {len(json_files)} JSON files vs {len(fbs_files)} FBS files")
+        return False
+    
+    print(f"📁 Found {len(json_files)} chunk files in both directories")
+    
+    # Build chunks metadata by pairing v1 and v2 files in sorted order
     chunks = []
     total_authors = 0
     
-    # Try to get author count from original JSON files
-    json_dir = project_root / "results" / "author"
-    
-    for f in chunk_files:
-        # Extract number from filename like "author_chunk_0001.fbs"
+    for i, (json_file, fbs_file) in enumerate(zip(json_files, fbs_files)):
         try:
-            idx = int(f.stem.split("_")[-1])
+            # Get the chunk index from v2 FBS filename (sequential: 0000, 0001, ...)
+            chunk_idx = int(fbs_file.stem.split("_")[-1])
             
-            # Try to get author count from corresponding JSON file
-            author_count = 1  # Default: assume 1 author per chunk
-            json_file = json_dir / f"author_chunk_{idx:04d}.json"
-            if json_file.exists():
-                try:
-                    with open(json_file, "r", encoding="utf-8") as jf:
-                        data = json.load(jf)
-                        if isinstance(data, list):
-                            author_count = len(data)
-                        elif isinstance(data, dict) and "authors" in data:
-                            author_count = len(data["authors"])
-                except Exception as e:
-                    print(f"   Warning: Could not read {json_file}: {e}")
+            # Get author count from v1 JSON file
+            author_count = 1  # Default
+            try:
+                with open(json_file, "r", encoding="utf-8") as jf:
+                    data = json.load(jf)
+                    if isinstance(data, list):
+                        author_count = len(data)
+                    elif isinstance(data, dict):
+                        # Single author object
+                        author_count = 1
+            except Exception as e:
+                print(f"   Warning: Could not read {json_file}: {e}")
             
             chunks.append({
-                "index": idx,
-                "filename": f.name,
+                "index": chunk_idx,
+                "filename": fbs_file.name,
                 "authorCount": author_count
             })
             total_authors += author_count
             
-        except ValueError:
+        except ValueError as e:
+            print(f"   Error parsing filenames: {e}")
             continue
     
-    # Sort by index
+    # Sort by chunk index
     chunks.sort(key=lambda x: x["index"])
     
     # Build metadata

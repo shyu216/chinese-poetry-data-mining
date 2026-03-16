@@ -61,19 +61,6 @@ jobs:
         working-directory: ./web
         run: npm ci
 
-      - name: Generate authors metadata for v2
-        run: |
-          echo "Generating authors metadata for v2 (FBS format)..."
-          python scripts/generate-authors-meta-v2.py
-          echo "Metadata generated successfully"
-
-      - name: Generate index and summary
-        working-directory: ./web
-        run: |
-          # Generate index.json and summary files from preprocessed data
-          node scripts/generate-index.cjs
-          node scripts/generate-summary.cjs
-
       - name: Build
         working-directory: ./web
         run: npm run build
