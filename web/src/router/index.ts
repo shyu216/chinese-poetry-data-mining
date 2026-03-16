@@ -10,16 +10,6 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/poems',
-      name: 'poems',
-      component: () => import('@/views/PoetsView.vue')
-    },
-    {
-      path: '/poems/:id',
-      name: 'poem-detail',
-      component: () => import('@/views/PoemDetailView.vue')
-    },
-    {
       path: '/authors',
       name: 'authors',
       component: () => import('@/views/AuthorsView.vue')
@@ -30,24 +20,29 @@ const router = createRouter({
       component: () => import('@/views/AuthorDetailView.vue')
     },
     {
+      path: '/poems',
+      name: 'poems',
+      component: () => import('@/views/PoemsView.vue')
+    },
+    {
+      path: '/poems/:id',
+      name: 'poem-detail',
+      component: () => import('@/views/PoemDetailView.vue')
+    },
+    {
       path: '/data',
       name: 'data',
       component: () => import('@/views/DataDashboardView.vue')
     },
     {
-      path: '/stats',
-      name: 'stats',
-      component: () => import('@/views/StatsView.vue')
+      path: '/test',
+      name: 'test',
+      component: () => import('@/views/TestView.vue')
     },
     {
-      path: '/wordcloud',
-      name: 'wordcloud',
-      component: () => import('@/views/WordcloudView.vue')
-    },
-    {
-      path: '/word-similarity',
-      name: 'word-similarity',
-      component: () => import('@/views/WordSimilarityView.vue')
+      path: '/components-demo',
+      name: 'components-demo',
+      component: () => import('@/views/ComponentDemoView.vue')
     }
   ]
 })

@@ -1,164 +1,463 @@
 <script setup lang="ts">
-// @ts-nocheck
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthors } from '@/composables/useAuthors'
-import { usePoems } from '@/composables/usePoems'
-import { NCard, NSpin, NEmpty, NTag } from 'naive-ui'
+import { useAuthorsV2 } from '@/composables/useAuthorsV2'
+import { usePoemsV2 } from '@/composables/usePoemsV2'
+import type { AuthorStats } from '@/composables/types'
+import type { PoemDetail } from '@/composables/types'
+import {
+  NCard, NSpin, NEmpty, NTag, NButton, NSpace,
+  NDivider, NList, NListItem, NThing, NPageHeader,
+  NGrid, NGridItem, NStatistic, NProgress, NPagination
+} from 'naive-ui'
+import {
+  ArrowBackOutline, PersonOutline, BookOutline,
+  ChevronForwardOutline, MedalOutline, BarChartOutline,
+  TextOutline
+} from '@vicons/ionicons5'
 
 const route = useRoute()
 const router = useRouter()
-const { loadAllAuthors } = useAuthors()
-const { getAllPoems } = usePoems()
+const { getAuthorByName } = useAuthorsV2()
+const { getPoemById } = usePoemsV2()
 
-const authorName = route.params.name as string
-const author = ref<Author | null>(null)
-const poems = ref<PoemSummary[]>([])
+const authorName = computed(() => route.params.name as string)
+const author = ref<AuthorStats | null>(null)
+const poems = ref<PoemDetail[]>([])
 const loading = ref(true)
+const poemsLoading = ref(false)
+
+const poemsPage = ref(1)
+const poemsPageSize = ref(20)
+
+const paginatedPoems = computed(() => {
+  const start = (poemsPage.value - 1) * poemsPageSize.value
+  const end = start + poemsPageSize.value
+  return poems.value.slice(start, end)
+})
+
+const totalPoemsPages = computed(() =>
+  Math.ceil(poems.value.length / poemsPageSize.value)
+)
 
 onMounted(async () => {
+  await loadAuthorData()
+})
+
+const loadAuthorData = async () => {
+  loading.value = true
   try {
-    const authors = await loadAllAuthors()
-    author.value = authors.find(a => a.author === authorName) || null
-    const allPoems = await getAllPoems(undefined, 1, 10000)
-    poems.value = allPoems.poems.filter(p => p.author === authorName)
+    author.value = await getAuthorByName(authorName.value)
+    if (author.value && author.value.poem_ids.length > 0) {
+      await loadAuthorPoems()
+    }
   } catch (e) {
-    console.error(e)
+    console.error('Error loading author:', e)
   } finally {
     loading.value = false
   }
-})
+}
+
+const loadAuthorPoems = async () => {
+  if (!author.value) return
+  poemsLoading.value = true
+  poems.value = []
+
+  try {
+    const loadedPoems: PoemDetail[] = []
+    for (const id of author.value.poem_ids) {
+      const poem = await getPoemById(id)
+      if (poem) {
+        loadedPoems.push(poem)
+      }
+    }
+    poems.value = loadedPoems
+  } catch (e) {
+    console.error('Error loading poems:', e)
+  } finally {
+    poemsLoading.value = false
+  }
+}
+
+const goBack = () => {
+  router.back()
+}
 
 const goToPoem = (id: string) => {
   router.push(`/poems/${id}`)
 }
 
+const goToAuthors = () => {
+  router.push('/authors')
+}
+
 const dynastyColors: Record<string, string> = {
-  '唐': 'red',
-  '宋': 'blue',
-  '元': 'green',
-  '明': 'yellow',
+  '唐': 'error',
+  '宋': 'info',
+  '元': 'success',
+  '明': 'warning',
   '清': 'purple'
+}
+
+const getTopPoemType = () => {
+  if (!author.value) return '-'
+  const entries = Object.entries(author.value.poem_type_counts)
+  if (entries.length === 0) return '-'
+  const sorted = entries.sort((a, b) => b[1] - a[1])
+  return sorted[0]?.[0] || '-'
+}
+
+const getTypeDistribution = () => {
+  if (!author.value) return []
+  const typeCounts = author.value.poem_type_counts
+  const total = Object.values(typeCounts).reduce((a, b) => a + b, 0)
+  const entries = Object.entries(typeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+
+  return entries.map(([type, count]) => ({
+    type,
+    count,
+    percentage: Math.round((count / total) * 100)
+  }))
 }
 </script>
 
 <template>
   <div class="author-detail-view">
-    <NCard>
-      <NSpin :show="loading">
-        <div v-if="author" class="author-header">
-          <h1>{{ authorName }}</h1>
-          <div class="author-meta">
-            <NTag :bordered="false" :type="dynastyColors[author.dynasty] as any" size="large">
-              {{ author.dynasty }}
-            </NTag>
-            <NTag v-for="genre in author.genres" :key="genre" size="large" type="info">
-              {{ genre }}
-            </NTag>
-            <span class="poem-count">创作 {{ author.poem_count }} 首</span>
-          </div>
-        </div>
+    <NPageHeader @back="goBack">
+      <template #title>
+        <span class="page-title">诗人详情</span>
+      </template>
+      <template #extra>
+        <NButton @click="goToAuthors">
+          全部诗人
+        </NButton>
+      </template>
+    </NPageHeader>
 
-        <NEmpty v-if="!loading && !author" description="未找到该作者" />
+    <NSpin :show="loading" size="large">
+      <NEmpty v-if="!loading && !author" description="未找到该作者">
+        <template #extra>
+          <NButton @click="goToAuthors">返回诗人列表</NButton>
+        </template>
+      </NEmpty>
 
-        <div v-if="poems.length > 0" class="poems-section">
-          <h3>作品列表</h3>
-          <div class="poems-list">
-            <div
-              v-for="poem in poems"
-              :key="poem.id"
-              class="poem-item"
-              @click="goToPoem(poem.id)"
-            >
-              <div class="poem-title">{{ poem.title }}</div>
-              <div class="poem-meta">
-                <NTag :bordered="false" :type="dynastyColors[poem.dynasty] as any" size="small">
-                  {{ poem.dynasty }}
+      <template v-else-if="author">
+        <NCard class="author-header-card">
+          <div class="author-header">
+            <div class="author-avatar">
+              <span class="avatar-text">{{ author.author.charAt(0) }}</span>
+            </div>
+            <div class="author-info">
+              <h1 class="author-name">{{ author.author }}</h1>
+              <div class="author-meta">
+                <NTag type="primary" size="large">
+                  <template #icon>
+                    <BookOutline />
+                  </template>
+                  {{ author.poem_count }} 首诗词
                 </NTag>
-                <NTag :bordered="false" type="info" size="small">
-                  {{ poem.genre }}
+                <NTag v-if="getTopPoemType() !== '-'" type="info" size="large">
+                  <template #icon>
+                    <TextOutline />
+                  </template>
+                  擅长 {{ getTopPoemType() }}
                 </NTag>
-                <span class="poem-type">{{ (poem as any).poem_type }}</span>
               </div>
             </div>
           </div>
-        </div>
-      </NSpin>
-    </NCard>
+        </NCard>
+
+        <NGrid :cols="3" :x-gap="16" :y-gap="16" class="stats-grid">
+          <NGridItem>
+            <NCard class="stat-card">
+              <NStatistic label="诗词总数">
+                <template #prefix>
+                  <BookOutline />
+                </template>
+                <span class="stat-value">{{ author.poem_count }}</span>
+              </NStatistic>
+            </NCard>
+          </NGridItem>
+          <NGridItem>
+            <NCard class="stat-card">
+              <NStatistic label="诗词体裁">
+                <template #prefix>
+                  <TextOutline />
+                </template>
+                <span class="stat-value">{{ Object.keys(author.poem_type_counts).length }}</span>
+              </NStatistic>
+            </NCard>
+          </NGridItem>
+          <NGridItem>
+            <NCard class="stat-card">
+              <NStatistic label="相似诗人">
+                <template #prefix>
+                  <PersonOutline />
+                </template>
+                <span class="stat-value">{{ author.similar_authors.length }}</span>
+              </NStatistic>
+            </NCard>
+          </NGridItem>
+        </NGrid>
+
+        <NGrid :cols="2" :x-gap="16" :y-gap="16" class="content-grid">
+          <NGridItem>
+            <NCard title="诗词体裁分布" class="distribution-card">
+              <div class="type-distribution">
+                <div
+                  v-for="item in getTypeDistribution()"
+                  :key="item.type"
+                  class="type-bar"
+                >
+                  <span class="type-label">{{ item.type }}</span>
+                  <NProgress
+                    type="line"
+                    :percentage="item.percentage"
+                    :show-indicator="false"
+                    :height="8"
+                    status="success"
+                  />
+                  <span class="type-count">{{ item.count }}首</span>
+                </div>
+              </div>
+            </NCard>
+          </NGridItem>
+
+          <NGridItem>
+            <NCard title="相似诗人" class="similar-card">
+              <NSpace v-if="author.similar_authors.length > 0" wrap>
+                <NButton
+                  v-for="similar in author.similar_authors.slice(0, 8)"
+                  :key="similar.author"
+                  size="small"
+                  @click="$router.push(`/authors/${encodeURIComponent(similar.author)}`)"
+                >
+                  {{ similar.author }}
+                  <span class="similarity-score">({{ (similar.similarity * 100).toFixed(0) }}%)</span>
+                </NButton>
+              </NSpace>
+              <NEmpty v-else description="暂无相似诗人数据" />
+            </NCard>
+          </NGridItem>
+        </NGrid>
+
+        <NCard title="作品列表" class="poems-card">
+          <NSpin :show="poemsLoading">
+            <NEmpty v-if="!poemsLoading && poems.length === 0" description="暂无诗词数据" />
+            <template v-else>
+              <NList hoverable clickable>
+                <NListItem
+                  v-for="poem in paginatedPoems"
+                  :key="poem.id"
+                  @click="goToPoem(poem.id)"
+                >
+                  <NThing>
+                    <template #header>
+                      <span class="poem-title">{{ poem.title || '无题' }}</span>
+                    </template>
+                    <template #description>
+                      <div class="poem-meta">
+                        <NTag
+                          v-if="poem.dynasty"
+                          :type="dynastyColors[poem.dynasty] as any"
+                          size="small"
+                        >
+                          {{ poem.dynasty }}
+                        </NTag>
+                        <NTag v-if="poem.genre" type="info" size="small">
+                          {{ poem.genre }}
+                        </NTag>
+                        <NTag v-if="poem.poem_type" type="success" size="small">
+                          {{ poem.poem_type }}
+                        </NTag>
+                      </div>
+                    </template>
+                    <template #header-extra>
+                      <ChevronForwardOutline class="arrow-icon" />
+                    </template>
+                  </NThing>
+                </NListItem>
+              </NList>
+
+              <div v-if="totalPoemsPages > 1" class="pagination-wrapper">
+                <NPagination
+                  v-model:page="poemsPage"
+                  :page-count="totalPoemsPages"
+                  :page-size="poemsPageSize"
+                  show-size-picker
+                  :page-sizes="[10, 20, 50, 100]"
+                  @update:page-size="poemsPageSize = $event"
+                />
+              </div>
+            </template>
+          </NSpin>
+        </NCard>
+      </template>
+    </NSpin>
   </div>
 </template>
 
 <style scoped>
 .author-detail-view {
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 24px;
+}
+
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.author-header-card {
+  margin-top: 24px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
 }
 
 .author-header {
-  text-align: center;
-  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
-.author-header h1 {
-  margin: 0 0 16px;
+.author-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #8b2635 0%, #c41e3a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar-text {
+  font-size: 36px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.author-info {
+  flex: 1;
+}
+
+.author-name {
+  margin: 0 0 12px;
   font-size: 32px;
-  color: #c41e3a;
+  font-weight: 600;
+  color: #2c3e50;
 }
 
 .author-meta {
   display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 12px;
 }
 
-.poem-count {
-  color: #666;
-  font-size: 16px;
+.stats-grid {
+  margin-bottom: 24px;
 }
 
-.poems-section {
-  margin-top: 24px;
+.stat-card {
+  text-align: center;
 }
 
-.poems-section h3 {
-  margin: 0 0 16px;
-  font-size: 18px;
-  color: #333;
+.stat-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: #8b2635;
 }
 
-.poems-list {
+.content-grid {
+  margin-bottom: 24px;
+}
+
+.distribution-card,
+.similar-card {
+  height: 100%;
+}
+
+.type-distribution {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.poem-item {
-  padding: 12px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.type-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.poem-item:hover {
-  background-color: #f5f5f5;
+.type-label {
+  font-size: 14px;
+  color: #666;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.type-count {
+  font-size: 13px;
+  color: #999;
+  width: 60px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.similarity-score {
+  font-size: 12px;
+  color: #999;
+  margin-left: 4px;
+}
+
+.poems-card {
+  margin-top: 24px;
 }
 
 .poem-title {
   font-size: 16px;
   font-weight: 500;
-  color: #333;
+  color: #2c3e50;
 }
 
 .poem-meta {
-  margin-top: 4px;
   display: flex;
-  align-items: center;
   gap: 8px;
+  margin-top: 4px;
 }
 
-.poem-type {
-  color: #666;
-  font-size: 14px;
+.arrow-icon {
+  width: 16px;
+  height: 16px;
+  color: #999;
+  transition: all 0.2s ease;
+}
+
+:deep(.n-list-item):hover .arrow-icon {
+  color: #8b2635;
+  transform: translateX(4px);
+}
+
+.pagination-wrapper {
+  margin-top: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .author-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .author-meta {
+    justify-content: center;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -10,12 +10,25 @@ import {
   ServerOutline as DataIcon,
   GitNetworkOutline as NetworkIcon,
   MenuOutline,
-  CloseOutline
+  CloseOutline,
+  BugOutline as TestIcon
 } from '@vicons/ionicons5'
+
+import { usePoemsV2 } from '@/composables/usePoemsV2'
 
 const collapsed = ref(false)
 const mobileMenuOpen = ref(false)
 const isMobile = ref(false)
+
+const poemsV2 = usePoemsV2()
+
+const formatNumber = (num: number | undefined | null): string => {
+  if (num === undefined || num === null) return '--'
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + '万'
+  }
+  return num.toLocaleString()
+}
 
 const checkMobile = () => {
   isMobile.value = window.innerWidth <= 768
@@ -27,6 +40,7 @@ const checkMobile = () => {
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
+  poemsV2.loadMetadata()
 })
 
 onUnmounted(() => {
@@ -34,13 +48,11 @@ onUnmounted(() => {
 })
 
 const menuOptions = [
-  { label: '寻幽探微', key: 'home', path: '/', icon: SearchIcon },
-  { label: '翰墨集珍', key: 'poems', path: '/poems', icon: BookIcon },
-  { label: '文人雅士', key: 'authors', path: '/authors', icon: PeopleIcon },
-  { label: '词境探索', key: 'word-similarity', path: '/word-similarity', icon: NetworkIcon },
-  { label: '词林万象', key: 'wordcloud', path: '/wordcloud', icon: CloudIcon },
-  { label: '数据经纬', key: 'stats', path: '/stats', icon: StatsIcon },
-  { label: '数据管理', key: 'data', path: '/data', icon: DataIcon }
+  { label: '诗词宝库', key: 'poems', path: '/poems', icon: BookIcon },
+  { label: '高产文人', key: 'authors', path: '/authors', icon: PeopleIcon },
+  { label: '数据管理', key: 'data', path: '/data', icon: DataIcon },
+  { label: '组件测试', key: 'test', path: '/test', icon: TestIcon },
+  { label: '布局测试', key: 'components-demo', path: '/components-demo', icon: TestIcon },
 ]
 
 
@@ -75,24 +87,24 @@ const themeOverrides = {
               <CloseOutline v-else class="menu-icon" />
             </button>
             <div class="mobile-brand">
-              <span class="brand-seal">诗词</span>
-              <span class="mobile-title">中华诗词库</span>
+              <RouterLink to="/" class="brand-seal" @click="mobileMenuOpen = false">诗词</RouterLink>
+              <RouterLink to="/" class="mobile-title" @click="mobileMenuOpen = false">中华诗词库</RouterLink>
             </div>
           </header>
 
           <!-- Sidebar / Mobile Drawer -->
           <aside class="sidebar" :class="{ collapsed, 'mobile-open': mobileMenuOpen }">
             <div class="sidebar-header">
-              <div class="brand" v-if="!collapsed">
+              <RouterLink to="/" class="brand" v-if="!collapsed">
                 <span class="brand-seal">诗词</span>
                 <div class="brand-text">
                   <h2>中华诗词库</h2>
                   <p>三十万首诗词数据挖掘</p>
                 </div>
-              </div>
-              <div class="brand-mini" v-else>
+              </RouterLink>
+              <RouterLink to="/" class="brand-mini" v-else>
                 <span class="brand-seal">诗</span>
-              </div>
+              </RouterLink>
             </div>
 
             <nav class="sidebar-nav">
@@ -132,7 +144,7 @@ const themeOverrides = {
             <div class="footer-inner">
               <span class="copyright">© 2026 中华诗词数据挖掘</span>
               <span class="divider">|</span>
-              <span class="stats">收录诗词 <em>332,712</em> 首</span>
+              <span class="stats">收录诗词 <em>{{ formatNumber(poemsV2.totalPoems.value) }}</em> 首</span>
               <span class="divider">|</span>
               <span class="version">v1.0</span>
             </div>
@@ -204,6 +216,13 @@ body {
   display: flex;
   align-items: center;
   gap: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.2s ease;
+}
+
+.brand:hover {
+  opacity: 0.85;
 }
 
 .brand-seal {
@@ -222,6 +241,10 @@ body {
 }
 
 .brand-mini { display: flex; justify-content: center; }
+
+.brand-mini:hover {
+  opacity: 0.85;
+}
 
 .brand-mini .brand-seal {
   width: 36px;
@@ -456,10 +479,19 @@ a { color: inherit; text-decoration: none; }
   }
 
   .mobile-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobile-brand a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.mobile-brand a:hover {
+  opacity: 0.85;
+}
 
   .mobile-brand .brand-seal {
     width: 32px;

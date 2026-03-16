@@ -1,147 +1,48 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import {
   NCard, NSpin, NEmpty, NInput, NSpace, NTag,
-  NButton, NPagination, NScrollbar, NStatistic, NGrid, NGridItem,
-  NProgress, NDivider, NDrawer, NDrawerContent, NList, NListItem, NThing,
-  NAlert, NIcon
+  NButton, NPagination, NGrid, NGridItem,
+  NProgress, NDivider
 } from 'naive-ui'
 import {
   TrophyOutline, PersonOutline, BookOutline,
   SearchOutline, MedalOutline, BarChartOutline,
-  DownloadOutline
+  ChevronForwardOutline
 } from '@vicons/ionicons5'
-import { useAuthors } from '@/composables/useAuthors'
+import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import type { AuthorStats } from '@/types/author'
+import PageHeader from '@/components/PageHeader.vue'
+import FilterSection from '@/components/FilterSection.vue'
+import StatsCard from '@/components/StatsCard.vue'
 
-const { 
-  loadAllAuthors, 
-  searchAuthors, 
-  getAuthorStats, 
-  authors, 
-  loading,
-  loadedCount,
-  totalChunks,
-  onIncrementalLoad,
+const router = useRouter()
+const {
   totalAuthors: totalAuthorsCount,
-  abortLoading,
-  pauseLoading,
-  resumeLoading,
-  isPaused
-} = useAuthors()
+  totalChunks,
+  loading,
+  loadMetadata,
+  loadAllAuthors,
+  getLoadedAuthors,
+  metadata
+} = useAuthorsV2()
 
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
-const incrementalAuthors = ref<AuthorStats[]>([])
+const loadedAuthors = ref<AuthorStats[]>([])
 const loadProgress = ref(0)
-const isIncremental = ref(false)
-const isLoadingPaused = ref(false)
+const isLoadingInitial = ref(true)
 
-// Toggle pause/resume loading
-const togglePauseLoading = () => {
-  if (isLoadingPaused.value) {
-    resumeLoading()
-    isLoadingPaused.value = false
-  } else {
-    pauseLoading()
-    isLoadingPaused.value = true
-  }
-}
-
-// Author poems drawer
-const showPoemsDrawer = ref(false)
-const selectedAuthor = ref<AuthorStats | null>(null)
-const authorPoems = ref<any[]>([])
-const isLoadingAuthorPoems = ref(false)
-const hasPoemCache = ref(false)
-const poemsPage = ref(1)
-const poemsPageSize = ref(50)
-
-// Check if poems are cached
-const checkPoemCache = async () => {
-  try {
-    const { getCacheStats } = await import('@/composables/usePoemCache')
-    const stats = await getCacheStats()
-    hasPoemCache.value = stats.chunks > 0
-  } catch (e) {
-    hasPoemCache.value = false
-  }
-}
-
-// Open drawer and show author's poem IDs
-const openAuthorPoems = async (author: AuthorStats) => {
-  selectedAuthor.value = author
-  showPoemsDrawer.value = true
-  isLoadingAuthorPoems.value = true
-  authorPoems.value = []
-  poemsPage.value = 1
-
-  // Check cache status first
-  await checkPoemCache()
-
-  try {
-    if (hasPoemCache.value && author.poem_ids && author.poem_ids.length > 0) {
-      // Try to load from cache
-      const { getAllCachedPoems } = await import('@/composables/usePoemCache')
-      const cachedPoems = await getAllCachedPoems()
-      const cachedMap = new Map(cachedPoems.map(p => [p.id, p]))
-
-      // Map poem IDs to cached poems
-      authorPoems.value = author.poem_ids.map((id, index) => {
-        const cached = cachedMap.get(id)
-        return cached || {
-          id,
-          title: `诗词 #${index + 1}`,
-          dynasty: '-',
-          genre: '-',
-          author: author.author
-        }
-      })
-    } else if (author.poem_ids && author.poem_ids.length > 0) {
-      // No cache, show placeholders
-      authorPoems.value = author.poem_ids.map((id, index) => ({
-        id,
-        title: `诗词 #${index + 1}`,
-        dynasty: '-',
-        genre: '-',
-        author: author.author
-      }))
-    }
-  } catch (e) {
-    console.error('Error loading author poems:', e)
-  } finally {
-    isLoadingAuthorPoems.value = false
-  }
-}
-
-// Paginated poems for display
-const paginatedPoems = computed(() => {
-  const start = (poemsPage.value - 1) * poemsPageSize.value
-  const end = start + poemsPageSize.value
-  return authorPoems.value.slice(start, end)
-})
-
-const totalPoemsPages = computed(() => 
-  Math.ceil(authorPoems.value.length / poemsPageSize.value)
-)
-
-// Dynamic stats based on currently loaded data (incremental or full)
-const currentAuthorsList = computed(() => {
-  return isIncremental.value && incrementalAuthors.value.length > 0
-    ? incrementalAuthors.value
-    : authors.value
-})
-
-// Real-time stats that update as data loads
 const dynamicStats = computed(() => {
-  const list = currentAuthorsList.value
+  const list = loadedAuthors.value
   const total = list.length
   const topAuthor = list[0]?.author || '-'
   const maxPoems = list[0]?.poem_count || 0
   const totalPoems = list.reduce((sum, a) => sum + (a.poem_count || 0), 0)
   const average = total > 0 ? Math.round(totalPoems / total) : 0
-  
+
   return {
     total,
     topAuthor,
@@ -151,14 +52,18 @@ const dynamicStats = computed(() => {
   }
 })
 
-const displayAuthors = computed(() => {
-  // Use current list (incremental during loading, full after)
-  const source = currentAuthorsList.value
-  
+const filteredAuthors = computed(() => {
   if (!searchQuery.value.trim()) {
-    return source
+    return loadedAuthors.value
   }
-  return searchAuthors(searchQuery.value)
+  const query = searchQuery.value.toLowerCase()
+  return loadedAuthors.value.filter(a =>
+    a.author.toLowerCase().includes(query)
+  )
+})
+
+const displayAuthors = computed(() => {
+  return filteredAuthors.value
 })
 
 const paginatedAuthors = computed(() => {
@@ -173,9 +78,9 @@ const paginatedAuthors = computed(() => {
 const totalPages = computed(() => Math.ceil(displayAuthors.value.length / pageSize.value))
 
 const getRankColor = (rank: number) => {
-  if (rank === 1) return '#FFD700' // Gold
-  if (rank === 2) return '#C0C0C0' // Silver
-  if (rank === 3) return '#CD7F32' // Bronze
+  if (rank === 1) return '#FFD700'
+  if (rank === 2) return '#C0C0C0'
+  if (rank === 3) return '#CD7F32'
   return '#8b7355'
 }
 
@@ -198,7 +103,7 @@ const getTypeDistribution = (typeCounts: Record<string, number>) => {
   const entries = Object.entries(typeCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
-  
+
   return entries.map(([type, count]) => ({
     type,
     count,
@@ -206,55 +111,36 @@ const getTypeDistribution = (typeCounts: Record<string, number>) => {
   }))
 }
 
-// Animation for new items
-const newItemRanks = ref<Set<number>>(new Set())
-
-const triggerItemAnimation = (ranks: number[]) => {
-  ranks.forEach(rank => newItemRanks.value.add(rank))
-  setTimeout(() => {
-    ranks.forEach(rank => newItemRanks.value.delete(rank))
-  }, 600)
-}
-
-// Loading state message
 const loadingHint = computed(() => {
-  const count = incrementalAuthors.value.length
+  const count = loadedAuthors.value.length
   if (count === 0) return '🚀 正在连接...'
-  if (count === 1) return `🏆 冠军登场：${incrementalAuthors.value[0]?.author}！`
-  if (count === 2) return `🥈 亚军揭晓：${incrementalAuthors.value[1]?.author}！`
-  if (count === 3) return `🥉 季军出炉：${incrementalAuthors.value[2]?.author}！`
+  if (count === 1) return `🏆 冠军登场：${loadedAuthors.value[0]?.author}！`
+  if (count === 2) return `🥈 亚军揭晓：${loadedAuthors.value[1]?.author}！`
+  if (count === 3) return `🥉 季军出炉：${loadedAuthors.value[2]?.author}！`
   return `📚 已加载 ${count.toLocaleString()} 位诗人...`
 })
 
+const loadData = async () => {
+  isLoadingInitial.value = true
+  try {
+    await loadMetadata()
+    const authors = await loadAllAuthors((loaded, total) => {
+      loadProgress.value = Math.round((loaded / total) * 100)
+    })
+    loadedAuthors.value = authors.sort((a, b) => b.poem_count - a.poem_count)
+  } catch (e) {
+    console.error('Error loading authors:', e)
+  } finally {
+    isLoadingInitial.value = false
+  }
+}
+
+const goToAuthorDetail = (author: AuthorStats) => {
+  router.push(`/authors/${encodeURIComponent(author.author)}`)
+}
+
 onMounted(() => {
-  // Subscribe to incremental loading
-  const unsubscribe = onIncrementalLoad((newAuthors, progress) => {
-    isIncremental.value = true
-    incrementalAuthors.value = newAuthors
-    loadProgress.value = progress
-    
-    // Trigger animation for newly loaded items (last batch)
-    const prevLength = incrementalAuthors.value.length
-    const newCount = newAuthors.length - prevLength
-    if (newCount > 0) {
-      const newRanks = []
-      for (let i = prevLength + 1; i <= newAuthors.length; i++) {
-        newRanks.push(i)
-      }
-      triggerItemAnimation(newRanks)
-    }
-  })
-  
-  // Start loading with incremental mode
-  loadAllAuthors(true).then(() => {
-    isIncremental.value = false
-  })
-  
-  onUnmounted(() => {
-    unsubscribe()
-    // Abort ongoing loading when leaving page
-    abortLoading()
-  })
+  loadData()
 })
 
 watch(searchQuery, () => {
@@ -264,69 +150,54 @@ watch(searchQuery, () => {
 
 <template>
   <div class="authors-view">
-    <header class="page-header">
-      <h1 class="page-title">
-        <TrophyOutline class="title-icon" />
-        诗人排行榜
-      </h1>
-      <p class="page-subtitle">
-        收录 {{ dynamicStats.total }} 位诗人，按诗词数量排序
-      </p>
-    </header>
+    <PageHeader
+      title="诗人排行榜"
+      :subtitle="`收录 ${dynamicStats.total} 位诗人，按诗词数量排序`"
+      :icon="TrophyOutline"
+    />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
       <NGridItem>
-        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
-          <NStatistic label="总收录诗人" :value="dynamicStats.total">
-            <template #prefix>
-              <PersonOutline style="color: #8b2635;" />
-            </template>
-          </NStatistic>
-        </NCard>
+        <StatsCard
+          label="总收录诗人"
+          :value="dynamicStats.total"
+          :prefix-icon="PersonOutline"
+        />
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
-          <NStatistic label="诗词最多" :value="dynamicStats.topAuthor">
-            <template #prefix>
-              <MedalOutline style="color: #8b2635;" />
-            </template>
-          </NStatistic>
-        </NCard>
+        <StatsCard
+          label="诗词最多"
+          :value="dynamicStats.topAuthor"
+          :prefix-icon="MedalOutline"
+        />
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
-          <NStatistic label="最高产量" :value="dynamicStats.maxPoems">
-            <template #prefix>
-              <BookOutline style="color: #8b2635;" />
-            </template>
-            <template #suffix>
-              <span style="font-size: 14px; color: #999;">首</span>
-            </template>
-          </NStatistic>
-        </NCard>
+        <StatsCard
+          label="最高产量"
+          :value="dynamicStats.maxPoems"
+          suffix="首"
+          :prefix-icon="BookOutline"
+        />
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card" :class="{ 'stat-updating': isIncremental }">
-          <NStatistic 
-            label="平均产量" 
-            :value="dynamicStats.average"
-          >
-            <template #prefix>
-              <BarChartOutline style="color: #8b2635;" />
-            </template>
-            <template #suffix>
-              <span style="font-size: 14px; color: #999;">首</span>
-            </template>
-          </NStatistic>
-        </NCard>
+        <StatsCard
+          label="平均产量"
+          :value="dynamicStats.average"
+          suffix="首"
+          :prefix-icon="BarChartOutline"
+        />
       </NGridItem>
     </NGrid>
 
-    <!-- Loading Progress - Only show during incremental loading -->
-    <NCard v-if="isIncremental" class="loading-card">
+    <NCard v-if="isLoadingInitial" class="loading-card">
       <div class="loading-header">
         <span class="loading-title">{{ loadingHint }}</span>
-        <span class="loading-count">{{ incrementalAuthors.length.toLocaleString() }} / {{ totalAuthorsCount?.toLocaleString() || '...' }}</span>
+        <span class="loading-count">
+          {{ loadedAuthors.length.toLocaleString() }} 位诗人 / {{ totalAuthorsCount?.toLocaleString() || '...' }} 位
+          <span class="chunk-progress" v-if="totalChunks > 0">
+            · {{ loadProgress }}%
+          </span>
+        </span>
       </div>
       <NProgress
         type="line"
@@ -335,61 +206,47 @@ watch(searchQuery, () => {
         status="success"
         :height="12"
         :border-radius="6"
-        :processing="!isLoadingPaused"
+        :processing="true"
       />
-      <div class="loading-controls">
-        <NButton 
-          size="small" 
-          :type="isLoadingPaused ? 'primary' : 'default'"
-          @click="togglePauseLoading"
-        >
-          <template #icon>
-            <span v-if="isLoadingPaused">▶️</span>
-            <span v-else>⏸️</span>
-          </template>
-          {{ isLoadingPaused ? '继续加载' : '暂停加载' }}
-        </NButton>
-      </div>
-      <div class="loading-stats" v-if="incrementalAuthors.length > 0">
+      <div class="loading-stats" v-if="loadedAuthors.length > 0">
         <span class="stat-item">已收录诗词: {{ dynamicStats.totalPoems.toLocaleString() }} 首</span>
         <span class="stat-item">当前平均: {{ dynamicStats.average }} 首/人</span>
       </div>
     </NCard>
 
-    <NCard class="search-card">
+    <FilterSection class="search-section">
       <NInput
         v-model:value="searchQuery"
         placeholder="搜索诗人..."
         size="large"
         clearable
+        style="width: 300px;"
       >
         <template #prefix>
           <SearchOutline />
         </template>
       </NInput>
-    </NCard>
+    </FilterSection>
 
-    <NSpin :show="loading && !isIncremental" size="large">
-      <NEmpty v-if="!loading && paginatedAuthors.length === 0" description="暂无数据" />
-      
+    <NSpin :show="loading && isLoadingInitial" size="large">
+      <NEmpty v-if="!loading && !isLoadingInitial && paginatedAuthors.length === 0" description="暂无数据" />
+
       <div v-else class="authors-list">
         <TransitionGroup name="author-item">
           <div
             v-for="author in paginatedAuthors"
             :key="author.author"
             class="author-card"
-            :class="{ 
-              'top-three': author.rank <= 3,
-              'is-new': newItemRanks.has(author.rank)
+            :class="{
+              'top-three': author.rank <= 3
             }"
-            @click="openAuthorPoems(author)"
-            style="cursor: pointer;"
+            @click="goToAuthorDetail(author)"
           >
             <div class="rank-badge" :style="{ backgroundColor: getRankColor(author.rank) }">
               <span class="rank-number">{{ author.rank }}</span>
               <span class="rank-icon">{{ getRankIcon(author.rank) }}</span>
             </div>
-            
+
             <div class="author-info">
               <h3 class="author-name">{{ author.author }}</h3>
               <div class="author-stats">
@@ -401,7 +258,7 @@ watch(searchQuery, () => {
                 </span>
               </div>
             </div>
-            
+
             <div class="type-distribution">
               <div
                 v-for="item in getTypeDistribution(author.poem_type_counts)"
@@ -419,6 +276,8 @@ watch(searchQuery, () => {
                 <span class="type-count">{{ item.count }}</span>
               </div>
             </div>
+
+            <ChevronForwardOutline class="arrow-icon" />
           </div>
         </TransitionGroup>
       </div>
@@ -434,69 +293,6 @@ watch(searchQuery, () => {
         @update:page-size="pageSize = $event"
       />
     </div>
-
-    <!-- Author Poems Drawer -->
-    <NDrawer
-      v-model:show="showPoemsDrawer"
-      :width="600"
-      placement="right"
-    >
-      <NDrawerContent
-        :title="selectedAuthor ? `${selectedAuthor.author} 的诗词 (${authorPoems.length.toLocaleString()}首)` : '诗词列表'"
-        closable
-      >
-        <NSpin :show="isLoadingAuthorPoems" size="large">
-          <NEmpty v-if="!isLoadingAuthorPoems && authorPoems.length === 0" description="暂无诗词数据" />
-          <div v-else>
-            <!-- No Cache Warning -->
-            <NAlert
-              v-if="!hasPoemCache"
-              type="warning"
-              :show-icon="true"
-              class="cache-warning"
-            >
-              <template #header>诗词数据未加载</template>
-              <p>当前显示的是诗词占位符。要查看完整的诗词标题和内容，请先前往诗词页面加载数据。</p>
-              <div class="cache-warning-action">
-                <NButton type="primary" @click="$router.push('/poems')">
-                  <template #icon>
-                    <NIcon><DownloadOutline /></NIcon>
-                  </template>
-                  前往加载诗词数据
-                </NButton>
-              </div>
-            </NAlert>
-
-            <NList>
-              <NListItem v-for="poem in paginatedPoems" :key="poem.id">
-                <NThing>
-                  <template #header>
-                    <span class="poem-title">{{ poem.title }}</span>
-                  </template>
-                  <template #description>
-                    <div class="poem-meta">
-                      <NTag v-if="poem.dynasty !== '-'" size="small" type="info">{{ poem.dynasty }}</NTag>
-                      <NTag v-if="poem.genre !== '-'" size="small" type="success">{{ poem.genre }}</NTag>
-                      <NTag v-if="!hasPoemCache" size="small" type="default">ID: {{ poem.id.slice(0, 8) }}...</NTag>
-                    </div>
-                  </template>
-                </NThing>
-              </NListItem>
-            </NList>
-            <div class="poems-pagination" v-if="totalPoemsPages > 1">
-              <NPagination
-                v-model:page="poemsPage"
-                :page-count="totalPoemsPages"
-                :page-size="poemsPageSize"
-                show-size-picker
-                :page-sizes="[20, 50, 100]"
-                @update:page-size="poemsPageSize = $event"
-              />
-            </div>
-          </div>
-        </NSpin>
-      </NDrawerContent>
-    </NDrawer>
   </div>
 </template>
 
@@ -505,32 +301,6 @@ watch(searchQuery, () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
-}
-
-.page-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.page-title {
-  font-size: 32px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.title-icon {
-  font-size: 36px;
-  color: #8b2635;
-}
-
-.page-subtitle {
-  font-size: 16px;
-  color: #666;
 }
 
 .stats-grid {
@@ -575,10 +345,9 @@ watch(searchQuery, () => {
   font-weight: 600;
 }
 
-.loading-controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 12px;
+.chunk-progress {
+  color: #666;
+  font-weight: 400;
 }
 
 .loading-stats {
@@ -594,7 +363,7 @@ watch(searchQuery, () => {
   color: #666;
 }
 
-.search-card {
+.search-section {
   margin-bottom: 24px;
 }
 
@@ -613,6 +382,7 @@ watch(searchQuery, () => {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .author-card:hover {
@@ -620,27 +390,15 @@ watch(searchQuery, () => {
   transform: translateY(-2px);
 }
 
+.author-card:hover .arrow-icon {
+  opacity: 1;
+  color: #8b2635;
+  transform: translateX(4px);
+}
+
 .author-card.top-three {
   background: linear-gradient(135deg, #fff 0%, #fdf6f0 100%);
   border: 1px solid #e8d5c4;
-}
-
-.author-card.is-new {
-  animation: slideIn 0.6s ease-out;
-}
-
-@keyframes slideIn {
-  0% {
-    opacity: 0;
-    transform: translateX(-30px) scale(0.95);
-  }
-  50% {
-    transform: translateX(5px) scale(1.02);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
 }
 
 .rank-badge {
@@ -718,45 +476,21 @@ watch(searchQuery, () => {
   text-align: right;
 }
 
+.arrow-icon {
+  width: 20px;
+  height: 20px;
+  color: #999;
+  opacity: 0;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
 .pagination-wrapper {
   margin-top: 32px;
   display: flex;
   justify-content: center;
 }
 
-/* Poem Drawer Styles */
-.poem-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.poem-meta {
-  display: flex;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.poems-pagination {
-  margin-top: 24px;
-  display: flex;
-  justify-content: center;
-}
-
-.cache-warning {
-  margin-bottom: 16px;
-}
-
-.cache-warning p {
-  margin: 8px 0;
-  line-height: 1.5;
-}
-
-.cache-warning-action {
-  margin-top: 12px;
-}
-
-/* Transition Group Animations */
 .author-item-enter-active,
 .author-item-leave-active {
   transition: all 0.5s ease;
@@ -778,14 +512,18 @@ watch(searchQuery, () => {
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .type-distribution {
     width: 100%;
   }
-  
+
   .loading-stats {
     flex-direction: column;
     gap: 8px;
+  }
+
+  .arrow-icon {
+    display: none;
   }
 }
 </style>
