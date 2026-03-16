@@ -1,5 +1,7 @@
 results/ngram_index/
-results/wordcount_*/
+results/wordcount_go/
+results/wordcount_python/
+results/wordcount/
 results/fasttext/*.npy
 results/word_similarity/
 results/word_similarity_v2/

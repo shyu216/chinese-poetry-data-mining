@@ -1,0 +1,368 @@
+{
+  "version": "2.0",
+  "format": "compact",
+  "total_words": 893638,
+  "total_chunks": 35,
+  "chunks": [
+    {
+      "file": "chunk_0000.json",
+      "index": 0,
+      "start_rank": 1,
+      "end_rank": 1000,
+      "count": 1000,
+      "start_word": "有",
+      "end_word": "湖",
+      "total_count": 4923926
+    },
+    {
+      "file": "chunk_0001.json",
+      "index": 1,
+      "start_rank": 1001,
+      "end_rank": 2000,
+      "count": 1000,
+      "start_word": "征",
+      "end_word": "所以",
+      "total_count": 1058583
+    },
+    {
+      "file": "chunk_0002.json",
+      "index": 2,
+      "start_rank": 2001,
+      "end_rank": 3000,
+      "count": 1000,
+      "start_word": "有情",
+      "end_word": "相过",
+      "total_count": 613439
+    },
+    {
+      "file": "chunk_0003.json",
+      "index": 3,
+      "start_rank": 3001,
+      "end_rank": 4000,
+      "count": 1000,
+      "start_word": "溪边",
+      "end_word": "双双",
+      "total_count": 427225
+    },
+    {
+      "file": "chunk_0004.json",
+      "index": 4,
+      "start_rank": 4001,
+      "end_rank": 5000,
+      "count": 1000,
+      "start_word": "江村",
+      "end_word": "堵",
+      "total_count": 323341
+    },
+    {
+      "file": "chunk_0005.json",
+      "index": 5,
+      "start_rank": 5001,
+      "end_rank": 6000,
+      "count": 1000,
+      "start_word": "紫宸",
+      "end_word": "照人",
+      "total_count": 258913
+    },
+    {
+      "file": "chunk_0006.json",
+      "index": 6,
+      "start_rank": 6001,
+      "end_rank": 7000,
+      "count": 1000,
+      "start_word": "休休",
+      "end_word": "荒城",
+      "total_count": 214073
+    },
+    {
+      "file": "chunk_0007.json",
+      "index": 7,
+      "start_rank": 7001,
+      "end_rank": 8000,
+      "count": 1000,
+      "start_word": "征帆",
+      "end_word": "十六",
+      "total_count": 181886
+    },
+    {
+      "file": "chunk_0008.json",
+      "index": 8,
+      "start_rank": 8001,
+      "end_rank": 9000,
+      "count": 1000,
+      "start_word": "儿辈",
+      "end_word": "樛",
+      "total_count": 156151
+    },
+    {
+      "file": "chunk_0009.json",
+      "index": 9,
+      "start_rank": 9001,
+      "end_rank": 10000,
+      "count": 1000,
+      "start_word": "趺坐",
+      "end_word": "羞见",
+      "total_count": 136875
+    },
+    {
+      "file": "chunk_0010.json",
+      "index": 10,
+      "start_rank": 10001,
+      "end_rank": 20000,
+      "count": 10000,
+      "start_word": "独抱",
+      "end_word": "梁父吟",
+      "total_count": 814273
+    },
+    {
+      "file": "chunk_0011.json",
+      "index": 11,
+      "start_rank": 20001,
+      "end_rank": 30000,
+      "count": 10000,
+      "start_word": "姹女",
+      "end_word": "数州",
+      "total_count": 395859
+    },
+    {
+      "file": "chunk_0012.json",
+      "index": 12,
+      "start_rank": 30001,
+      "end_rank": 40000,
+      "count": 10000,
+      "start_word": "隔夜",
+      "end_word": "晓开",
+      "total_count": 244526
+    },
+    {
+      "file": "chunk_0013.json",
+      "index": 13,
+      "start_rank": 40001,
+      "end_rank": 50000,
+      "count": 10000,
+      "start_word": "重重叠叠",
+      "end_word": "封事",
+      "total_count": 170264
+    },
+    {
+      "file": "chunk_0014.json",
+      "index": 14,
+      "start_rank": 50001,
+      "end_rank": 60000,
+      "count": 10000,
+      "start_word": "盟誓",
+      "end_word": "华实",
+      "total_count": 126834
+    },
+    {
+      "file": "chunk_0015.json",
+      "index": 15,
+      "start_rank": 60001,
+      "end_rank": 70000,
+      "count": 10000,
+      "start_word": "果闻",
+      "end_word": "泪向",
+      "total_count": 99648
+    },
+    {
+      "file": "chunk_0016.json",
+      "index": 16,
+      "start_rank": 70001,
+      "end_rank": 80000,
+      "count": 10000,
+      "start_word": "来别",
+      "end_word": "宗乘",
+      "total_count": 81713
+    },
+    {
+      "file": "chunk_0017.json",
+      "index": 17,
+      "start_rank": 80001,
+      "end_rank": 90000,
+      "count": 10000,
+      "start_word": "位分",
+      "end_word": "柔明",
+      "total_count": 67745
+    },
+    {
+      "file": "chunk_0018.json",
+      "index": 18,
+      "start_rank": 90001,
+      "end_rank": 100000,
+      "count": 10000,
+      "start_word": "收神",
+      "end_word": "苍云屯",
+      "total_count": 59209
+    },
+    {
+      "file": "chunk_0019.json",
+      "index": 19,
+      "start_rank": 100001,
+      "end_rank": 150000,
+      "count": 50000,
+      "start_word": "前容",
+      "end_word": "世趣",
+      "total_count": 204064
+    },
+    {
+      "file": "chunk_0020.json",
+      "index": 20,
+      "start_rank": 150001,
+      "end_rank": 200000,
+      "count": 50000,
+      "start_word": "嘉酿",
+      "end_word": "襄水",
+      "total_count": 131080
+    },
+    {
+      "file": "chunk_0021.json",
+      "index": 21,
+      "start_rank": 200001,
+      "end_rank": 250000,
+      "count": 50000,
+      "start_word": "伺天",
+      "end_word": "付一读",
+      "total_count": 100000
+    },
+    {
+      "file": "chunk_0022.json",
+      "index": 22,
+      "start_rank": 250001,
+      "end_rank": 300000,
+      "count": 50000,
+      "start_word": "作伏",
+      "end_word": "云树耸",
+      "total_count": 82767
+    },
+    {
+      "file": "chunk_0023.json",
+      "index": 23,
+      "start_rank": 300001,
+      "end_rank": 350000,
+      "count": 50000,
+      "start_word": "门境",
+      "end_word": "盆暴",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0024.json",
+      "index": 24,
+      "start_rank": 350001,
+      "end_rank": 400000,
+      "count": 50000,
+      "start_word": "睡得",
+      "end_word": "因风成",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0025.json",
+      "index": 25,
+      "start_rank": 400001,
+      "end_rank": 450000,
+      "count": 50000,
+      "start_word": "顿匙",
+      "end_word": "羊鹿强",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0026.json",
+      "index": 26,
+      "start_rank": 450001,
+      "end_rank": 500000,
+      "count": 50000,
+      "start_word": "一丿著一",
+      "end_word": "松雪自",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0027.json",
+      "index": 27,
+      "start_rank": 500001,
+      "end_rank": 550000,
+      "count": 50000,
+      "start_word": "喜还璧",
+      "end_word": "癖陵",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0028.json",
+      "index": 28,
+      "start_rank": 550001,
+      "end_rank": 600000,
+      "count": 50000,
+      "start_word": "翁心",
+      "end_word": "火别",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0029.json",
+      "index": 29,
+      "start_rank": 600001,
+      "end_rank": 650000,
+      "count": 50000,
+      "start_word": "削白",
+      "end_word": "拔石移",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0030.json",
+      "index": 30,
+      "start_rank": 650001,
+      "end_rank": 700000,
+      "count": 50000,
+      "start_word": "阖畔",
+      "end_word": "薪尚",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0031.json",
+      "index": 31,
+      "start_rank": 700001,
+      "end_rank": 750000,
+      "count": 50000,
+      "start_word": "汪吕氏",
+      "end_word": "驷填街术",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0032.json",
+      "index": 32,
+      "start_rank": 750001,
+      "end_rank": 800000,
+      "count": 50000,
+      "start_word": "满邑",
+      "end_word": "峭松",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0033.json",
+      "index": 33,
+      "start_rank": 800001,
+      "end_rank": 850000,
+      "count": 50000,
+      "start_word": "呼独散",
+      "end_word": "沂山",
+      "total_count": 50000
+    },
+    {
+      "file": "chunk_0034.json",
+      "index": 34,
+      "start_rank": 850001,
+      "end_rank": 893638,
+      "count": 43638,
+      "start_word": "走瑯",
+      "end_word": "问芳",
+      "total_count": 43638
+    }
+  ],
+  "lookup": {
+    "by_rank": {
+      "min": 1,
+      "max": 893638
+    },
+    "by_count": {
+      "max": 4923926,
+      "min": 43638
+    }
+  }
+}
