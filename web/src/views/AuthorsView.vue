@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   NCard, NSpin, NEmpty, NInput, NSpace, NTag,
@@ -9,7 +9,8 @@ import {
 import {
   TrophyOutline, PersonOutline, BookOutline,
   SearchOutline, MedalOutline, BarChartOutline,
-  ChevronForwardOutline
+  ChevronForwardOutline, PauseOutline, PlayOutline,
+  DownloadOutline
 } from '@vicons/ionicons5'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import type { AuthorStats } from '@/types/author'
@@ -21,10 +22,12 @@ const router = useRouter()
 const {
   totalAuthors: totalAuthorsCount,
   totalChunks,
+  loadedChunkCount,
   loading,
   loadMetadata,
-  loadAllAuthors,
+  getAuthorsByChunk,
   getLoadedAuthors,
+  preloadChunks,
   metadata
 } = useAuthorsV2()
 
@@ -34,6 +37,9 @@ const pageSize = ref(20)
 const loadedAuthors = ref<AuthorStats[]>([])
 const loadProgress = ref(0)
 const isLoadingInitial = ref(true)
+const isPaused = ref(false)
+const isLoadingChunk = ref(false)
+const listContainerRef = ref<HTMLElement | null>(null)
 
 const dynamicStats = computed(() => {
   const list = loadedAuthors.value
@@ -111,27 +117,78 @@ const getTypeDistribution = (typeCounts: Record<string, number>) => {
   }))
 }
 
+const hasMoreChunks = computed(() => {
+  return loadedChunkCount.value < (totalChunks.value || 0)
+})
+
 const loadingHint = computed(() => {
   const count = loadedAuthors.value.length
   if (count === 0) return '🚀 正在连接...'
   if (count === 1) return `🏆 冠军登场：${loadedAuthors.value[0]?.author}！`
   if (count === 2) return `🥈 亚军揭晓：${loadedAuthors.value[1]?.author}！`
   if (count === 3) return `🥉 季军出炉：${loadedAuthors.value[2]?.author}！`
+  if (isPaused.value) return `⏸️ 已暂停 · 已加载 ${count.toLocaleString()} 位诗人`
   return `📚 已加载 ${count.toLocaleString()} 位诗人...`
 })
+
+const loadNextChunk = async () => {
+  if (isPaused.value || isLoadingChunk.value) return
+  
+  const currentLoaded = loadedChunkCount.value
+  if (currentLoaded >= (totalChunks.value || 0)) return
+  
+  isLoadingChunk.value = true
+  try {
+    const nextChunkId = currentLoaded
+    const chunkAuthors = await getAuthorsByChunk(nextChunkId)
+    loadedAuthors.value.push(...chunkAuthors)
+    loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
+    loadProgress.value = Math.round(((nextChunkId + 1) / (totalChunks.value || 1)) * 100)
+  } catch (e) {
+    console.error('Error loading chunk:', e)
+  } finally {
+    isLoadingChunk.value = false
+  }
+}
+
+const keepLoadingNextChunk = async () => {
+  if (isPaused.value || isLoadingChunk.value) return
+  
+  while (!isPaused.value && hasMoreChunks.value) {
+    await loadNextChunk()
+    // 添加小延迟避免阻塞UI
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+}
+
+const togglePause = () => {
+  isPaused.value = !isPaused.value
+  if (!isPaused.value && hasMoreChunks.value) {
+    keepLoadingNextChunk()
+  }
+}
 
 const loadData = async () => {
   isLoadingInitial.value = true
   try {
     await loadMetadata()
-    const authors = await loadAllAuthors((loaded, total) => {
-      loadProgress.value = Math.round((loaded / total) * 100)
-    })
-    loadedAuthors.value = authors.sort((a, b) => b.poem_count - a.poem_count)
+    await loadNextChunk()
   } catch (e) {
     console.error('Error loading authors:', e)
   } finally {
     isLoadingInitial.value = false
+  }
+}
+
+const handleScroll = () => {
+  if (!listContainerRef.value || isPaused.value || isLoadingChunk.value) return
+  
+  const container = listContainerRef.value
+  const scrollBottom = container.scrollTop + container.clientHeight
+  const threshold = container.scrollHeight - 200
+  
+  if (scrollBottom >= threshold && hasMoreChunks.value) {
+    loadNextChunk()
   }
 }
 
@@ -141,6 +198,15 @@ const goToAuthorDetail = (author: AuthorStats) => {
 
 onMounted(() => {
   loadData()
+  if (listContainerRef.value) {
+    listContainerRef.value.addEventListener('scroll', handleScroll)
+  }
+})
+
+onUnmounted(() => {
+  if (listContainerRef.value) {
+    listContainerRef.value.removeEventListener('scroll', handleScroll)
+  }
 })
 
 watch(searchQuery, () => {
@@ -159,24 +225,9 @@ watch(searchQuery, () => {
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
       <NGridItem>
         <StatsCard
-          label="总收录诗人"
+          label="已加载诗人" v-if="dynamicStats.total > 0"
           :value="dynamicStats.total"
           :prefix-icon="PersonOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="诗词最多"
-          :value="dynamicStats.topAuthor"
-          :prefix-icon="MedalOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="最高产量"
-          :value="dynamicStats.maxPoems"
-          suffix="首"
-          :prefix-icon="BookOutline"
         />
       </NGridItem>
       <NGridItem>
@@ -189,7 +240,7 @@ watch(searchQuery, () => {
       </NGridItem>
     </NGrid>
 
-    <NCard v-if="isLoadingInitial" class="loading-card">
+    <NCard v-if="hasMoreChunks || isLoadingInitial" class="loading-card">
       <div class="loading-header">
         <span class="loading-title">{{ loadingHint }}</span>
         <span class="loading-count">
@@ -206,11 +257,25 @@ watch(searchQuery, () => {
         status="success"
         :height="12"
         :border-radius="6"
-        :processing="true"
+        :processing="!isPaused && isLoadingChunk"
       />
       <div class="loading-stats" v-if="loadedAuthors.length > 0">
         <span class="stat-item">已收录诗词: {{ dynamicStats.totalPoems.toLocaleString() }} 首</span>
         <span class="stat-item">当前平均: {{ dynamicStats.average }} 首/人</span>
+      </div>
+      <div class="loading-actions" v-if="loadedAuthors.length > 0 && !isLoadingInitial">
+        <NButton
+          v-if="hasMoreChunks"
+          :type="isPaused ? 'primary' : 'default'"
+          size="small"
+          @click="togglePause"
+        >
+          <template #icon>
+            <PlayOutline v-if="isPaused" />
+            <PauseOutline v-else />
+          </template>
+          {{ isPaused ? '继续加载' : '暂停加载' }}
+        </NButton>
       </div>
     </NCard>
 
@@ -231,17 +296,18 @@ watch(searchQuery, () => {
     <NSpin :show="loading && isLoadingInitial" size="large">
       <NEmpty v-if="!loading && !isLoadingInitial && paginatedAuthors.length === 0" description="暂无数据" />
 
-      <div v-else class="authors-list">
-        <TransitionGroup name="author-item">
-          <div
-            v-for="author in paginatedAuthors"
-            :key="author.author"
-            class="author-card"
-            :class="{
-              'top-three': author.rank <= 3
-            }"
-            @click="goToAuthorDetail(author)"
-          >
+      <div v-else ref="listContainerRef" class="authors-list-container">
+        <div class="authors-list">
+          <TransitionGroup name="author-item">
+            <div
+              v-for="author in paginatedAuthors"
+              :key="author.author"
+              class="author-card"
+              :class="{
+                'top-three': author.rank <= 3
+              }"
+              @click="goToAuthorDetail(author)"
+            >
             <div class="rank-badge" :style="{ backgroundColor: getRankColor(author.rank) }">
               <span class="rank-number">{{ author.rank }}</span>
               <span class="rank-icon">{{ getRankIcon(author.rank) }}</span>
@@ -279,7 +345,17 @@ watch(searchQuery, () => {
 
             <ChevronForwardOutline class="arrow-icon" />
           </div>
-        </TransitionGroup>
+          </TransitionGroup>
+        </div>
+        
+        <div v-if="hasMoreChunks && !isLoadingInitial" class="load-more-hint">
+          <NSpin v-if="!isPaused" :show="isLoadingChunk" size="small">
+            <span class="hint-text">
+              {{ isLoadingChunk ? '正在加载更多诗人...' : '向下滚动加载更多' }}
+            </span>
+          </NSpin>
+          <span v-else class="hint-text paused">⏸️ 已暂停加载</span>
+        </div>
       </div>
     </NSpin>
 
@@ -358,6 +434,14 @@ watch(searchQuery, () => {
   border-top: 1px dashed #ddd;
 }
 
+.loading-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed #ddd;
+}
+
 .stat-item {
   font-size: 13px;
   color: #666;
@@ -367,10 +451,51 @@ watch(searchQuery, () => {
   margin-bottom: 24px;
 }
 
+.authors-list-container {
+  max-height: 70vh;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.authors-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.authors-list-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.authors-list-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.authors-list-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
 .authors-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.load-more-hint {
+  text-align: center;
+  padding: 24px;
+  color: #999;
+  font-size: 14px;
+}
+
+.load-more-hint .hint-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.load-more-hint .hint-text.paused {
+  color: #8b7355;
 }
 
 .author-card {
