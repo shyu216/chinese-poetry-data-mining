@@ -4,3 +4,9 @@
 [submodule "data/chinese-gushiwen"]
 	path = data/chinese-gushiwen
 	url = https://github.com/caoxingyu/chinese-gushiwen.git
+[submodule "data/lua_shiyun"]
+	path = data/lua_shiyun
+	url = https://github.com/zhengwy888/lua_shiyun.git
+[submodule "data/chinese_word_rhyme"]
+	path = data/chinese_word_rhyme
+	url = https://github.com/charlesix59/chinese_word_rhyme.git

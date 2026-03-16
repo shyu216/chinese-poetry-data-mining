@@ -122,7 +122,7 @@ async function generatePoemIndex() {
     }
   }
 
-  // 生成 manifest.json
+  // 生成 poem_index_manifest.json
   const manifest = {
     metadata: {
       total: allPoems.length,
