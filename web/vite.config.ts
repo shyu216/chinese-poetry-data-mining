@@ -13,4 +13,22 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    warmup: {
+      clientFiles: [
+        './src/main.ts',
+        './src/App.vue',
+        './src/router/index.ts'
+      ]
+    }
+  },
+  optimizeDeps: {
+    include: [
+      'vue',
+      'vue-router',
+      'naive-ui',
+      '@vicons/ionicons5',
+      'echarts'
+    ]
+  }
 })

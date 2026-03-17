@@ -3,8 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   NCard, NSpin, NEmpty, NInput, NSpace, NTag,
-  NButton, NPagination, NGrid, NGridItem,
-  NProgress, NDivider
+  NButton, NPagination, NGrid, NGridItem
 } from 'naive-ui'
 import {
   TrophyOutline, PersonOutline, BookOutline,
@@ -12,28 +11,33 @@ import {
   ChevronForwardOutline
 } from '@vicons/ionicons5'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
+import { useChunkLoader } from '@/composables/useChunkLoader'
+import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
+import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
 import type { AuthorStats } from '@/types/author'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
+import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
 
 const router = useRouter()
 const {
   totalAuthors: totalAuthorsCount,
   totalChunks,
-  loading,
+  loading: metadataLoading,
   loadMetadata,
-  loadAllAuthors,
-  getLoadedAuthors,
-  metadata
+  loadAuthorChunk
 } = useAuthorsV2()
+
+const chunkLoader = useChunkLoader()
 
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 const loadedAuthors = ref<AuthorStats[]>([])
-const loadProgress = ref(0)
-const isLoadingInitial = ref(true)
+const hasMoreChunks = ref(true)
+const isInitializing = ref(true)
+const cachedChunksCount = ref(0) // 从 IndexedDB 缓存的 chunk 数量
 
 const dynamicStats = computed(() => {
   const list = loadedAuthors.value
@@ -62,9 +66,7 @@ const filteredAuthors = computed(() => {
   )
 })
 
-const displayAuthors = computed(() => {
-  return filteredAuthors.value
-})
+const displayAuthors = computed(() => filteredAuthors.value)
 
 const paginatedAuthors = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
@@ -120,18 +122,65 @@ const loadingHint = computed(() => {
   return `📚 已加载 ${count.toLocaleString()} 位诗人...`
 })
 
+// 从 IndexedDB 加载缓存的 chunk 数据
+const loadCachedChunks = async (): Promise<number[]> => {
+  const meta = await getMetadata(AUTHORS_STORAGE)
+  const loadedChunkIds = meta?.loadedChunkIds || []
+
+  // 更新缓存的 chunk 数量
+  cachedChunksCount.value = loadedChunkIds.length
+
+  if (loadedChunkIds.length === 0) {
+    return []
+  }
+
+  // 从 IndexedDB 读取每个 chunk 的数据
+  const cachedAuthors: AuthorStats[] = []
+  for (const chunkId of loadedChunkIds) {
+    const chunkData = await getChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
+    if (chunkData) {
+      cachedAuthors.push(...chunkData)
+    }
+  }
+
+  if (cachedAuthors.length > 0) {
+    loadedAuthors.value = cachedAuthors.sort((a, b) => b.poem_count - a.poem_count)
+  }
+
+  return loadedChunkIds
+}
+
 const loadData = async () => {
-  isLoadingInitial.value = true
+  isInitializing.value = true
   try {
     await loadMetadata()
-    const authors = await loadAllAuthors((loaded, total) => {
-      loadProgress.value = Math.round((loaded / total) * 100)
+    const totalChunksCount = totalChunks.value || 0
+
+    // 首先从 IndexedDB 加载缓存的数据
+    const loadedChunkIds = await loadCachedChunks()
+
+    // 只加载未加载的 chunk
+    const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
+    const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
+
+    if (unloadedChunkIds.length === 0) {
+      hasMoreChunks.value = false
+      return
+    }
+
+    await chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, loadAuthorChunk, {
+      chunkDelay: 150,
+      onChunkLoaded: (_, authors) => {
+        const authorsArray = authors as AuthorStats[]
+        loadedAuthors.value.push(...authorsArray)
+        loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
+      },
+      onComplete: () => {
+        hasMoreChunks.value = false
+      }
     })
-    loadedAuthors.value = authors.sort((a, b) => b.poem_count - a.poem_count)
-  } catch (e) {
-    console.error('Error loading authors:', e)
   } finally {
-    isLoadingInitial.value = false
+    isInitializing.value = false
   }
 }
 
@@ -189,30 +238,22 @@ watch(searchQuery, () => {
       </NGridItem>
     </NGrid>
 
-    <NCard v-if="isLoadingInitial" class="loading-card">
-      <div class="loading-header">
-        <span class="loading-title">{{ loadingHint }}</span>
-        <span class="loading-count">
-          {{ loadedAuthors.length.toLocaleString() }} 位诗人 / {{ totalAuthorsCount?.toLocaleString() || '...' }} 位
-          <span class="chunk-progress" v-if="totalChunks > 0">
-            · {{ loadProgress }}%
-          </span>
-        </span>
-      </div>
-      <NProgress
-        type="line"
-        :percentage="loadProgress"
-        :indicator-placement="'inside'"
-        status="success"
-        :height="12"
-        :border-radius="6"
-        :processing="true"
-      />
-      <div class="loading-stats" v-if="loadedAuthors.length > 0">
-        <span class="stat-item">已收录诗词: {{ dynamicStats.totalPoems.toLocaleString() }} 首</span>
-        <span class="stat-item">当前平均: {{ dynamicStats.average }} 首/人</span>
-      </div>
-    </NCard>
+    <ChunkLoaderStatus
+      v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
+      :is-loading="chunkLoader.isLoading.value"
+      :is-paused="chunkLoader.isPaused.value"
+      :progress="Math.round(((cachedChunksCount + chunkLoader.loadedCount.value) / (totalChunks || 1)) * 100)"
+      :loaded-count="cachedChunksCount + chunkLoader.loadedCount.value"
+      :total-count="totalChunks || 0"
+      title="加载诗人数据"
+      :hint="loadingHint"
+      :stats="[
+        { label: '已收录诗词', value: dynamicStats.totalPoems.toLocaleString() + ' 首' },
+        { label: '当前平均', value: dynamicStats.average + ' 首/人' }
+      ]"
+      @pause="chunkLoader.pause"
+      @resume="chunkLoader.resume"
+    />
 
     <FilterSection class="search-section">
       <NInput
@@ -228,8 +269,8 @@ watch(searchQuery, () => {
       </NInput>
     </FilterSection>
 
-    <NSpin :show="loading && isLoadingInitial" size="large">
-      <NEmpty v-if="!loading && !isLoadingInitial && paginatedAuthors.length === 0" description="暂无数据" />
+    <NSpin :show="isInitializing && loadedAuthors.length === 0" size="large">
+      <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="暂无数据" />
 
       <div v-else class="authors-list">
         <TransitionGroup name="author-item">
@@ -237,9 +278,7 @@ watch(searchQuery, () => {
             v-for="author in paginatedAuthors"
             :key="author.author"
             class="author-card"
-            :class="{
-              'top-three': author.rank <= 3
-            }"
+            :class="{ 'top-three': author.rank <= 3 }"
             @click="goToAuthorDetail(author)"
           >
             <div class="rank-badge" :style="{ backgroundColor: getRankColor(author.rank) }">
@@ -266,13 +305,9 @@ watch(searchQuery, () => {
                 class="type-bar"
               >
                 <span class="type-label">{{ item.type }}</span>
-                <NProgress
-                  type="line"
-                  :percentage="item.percentage"
-                  :show-indicator="false"
-                  :height="6"
-                  status="success"
-                />
+                <div class="progress-bar">
+                  <div class="progress-fill" :style="{ width: item.percentage + '%' }"></div>
+                </div>
                 <span class="type-count">{{ item.count }}</span>
               </div>
             </div>
@@ -307,62 +342,6 @@ watch(searchQuery, () => {
   margin-bottom: 24px;
 }
 
-.stat-card {
-  text-align: center;
-  transition: all 0.3s ease;
-}
-
-.stat-card.stat-updating {
-  animation: pulse-bg 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse-bg {
-  0%, 100% { background-color: #fff; }
-  50% { background-color: #f0f7ff; }
-}
-
-.loading-card {
-  margin-bottom: 24px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-}
-
-.loading-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.loading-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c3e50;
-}
-
-.loading-count {
-  font-size: 14px;
-  color: #8b2635;
-  font-weight: 600;
-}
-
-.chunk-progress {
-  color: #666;
-  font-weight: 400;
-}
-
-.loading-stats {
-  display: flex;
-  gap: 24px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed #ddd;
-}
-
-.stat-item {
-  font-size: 13px;
-  color: #666;
-}
-
 .search-section {
   margin-bottom: 24px;
 }
@@ -378,9 +357,9 @@ watch(searchQuery, () => {
   align-items: center;
   gap: 20px;
   padding: 20px 24px;
-  background: #fff;
+  background: var(--color-bg-paper, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease;
   cursor: pointer;
 }
@@ -388,11 +367,12 @@ watch(searchQuery, () => {
 .author-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
+  border-color: var(--color-seal, #8b2635);
 }
 
 .author-card:hover .arrow-icon {
   opacity: 1;
-  color: #8b2635;
+  color: var(--color-seal, #8b2635);
   transform: translateX(4px);
 }
 
@@ -433,8 +413,8 @@ watch(searchQuery, () => {
 .author-name {
   font-size: 20px;
   font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 8px;
+  color: var(--color-ink, #2c3e50);
+  margin: 0 0 8px 0;
 }
 
 .author-stats {
@@ -445,7 +425,7 @@ watch(searchQuery, () => {
 
 .top-type {
   font-size: 14px;
-  color: #666;
+  color: var(--color-ink-light, #666);
 }
 
 .type-distribution {
@@ -464,9 +444,24 @@ watch(searchQuery, () => {
 
 .type-label {
   font-size: 12px;
-  color: #666;
+  color: var(--color-ink-light, #666);
   width: 60px;
   flex-shrink: 0;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-seal, #8b2635);
+  border-radius: 3px;
+  transition: width 0.3s ease;
 }
 
 .type-count {
@@ -479,7 +474,7 @@ watch(searchQuery, () => {
 .arrow-icon {
   width: 20px;
   height: 20px;
-  color: #999;
+  color: var(--color-ink-light, #999);
   opacity: 0;
   transition: all 0.2s ease;
   flex-shrink: 0;
@@ -507,6 +502,10 @@ watch(searchQuery, () => {
 }
 
 @media (max-width: 768px) {
+  .authors-view {
+    padding: 16px;
+  }
+
   .author-card {
     flex-direction: column;
     align-items: flex-start;
@@ -515,11 +514,6 @@ watch(searchQuery, () => {
 
   .type-distribution {
     width: 100%;
-  }
-
-  .loading-stats {
-    flex-direction: column;
-    gap: 8px;
   }
 
   .arrow-icon {

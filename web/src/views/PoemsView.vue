@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePoemsV2} from '@/composables/usePoemsV2'
-import type {
-  PoemSummary,
-  PoemFilter
-} from '@/composables/types'
-import { 
-  NCard, NSpin, NEmpty, NSelect, NSpace, NTag, 
-  NButton, NInput, NPagination, NScrollbar, NGrid, NGridItem 
+import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { useChunkLoader } from '@/composables/useChunkLoader'
+import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
+import { POEMS_STORAGE } from '@/composables/useMetadataLoader'
+import type { PoemSummary, PoemFilter } from '@/composables/types'
+import {
+  NCard, NSpin, NEmpty, NSelect, NSpace, NTag,
+  NButton, NInput, NPagination, NGrid, NGridItem
 } from 'naive-ui'
-import { 
+import {
   BookOutline, FilterOutline, SearchOutline,
   ChevronForwardOutline, TimeOutline, PersonOutline,
   DownloadOutline
@@ -19,35 +19,36 @@ import PageHeader from '@/components/PageHeader.vue'
 import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import DynastyBadge from '@/components/DynastyBadge.vue'
+import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
 
 const router = useRouter()
-const { 
-  metadata, 
-  totalPoems, 
-  totalChunks, 
-  loadedChunkCount, 
-  dynasties, 
-  genres, 
-  indexLoading, 
+const {
+  metadata,
+  totalPoems,
+  totalChunks,
+  dynasties,
+  genres,
+  indexLoading,
   loadMetadata,
   loadChunkSummaries,
-  queryPoems,
-  preloadChunks,
-  clearCache
+  queryPoems
 } = usePoemsV2()
+
+const chunkLoader = useChunkLoader()
 
 const poems = ref<PoemSummary[]>([])
 const totalCount = ref(0)
 const page = ref(1)
 const pageSize = ref(24)
 const searchQuery = ref('')
+const isInitializing = ref(true)
+const cachedChunksCount = ref(0) // 从 IndexedDB 缓存的 chunk 数量
 
 const dynastyFilter = ref<string | null>(null)
 const genreFilter = ref<string | null>(null)
 
 const globalTotal = computed(() => totalPoems.value || 0)
 const totalChunksCount = computed(() => totalChunks.value || 0)
-const loadedChunksCount = computed(() => loadedChunkCount.value || 0)
 
 const dynastyOptions = computed(() => [
   { label: '全部朝代', value: '' },
@@ -59,18 +60,20 @@ const genreOptions = computed(() => [
   ...genres.value.map(g => ({ label: g, value: g }))
 ])
 
-onMounted(async () => {
-  try {
-    await loadMetadata()
-    await loadPoems()
-  } catch (e) {
-    console.error(e)
-  }
+// 总的已加载数量 = 缓存的 + 本次加载的
+const loadedChunksCount = computed(() => cachedChunksCount.value + chunkLoader.loadedCount.value)
+// 还有更多的条件是：总的已加载 < 总数
+const hasMoreChunks = computed(() => loadedChunksCount.value < totalChunksCount.value)
+
+const loadingHint = computed(() => {
+  const count = poems.value.length
+  if (count === 0) return '🚀 正在连接...'
+  return `📚 已加载 ${count.toLocaleString()} 首诗词...`
 })
 
-const loadPoems = async () => {
+const loadPoemsFromLoadedChunks = async () => {
   const filter: PoemFilter = {}
-  
+
   if (dynastyFilter.value) {
     filter.dynasty = dynastyFilter.value
   }
@@ -86,42 +89,98 @@ const loadPoems = async () => {
   totalCount.value = result.filteredTotal
 }
 
+// 从 IndexedDB 加载缓存的 chunk 数据
+const loadCachedChunks = async (): Promise<number[]> => {
+  const meta = await getMetadata(POEMS_STORAGE)
+  const loadedChunkIds = meta?.loadedChunkIds || []
+
+  // 更新缓存的 chunk 数量
+  cachedChunksCount.value = loadedChunkIds.length
+
+  if (loadedChunkIds.length === 0) {
+    return []
+  }
+
+  // 从 IndexedDB 读取每个 chunk 的数据到内存缓存
+  for (const chunkId of loadedChunkIds) {
+    const chunkData = await getChunkedCache<PoemSummary[]>(POEMS_STORAGE, chunkId)
+    if (chunkData) {
+      // 数据已经被加载到内存缓存中，queryPoems 会使用这些缓存
+    }
+  }
+
+  return loadedChunkIds
+}
+
+const loadData = async () => {
+  isInitializing.value = true
+  try {
+    await loadMetadata()
+    const totalChunksNum = totalChunks.value || 0
+
+    // 首先从 IndexedDB 加载缓存的数据到内存
+    const loadedChunkIds = await loadCachedChunks()
+
+    // 立即查询并显示已缓存的数据
+    if (loadedChunkIds.length > 0) {
+      await loadPoemsFromLoadedChunks()
+    }
+
+    // 只加载未加载的 chunk
+    const allChunkIds = Array.from({ length: totalChunksNum }, (_, i) => i)
+    const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
+
+    if (unloadedChunkIds.length === 0) {
+      return
+    }
+
+    await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, loadChunkSummaries, {
+      chunkDelay: 150,
+      onChunkLoaded: () => {
+        // 每加载一个 chunk，更新显示
+        loadPoemsFromLoadedChunks()
+      },
+      onComplete: () => {
+        loadPoemsFromLoadedChunks()
+      }
+    })
+  } finally {
+    isInitializing.value = false
+  }
+}
+
+onMounted(async () => {
+  try {
+    await loadData()
+  } catch (e) {
+    console.error(e)
+    isInitializing.value = false
+  }
+})
+
 watch([dynastyFilter, genreFilter], () => {
   page.value = 1
-  loadPoems()
+  loadPoemsFromLoadedChunks()
 })
 
 const handleSearch = () => {
   page.value = 1
-  loadPoems()
+  loadPoemsFromLoadedChunks()
 }
 
 const handlePageChange = async (p: number) => {
   page.value = p
-  await loadPoems()
+  await loadPoemsFromLoadedChunks()
 }
 
 const handlePageSizeChange = (size: number) => {
   pageSize.value = size
   page.value = 1
-  loadPoems()
+  loadPoemsFromLoadedChunks()
 }
 
 const goToPoem = (id: string) => {
   router.push(`/poems/${id}`)
-}
-
-const dynastyConfig: Record<string, { color: string; bg: string; icon: string }> = {
-  '唐': { color: '#B45309', bg: 'rgba(180, 83, 9, 0.08)', icon: '盛' },
-  '宋': { color: '#1E40AF', bg: 'rgba(30, 64, 175, 0.08)', icon: '雅' },
-  '元': { color: '#047857', bg: 'rgba(4, 120, 87, 0.08)', icon: '曲' },
-  '明': { color: '#B45309', bg: 'rgba(180, 83, 9, 0.08)', icon: '文' },
-  '清': { color: '#7C3AED', bg: 'rgba(124, 58, 237, 0.08)', icon: '韵' },
-  '近现代': { color: '#DC2626', bg: 'rgba(220, 38, 38, 0.08)', icon: '新' }
-}
-
-const getDynastyConfig = (dynasty: string) => {
-  return dynastyConfig[dynasty] || { color: '#5C5244', bg: 'rgba(92, 82, 68, 0.08)', icon: '古' }
 }
 
 const clearFilters = () => {
@@ -129,27 +188,16 @@ const clearFilters = () => {
   genreFilter.value = null
   searchQuery.value = ''
   page.value = 1
-  loadPoems()
+  loadPoemsFromLoadedChunks()
 }
 
-const loadMoreChunks = async () => {
-  const currentLoaded = loadedChunkCount.value
-  const nextChunkId = currentLoaded
-  await preloadChunks([nextChunkId])
-  await loadPoems()
-}
-
-const hasMoreChunks = computed(() => {
-  return loadedChunkCount.value < totalChunks.value
-})
-
-const isLoading = computed(() => indexLoading.value)
+const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.value && poems.value.length === 0))
 </script>
 
 <template>
-  <div class="poets-view">
-    <PageHeader 
-      title="翰墨集珍" 
+  <div class="poems-view">
+    <PageHeader
+      title="翰墨集珍"
       subtitle="浏览三十三万首诗词，按朝代、体裁筛选"
       :icon="BookOutline"
     />
@@ -169,31 +217,39 @@ const isLoading = computed(() => indexLoading.value)
           :prefix-icon="DownloadOutline"
         />
       </NGridItem>
-      <NGridItem v-if="hasMoreChunks">
+      <NGridItem>
         <StatsCard
-          label="数据量"
-          :value="`${(loadedChunksCount / totalChunksCount * 100).toFixed(1)}%`"
-          trend="up"
+          label="已加载诗词"
+          :value="poems.length.toLocaleString()"
           :prefix-icon="TimeOutline"
         />
       </NGridItem>
-      <NGridItem v-if="hasMoreChunks">
-        <div class="load-btn-wrapper">
-          <NButton 
-            type="primary"
-            size="medium"
-            :loading="isLoading"
-            @click="loadMoreChunks"
-            block
-          >
-            <template #icon>
-              <DownloadOutline />
-            </template>
-            加载更多
-          </NButton>
-        </div>
+      <NGridItem>
+        <StatsCard
+          label="加载进度"
+          :value="`${Math.round((loadedChunksCount / (totalChunksCount || 1)) * 100)}%`"
+          trend="up"
+          :prefix-icon="PersonOutline"
+        />
       </NGridItem>
     </NGrid>
+
+    <ChunkLoaderStatus
+      v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
+      :is-loading="chunkLoader.isLoading.value"
+      :is-paused="chunkLoader.isPaused.value"
+      :progress="Math.round((loadedChunksCount / (totalChunksCount || 1)) * 100)"
+      :loaded-count="loadedChunksCount"
+      :total-count="totalChunksCount"
+      title="加载诗词数据"
+      :hint="loadingHint"
+      :stats="[
+        { label: '已收录诗词', value: globalTotal.toLocaleString() + ' 首' },
+        { label: '当前显示', value: poems.length.toLocaleString() + ' 首' }
+      ]"
+      @pause="chunkLoader.pause"
+      @resume="chunkLoader.resume"
+    />
 
     <FilterSection class="filters-section">
       <NSpace align="center" :size="12">
@@ -225,8 +281,8 @@ const isLoading = computed(() => indexLoading.value)
             <SearchOutline style="opacity: 0.5" />
           </template>
         </NInput>
-        <NButton 
-          type="primary" 
+        <NButton
+          type="primary"
           size="medium"
           @click="handleSearch"
           :loading="isLoading"
@@ -236,7 +292,7 @@ const isLoading = computed(() => indexLoading.value)
           </template>
           筛选
         </NButton>
-        <NButton 
+        <NButton
           v-if="dynastyFilter || genreFilter || searchQuery"
           size="medium"
           @click="clearFilters"
@@ -246,19 +302,13 @@ const isLoading = computed(() => indexLoading.value)
       </NSpace>
     </FilterSection>
 
-    <NSpin :show="isLoading" size="large">
-      <NEmpty 
-        v-if="!isLoading && poems.length === 0" 
-        :description="hasMoreChunks ? '加载更多诗词可能会有结果' : '未找到符合条件的诗词'"
+    <NSpin :show="isInitializing && poems.length === 0" size="large">
+      <NEmpty
+        v-if="!isInitializing && poems.length === 0"
+        :description="hasMoreChunks ? '加载更多数据可能会有结果' : '未找到符合条件的诗词'"
       >
         <template #extra>
           <NSpace v-if="hasMoreChunks" justify="center">
-            <NButton type="primary" :loading="isLoading" @click="loadMoreChunks">
-              <template #icon>
-                <DownloadOutline />
-              </template>
-              加载更多
-            </NButton>
             <NButton @click="clearFilters">
               清除筛选
             </NButton>
@@ -274,13 +324,13 @@ const isLoading = computed(() => indexLoading.value)
           <article
             v-for="poem in poems"
             :key="poem.id"
-            class="poem-card-compact"
+            class="poem-card"
             @click="goToPoem(poem.id)"
           >
             <div class="card-main">
               <DynastyBadge :dynasty="poem.dynasty" size="small" />
               <div class="poem-info">
-                <h3 class="poem-title-compact">{{ poem.title || '无题' }}</h3>
+                <h3 class="poem-title">{{ poem.title || '无题' }}</h3>
                 <div class="poem-subtitle">
                   <span class="author">{{ poem.author }}</span>
                   <span class="divider">·</span>
@@ -310,24 +360,14 @@ const isLoading = computed(() => indexLoading.value)
 </template>
 
 <style scoped>
-.poets-view {
+.poems-view {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 24px;
 }
 
 .stats-grid {
   margin-bottom: 24px;
-}
-
-.load-btn-wrapper {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  background: var(--color-bg-paper);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
 }
 
 .filters-section {
@@ -346,68 +386,31 @@ const isLoading = computed(() => indexLoading.value)
   gap: 12px;
 }
 
-@media (max-width: 768px) {
-  .poems-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .filters-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filters-row .n-space {
-    flex-wrap: wrap;
-  }
-
-  .filters-row .n-select,
-  .filters-row .n-input {
-    width: 100% !important;
-  }
-
-  .stats-bar {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px 16px;
-  }
-
-  .stat-item {
-    min-width: auto;
-  }
-
-  .stat-divider {
-    display: none;
-  }
-}
-
-.poem-card-compact {
-  background: var(--color-bg-paper);
-  border: 1px solid var(--color-border);
+.poem-card {
+  background: var(--color-bg-paper, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 8px;
   padding: 12px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.poem-card-compact:hover {
-  border-color: var(--color-seal);
+.poem-card:hover {
+  border-color: var(--color-seal, #8b2635);
   background: rgba(139, 38, 53, 0.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.poem-card:hover .arrow-icon {
+  opacity: 1;
+  color: var(--color-seal, #8b2635);
+  transform: translateX(2px);
 }
 
 .card-main {
   display: flex;
   align-items: center;
   gap: 12px;
-}
-
-.dynasty-badge-compact {
-  flex-shrink: 0;
-  min-width: 32px;
-  padding: 4px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 4px;
-  text-align: center;
 }
 
 .poem-info {
@@ -418,11 +421,11 @@ const isLoading = computed(() => indexLoading.value)
   gap: 4px;
 }
 
-.poem-title-compact {
+.poem-title {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-ink);
+  color: var(--color-ink, #2c3e50);
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -434,11 +437,11 @@ const isLoading = computed(() => indexLoading.value)
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--color-ink-light);
+  color: var(--color-ink-light, #666);
 }
 
 .poem-subtitle .author {
-  color: var(--color-seal);
+  color: var(--color-seal, #8b2635);
   font-weight: 500;
 }
 
@@ -454,23 +457,36 @@ const isLoading = computed(() => indexLoading.value)
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  color: var(--color-ink-light);
+  color: var(--color-ink-light, #999);
   opacity: 0;
   transition: all 0.2s ease;
-}
-
-.poem-card-compact:hover .arrow-icon {
-  opacity: 1;
-  color: var(--color-seal);
-  transform: translateX(2px);
 }
 
 .pagination-wrapper {
   display: flex;
   justify-content: center;
   padding: 16px;
-  background: var(--color-bg-paper);
-  border: 1px solid var(--color-border);
+  background: var(--color-bg-paper, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .poems-view {
+    padding: 16px;
+  }
+
+  .poems-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-section :deep(.n-space) {
+    flex-wrap: wrap;
+  }
+
+  .filters-section .n-select,
+  .filters-section .n-input {
+    width: 100% !important;
+  }
 }
 </style>

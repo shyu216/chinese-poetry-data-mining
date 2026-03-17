@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DATA_DIR = path.join(__dirname, '../public/data/preprocessed');
+const DATA_DIR = path.join(__dirname, '../results/preprocessed');
 const INDEX_FILE = path.join(DATA_DIR, 'poems_chunk_meta.json');
 
 function parseCSVLine(line) {
@@ -34,6 +34,11 @@ function extractChunkMetadata(filePath) {
   const genres = new Set();
   const authors = new Set();
   
+  // 分类计数
+  let songshiCount = 0;  // 宋诗
+  let songciCount = 0;   // 宋词
+  let tangshiCount = 0;  // 唐诗
+  
   for (const line of dataLines) {
     const cols = parseCSVLine(line);
     if (cols.length < 10) continue;
@@ -51,9 +56,28 @@ function extractChunkMetadata(filePath) {
     dynasties.add(dynasty);
     genres.add(genre);
     authors.add(author || '佚名');
+    
+    // 分类统计
+    if (dynasty === '宋' && genre === '诗') {
+      songshiCount++;
+    } else if (dynasty === '宋' && genre === '词') {
+      songciCount++;
+    } else if (dynasty === '唐' && genre === '诗') {
+      tangshiCount++;
+    }
   }
   
-  return { poems, dynasties: [...dynasties], genres: [...genres], authors: [...authors] };
+  return { 
+    poems, 
+    dynasties: [...dynasties], 
+    genres: [...genres], 
+    authors: [...authors],
+    counts: {
+      songshi: songshiCount,
+      songci: songciCount,
+      tangshi: tangshiCount
+    }
+  };
 }
 
 async function generateIndex() {
@@ -70,23 +94,34 @@ async function generateIndex() {
   const allGenres = new Set();
   let totalPoems = 0;
   
+  // 全局分类计数
+  let totalSongshi = 0;
+  let totalSongci = 0;
+  let totalTangshi = 0;
+  
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
     const chunkNum = parseInt(file.match(/poems_chunk_(\d+)/)[1]);
     const filePath = path.join(DATA_DIR, file);
-    const { poems, dynasties, genres } = extractChunkMetadata(filePath);
+    const { poems, dynasties, genres, counts } = extractChunkMetadata(filePath);
     
     chunks.push({
       id: chunkNum,
       file: file,
       count: poems.length,
       dynasties,
-      genres
+      genres,
+      // counts
     });
     
     dynasties.forEach(d => allDynasties.add(d));
     genres.forEach(g => allGenres.add(g));
     totalPoems += poems.length;
+    
+    // 累加全局计数
+    totalSongshi += counts.songshi;
+    totalSongci += counts.songci;
+    totalTangshi += counts.tangshi;
     
     if ((i + 1) % 50 === 0) {
       console.log(`Processed ${i + 1} chunks...`);
@@ -101,7 +136,12 @@ async function generateIndex() {
     },
     stats: {
       dynasties: [...allDynasties].sort(),
-      genres: [...allGenres].sort()
+      genres: [...allGenres].sort(),
+      counts: {
+        songshi: totalSongshi,
+        songci: totalSongci,
+        tangshi: totalTangshi
+      }
     },
     chunks
   };
@@ -111,6 +151,9 @@ async function generateIndex() {
   const stats = fs.statSync(INDEX_FILE);
   console.log(`\n✅ Index generated successfully!`);
   console.log(`Total poems: ${totalPoems}`);
+  console.log(`  - 宋诗 (Song Shi): ${totalSongshi}`);
+  console.log(`  - 宋词 (Song Ci): ${totalSongci}`);
+  console.log(`  - 唐诗 (Tang Shi): ${totalTangshi}`);
   console.log(`Total chunks: ${files.length}`);
   console.log(`File size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
   console.log(`Output: ${INDEX_FILE}`);

@@ -98,93 +98,65 @@ watch(() => animationStarted.value, (started) => {
         <div class="bg-texture"></div>
       </div>
 
-      <!-- 四角榫卯装饰 - 真正的凹凸咬合结构 -->
+          <!-- 四角榫卯装饰 - 十字交叉直榫结构 -->
       <div class="sunmao-ornament sunmao-tl">
-        <svg viewBox="0 0 100 100" class="sunmao-svg">
-          <!-- 横向木构件 -->
-          <path class="sunmao-wood-h" d="M0 25 L45 25 L45 20 L55 20 L55 25 L100 25 L100 45 L55 45 L55 50 L45 50 L45 45 L0 45 Z" />
-          <!-- 纵向木构件 -->
-          <path class="sunmao-wood-v" d="M25 0 L25 45 L20 45 L20 55 L25 55 L25 100 L45 100 L45 55 L50 55 L50 45 L45 45 L45 0 Z" />
-          <!-- 榫头（阳）- 横向伸出 -->
-          <rect class="sunmao-tenon" x="42" y="28" width="16" height="14" rx="1" />
-          <!-- 卯眼（阴）- 纵向挖去 -->
-          <path class="sunmao-mortise" d="M28 42 L42 42 L42 28 L28 28 Z" />
-          <!-- 咬合缝隙 -->
-          <line class="sunmao-gap" x1="45" y1="25" x2="45" y2="45" />
-          <line class="sunmao-gap" x1="25" y1="45" x2="45" y2="45" />
-          <!-- 木纹细节 -->
-          <line class="sunmao-grain" x1="10" y1="32" x2="35" y2="32" />
-          <line class="sunmao-grain" x1="10" y1="38" x2="35" y2="38" />
-          <line class="sunmao-grain" x1="32" y1="10" x2="32" y2="35" />
-          <line class="sunmao-grain" x1="38" y1="10" x2="38" y2="35" />
-          <!-- 中心锁定点 -->
-          <circle class="sunmao-lock" cx="35" cy="35" r="4" />
+        <svg viewBox="0 0 100 100" class="sunmao-svg" preserveAspectRatio="xMidYMid meet">
+          <!-- 横向木杆 -->
+          <rect class="sunmao-beam-h" x="0" y="32" width="56" height="8" />
+          <!-- 纵向木杆 -->
+          <rect class="sunmao-beam-v" x="32" y="0" width="8" height="56" />
+          <!-- 中心咬合区 -->
+          <rect class="sunmao-joint" x="32" y="32" width="8" height="8" />
+          <!-- 榫头凸起 -->
+          <rect class="sunmao-tenon" x="30" y="34" width="2" height="4" />
+          <rect class="sunmao-tenon" x="40" y="34" width="2" height="4" />
+          <rect class="sunmao-tenon" x="34" y="30" width="4" height="2" />
+          <rect class="sunmao-tenon" x="34" y="40" width="4" height="2" />
         </svg>
       </div>
       <div class="sunmao-ornament sunmao-tr">
-        <svg viewBox="0 0 100 100" class="sunmao-svg">
-          <!-- 横向木构件 -->
-          <path class="sunmao-wood-h" d="M0 25 L45 25 L45 20 L55 20 L55 25 L100 25 L100 45 L55 45 L55 50 L45 50 L45 45 L0 45 Z" />
-          <!-- 纵向木构件 -->
-          <path class="sunmao-wood-v" d="M55 0 L55 45 L50 45 L50 55 L55 55 L55 100 L75 100 L75 55 L80 55 L80 45 L75 45 L75 0 Z" />
-          <!-- 榫头 -->
-          <rect class="sunmao-tenon" x="42" y="28" width="16" height="14" rx="1" />
-          <!-- 卯眼 -->
-          <path class="sunmao-mortise" d="M58 42 L72 42 L72 28 L58 28 Z" />
-          <!-- 咬合缝隙 -->
-          <line class="sunmao-gap" x1="55" y1="25" x2="55" y2="45" />
-          <line class="sunmao-gap" x1="55" y1="45" x2="75" y2="45" />
-          <!-- 木纹 -->
-          <line class="sunmao-grain" x1="65" y1="32" x2="90" y2="32" />
-          <line class="sunmao-grain" x1="65" y1="38" x2="90" y2="38" />
-          <line class="sunmao-grain" x1="62" y1="10" x2="62" y2="35" />
-          <line class="sunmao-grain" x1="68" y1="10" x2="68" y2="35" />
-          <!-- 锁定点 -->
-          <circle class="sunmao-lock" cx="65" cy="35" r="4" />
+        <svg viewBox="0 0 100 100" class="sunmao-svg" preserveAspectRatio="xMidYMid meet">
+          <!-- 横向木杆 -->
+          <rect class="sunmao-beam-h" x="44" y="32" width="56" height="8" />
+          <!-- 纵向木杆 -->
+          <rect class="sunmao-beam-v" x="60" y="0" width="8" height="56" />
+          <!-- 中心咬合区 -->
+          <rect class="sunmao-joint" x="60" y="32" width="8" height="8" />
+          <!-- 榫头凸起 -->
+          <rect class="sunmao-tenon" x="58" y="34" width="2" height="4" />
+          <rect class="sunmao-tenon" x="68" y="34" width="2" height="4" />
+          <rect class="sunmao-tenon" x="62" y="30" width="4" height="2" />
+          <rect class="sunmao-tenon" x="62" y="40" width="4" height="2" />
         </svg>
       </div>
       <div class="sunmao-ornament sunmao-bl">
-        <svg viewBox="0 0 100 100" class="sunmao-svg">
-          <!-- 横向木构件 -->
-          <path class="sunmao-wood-h" d="M0 55 L45 55 L45 50 L55 50 L55 55 L100 55 L100 75 L55 75 L55 80 L45 80 L45 75 L0 75 Z" />
-          <!-- 纵向木构件 -->
-          <path class="sunmao-wood-v" d="M25 0 L25 45 L20 45 L20 55 L25 55 L25 100 L45 100 L45 55 L50 55 L50 45 L45 45 L45 0 Z" />
-          <!-- 榫头 -->
-          <rect class="sunmao-tenon" x="42" y="58" width="16" height="14" rx="1" />
-          <!-- 卯眼 -->
-          <path class="sunmao-mortise" d="M28 72 L42 72 L42 58 L28 58 Z" />
-          <!-- 咬合缝隙 -->
-          <line class="sunmao-gap" x1="45" y1="55" x2="45" y2="75" />
-          <line class="sunmao-gap" x1="25" y1="55" x2="45" y2="55" />
-          <!-- 木纹 -->
-          <line class="sunmao-grain" x1="10" y1="62" x2="35" y2="62" />
-          <line class="sunmao-grain" x1="10" y1="68" x2="35" y2="68" />
-          <line class="sunmao-grain" x1="32" y1="65" x2="32" y2="90" />
-          <line class="sunmao-grain" x1="38" y1="65" x2="38" y2="90" />
-          <!-- 锁定点 -->
-          <circle class="sunmao-lock" cx="35" cy="65" r="4" />
+        <svg viewBox="0 0 100 100" class="sunmao-svg" preserveAspectRatio="xMidYMid meet">
+          <!-- 横向木杆 -->
+          <rect class="sunmao-beam-h" x="0" y="60" width="56" height="8" />
+          <!-- 纵向木杆 -->
+          <rect class="sunmao-beam-v" x="32" y="44" width="8" height="56" />
+          <!-- 中心咬合区 -->
+          <rect class="sunmao-joint" x="32" y="60" width="8" height="8" />
+          <!-- 榫头凸起 -->
+          <rect class="sunmao-tenon" x="30" y="62" width="2" height="4" />
+          <rect class="sunmao-tenon" x="40" y="62" width="2" height="4" />
+          <rect class="sunmao-tenon" x="34" y="58" width="4" height="2" />
+          <rect class="sunmao-tenon" x="34" y="68" width="4" height="2" />
         </svg>
       </div>
       <div class="sunmao-ornament sunmao-br">
-        <svg viewBox="0 0 100 100" class="sunmao-svg">
-          <!-- 横向木构件 -->
-          <path class="sunmao-wood-h" d="M0 55 L45 55 L45 50 L55 50 L55 55 L100 55 L100 75 L55 75 L55 80 L45 80 L45 75 L0 75 Z" />
-          <!-- 纵向木构件 -->
-          <path class="sunmao-wood-v" d="M55 0 L55 45 L50 45 L50 55 L55 55 L55 100 L75 100 L75 55 L80 55 L80 45 L75 45 L75 0 Z" />
-          <!-- 榫头 -->
-          <rect class="sunmao-tenon" x="42" y="58" width="16" height="14" rx="1" />
-          <!-- 卯眼 -->
-          <path class="sunmao-mortise" d="M58 72 L72 72 L72 58 L58 58 Z" />
-          <!-- 咬合缝隙 -->
-          <line class="sunmao-gap" x1="55" y1="55" x2="55" y2="75" />
-          <line class="sunmao-gap" x1="55" y1="55" x2="75" y2="55" />
-          <!-- 木纹 -->
-          <line class="sunmao-grain" x1="65" y1="62" x2="90" y2="62" />
-          <line class="sunmao-grain" x1="65" y1="68" x2="90" y2="68" />
-          <line class="sunmao-grain" x1="62" y1="65" x2="62" y2="90" />
-          <line class="sunmao-grain" x1="68" y1="65" x2="68" y2="90" />
-          <!-- 锁定点 -->
-          <circle class="sunmao-lock" cx="65" cy="65" r="4" />
+        <svg viewBox="0 0 100 100" class="sunmao-svg" preserveAspectRatio="xMidYMid meet">
+          <!-- 横向木杆 -->
+          <rect class="sunmao-beam-h" x="44" y="60" width="56" height="8" />
+          <!-- 纵向木杆 -->
+          <rect class="sunmao-beam-v" x="60" y="44" width="8" height="56" />
+          <!-- 中心咬合区 -->
+          <rect class="sunmao-joint" x="60" y="60" width="8" height="8" />
+          <!-- 榫头凸起 -->
+          <rect class="sunmao-tenon" x="58" y="62" width="2" height="4" />
+          <rect class="sunmao-tenon" x="68" y="62" width="2" height="4" />
+          <rect class="sunmao-tenon" x="62" y="58" width="4" height="2" />
+          <rect class="sunmao-tenon" x="62" y="68" width="4" height="2" />
         </svg>
       </div>
 
@@ -332,40 +304,57 @@ watch(() => animationStarted.value, (started) => {
   opacity: 0.5;
 }
 
-/* 四角榫卯装饰 - 真正的凹凸咬合结构 */
+/* 四角榫卯装饰 - 十字交叉直榫结构 */
 .sunmao-ornament {
   position: absolute;
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   opacity: 0;
-}
-
-.animate-in .sunmao-ornament {
-  animation: woodSlideIn 1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .sunmao-ornament.sunmao-tl {
   top: 8px;
   left: 8px;
-  animation-delay: 0.2s;
 }
 
 .sunmao-ornament.sunmao-tr {
   top: 8px;
   right: 8px;
-  animation-delay: 0.35s;
 }
 
 .sunmao-ornament.sunmao-bl {
   bottom: 8px;
   left: 8px;
-  animation-delay: 0.5s;
 }
 
 .sunmao-ornament.sunmao-br {
   bottom: 8px;
   right: 8px;
-  animation-delay: 0.65s;
+}
+
+.home-view.animate-in .sunmao-ornament.sunmao-tl {
+  animation: ornamentIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.1s;
+}
+
+.home-view.animate-in .sunmao-ornament.sunmao-tr {
+  animation: ornamentIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.2s;
+}
+
+.home-view.animate-in .sunmao-ornament.sunmao-bl {
+  animation: ornamentIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.3s;
+}
+
+.home-view.animate-in .sunmao-ornament.sunmao-br {
+  animation: ornamentIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.4s;
+}
+
+@keyframes ornamentIn {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .sunmao-svg {
@@ -374,282 +363,98 @@ watch(() => animationStarted.value, (started) => {
   overflow: visible;
 }
 
-/* 横向木构件 - 从左侧飞入 */
-.sunmao-wood-h {
-  fill: rgba(139, 38, 53, 0.12);
+/* 横向木杆 */
+.sunmao-beam-h {
+  fill: rgba(139, 38, 53, 0.08);
   stroke: var(--color-seal);
-  stroke-width: 2;
-  stroke-linejoin: round;
+  stroke-width: 1;
   opacity: 0;
 }
 
-.animate-in .sunmao-tl .sunmao-wood-h {
-  animation: woodHSlideFromLeft 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.home-view.animate-in .sunmao-tl .sunmao-beam-h,
+.home-view.animate-in .sunmao-bl .sunmao-beam-h {
+  animation: beamSlideFromLeft 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: 0.3s;
 }
 
-.animate-in .sunmao-tr .sunmao-wood-h {
-  animation: woodHSlideFromRight 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.home-view.animate-in .sunmao-tr .sunmao-beam-h,
+.home-view.animate-in .sunmao-br .sunmao-beam-h {
+  animation: beamSlideFromRight 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: 0.45s;
 }
 
-.animate-in .sunmao-bl .sunmao-wood-h {
-  animation: woodHSlideFromLeft 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  animation-delay: 0.6s;
-}
-
-.animate-in .sunmao-br .sunmao-wood-h {
-  animation: woodHSlideFromRight 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  animation-delay: 0.75s;
-}
-
-/* 纵向木构件 - 从上方飞入 */
-.sunmao-wood-v {
-  fill: rgba(139, 38, 53, 0.08);
+/* 纵向木杆 */
+.sunmao-beam-v {
+  fill: rgba(139, 38, 53, 0.06);
   stroke: var(--color-seal);
-  stroke-width: 2;
-  stroke-linejoin: round;
+  stroke-width: 1;
   opacity: 0;
 }
 
-.animate-in .sunmao-tl .sunmao-wood-v {
-  animation: woodVSlideFromTop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.home-view.animate-in .sunmao-tl .sunmao-beam-v,
+.home-view.animate-in .sunmao-tr .sunmao-beam-v {
+  animation: beamSlideFromTop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: 0.5s;
 }
 
-.animate-in .sunmao-tr .sunmao-wood-v {
-  animation: woodVSlideFromTop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.home-view.animate-in .sunmao-bl .sunmao-beam-v,
+.home-view.animate-in .sunmao-br .sunmao-beam-v {
+  animation: beamSlideFromBottom 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: 0.65s;
 }
 
-.animate-in .sunmao-bl .sunmao-wood-v {
-  animation: woodVSlideFromBottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+/* 中心咬合区 */
+.sunmao-joint {
+  fill: var(--color-seal);
+  opacity: 0;
+}
+
+.home-view.animate-in .sunmao-joint {
+  animation: jointLock 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: 0.8s;
 }
 
-.animate-in .sunmao-br .sunmao-wood-v {
-  animation: woodVSlideFromBottom 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  animation-delay: 0.95s;
-}
-
-/* 榫头 - 凸起部分 */
+/* 榫头凸起 */
 .sunmao-tenon {
-  fill: var(--color-seal);
-  opacity: 0;
-  transform-origin: center;
-}
-
-.animate-in .sunmao-tenon {
-  animation: tenonFit 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-.sunmao-tl .sunmao-tenon { animation-delay: 0.7s; }
-.sunmao-tr .sunmao-tenon { animation-delay: 0.85s; }
-.sunmao-bl .sunmao-tenon { animation-delay: 1s; }
-.sunmao-br .sunmao-tenon { animation-delay: 1.15s; }
-
-/* 卯眼 - 挖去部分（用浅色表示凹陷） */
-.sunmao-mortise {
-  fill: var(--color-bg);
-  stroke: var(--color-seal);
-  stroke-width: 1.5;
-  opacity: 0;
-}
-
-.animate-in .sunmao-mortise {
-  animation: mortiseReveal 0.4s ease forwards;
-}
-
-.sunmao-tl .sunmao-mortise { animation-delay: 0.9s; }
-.sunmao-tr .sunmao-mortise { animation-delay: 1.05s; }
-.sunmao-bl .sunmao-mortise { animation-delay: 1.2s; }
-.sunmao-br .sunmao-mortise { animation-delay: 1.35s; }
-
-/* 咬合缝隙 */
-.sunmao-gap {
-  stroke: var(--color-accent);
-  stroke-width: 1;
-  stroke-dasharray: 4 2;
-  opacity: 0;
-}
-
-.animate-in .sunmao-gap {
-  animation: gapShow 0.3s ease forwards;
-}
-
-.sunmao-tl .sunmao-gap { animation-delay: 1.1s; }
-.sunmao-tr .sunmao-gap { animation-delay: 1.25s; }
-.sunmao-bl .sunmao-gap { animation-delay: 1.4s; }
-.sunmao-br .sunmao-gap { animation-delay: 1.55s; }
-
-/* 木纹 */
-.sunmao-grain {
-  stroke: rgba(139, 38, 53, 0.2);
-  stroke-width: 0.8;
-  stroke-linecap: round;
-  opacity: 0;
-}
-
-.animate-in .sunmao-grain {
-  animation: grainAppear 0.4s ease forwards;
-}
-
-.sunmao-tl .sunmao-grain:nth-of-type(1) { animation-delay: 1.2s; }
-.sunmao-tl .sunmao-grain:nth-of-type(2) { animation-delay: 1.25s; }
-.sunmao-tl .sunmao-grain:nth-of-type(3) { animation-delay: 1.3s; }
-.sunmao-tl .sunmao-grain:nth-of-type(4) { animation-delay: 1.35s; }
-.sunmao-tr .sunmao-grain:nth-of-type(1) { animation-delay: 1.35s; }
-.sunmao-tr .sunmao-grain:nth-of-type(2) { animation-delay: 1.4s; }
-.sunmao-tr .sunmao-grain:nth-of-type(3) { animation-delay: 1.45s; }
-.sunmao-tr .sunmao-grain:nth-of-type(4) { animation-delay: 1.5s; }
-.sunmao-bl .sunmao-grain:nth-of-type(1) { animation-delay: 1.5s; }
-.sunmao-bl .sunmao-grain:nth-of-type(2) { animation-delay: 1.55s; }
-.sunmao-bl .sunmao-grain:nth-of-type(3) { animation-delay: 1.6s; }
-.sunmao-bl .sunmao-grain:nth-of-type(4) { animation-delay: 1.65s; }
-.sunmao-br .sunmao-grain:nth-of-type(1) { animation-delay: 1.65s; }
-.sunmao-br .sunmao-grain:nth-of-type(2) { animation-delay: 1.7s; }
-.sunmao-br .sunmao-grain:nth-of-type(3) { animation-delay: 1.75s; }
-.sunmao-br .sunmao-grain:nth-of-type(4) { animation-delay: 1.8s; }
-
-/* 锁定点 */
-.sunmao-lock {
   fill: var(--color-accent);
-  stroke: var(--color-seal);
-  stroke-width: 1;
   opacity: 0;
-  transform-origin: center;
 }
 
-.animate-in .sunmao-lock {
-  animation: lockPin 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+.home-view.animate-in .sunmao-tenon {
+  animation: tenonPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 1s;
 }
-
-.sunmao-tl .sunmao-lock { animation-delay: 1.4s; }
-.sunmao-tr .sunmao-lock { animation-delay: 1.55s; }
-.sunmao-bl .sunmao-lock { animation-delay: 1.7s; }
-.sunmao-br .sunmao-lock { animation-delay: 1.85s; }
 
 /* 动画关键帧 */
-@keyframes woodSlideIn {
-  0% {
-    opacity: 0;
-    transform: translate(-20px, -20px) scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: translate(0, 0) scale(1);
-  }
+@keyframes beamSlideFromLeft {
+  0% { opacity: 0; transform: translateX(-40px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
-/* 横向木构件飞入动画 */
-@keyframes woodHSlideFromLeft {
-  0% {
-    opacity: 0;
-    transform: translateX(-60px) rotate(-5deg);
-  }
-  60% {
-    opacity: 1;
-    transform: translateX(5px) rotate(1deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) rotate(0);
-  }
+@keyframes beamSlideFromRight {
+  0% { opacity: 0; transform: translateX(40px); }
+  100% { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes woodHSlideFromRight {
-  0% {
-    opacity: 0;
-    transform: translateX(60px) rotate(5deg);
-  }
-  60% {
-    opacity: 1;
-    transform: translateX(-5px) rotate(-1deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) rotate(0);
-  }
+@keyframes beamSlideFromTop {
+  0% { opacity: 0; transform: translateY(-40px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-/* 纵向木构件飞入动画 */
-@keyframes woodVSlideFromTop {
-  0% {
-    opacity: 0;
-    transform: translateY(-60px) rotate(5deg);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(5px) rotate(-1deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) rotate(0);
-  }
+@keyframes beamSlideFromBottom {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes woodVSlideFromBottom {
-  0% {
-    opacity: 0;
-    transform: translateY(60px) rotate(-5deg);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(-5px) rotate(1deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) rotate(0);
-  }
+@keyframes jointLock {
+  0% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
-@keyframes tenonFit {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) translateY(-10px);
-  }
-  60% {
-    opacity: 1;
-    transform: scale(1.1) translateY(2px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes mortiseReveal {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes gapShow {
-  to { opacity: 0.6; }
-}
-
-@keyframes grainAppear {
-  to { opacity: 1; }
-}
-
-@keyframes lockPin {
-  0% {
-    opacity: 0;
-    transform: scale(0) rotate(-45deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.3) rotate(10deg);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) rotate(0);
-  }
+@keyframes tenonPop {
+  0% { opacity: 0; transform: scale(0); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 /* 边框呼吸线 */
@@ -1088,7 +893,47 @@ watch(() => animationStarted.value, (started) => {
   }
 
   .hero-section {
-    padding: 32px 20px 28px;
+    padding: 48px 20px 32px;
+  }
+
+  /* Mobile 四角装饰缩小 */
+  .sunmao-ornament {
+    width: 36px;
+    height: 36px;
+  }
+
+  .sunmao-ornament.sunmao-tl {
+    top: 2px;
+    left: 2px;
+  }
+
+  .sunmao-ornament.sunmao-tr {
+    top: 2px;
+    right: 2px;
+  }
+
+  .sunmao-ornament.sunmao-bl {
+    bottom: 2px;
+    left: 2px;
+  }
+
+  .sunmao-ornament.sunmao-br {
+    bottom: 2px;
+    right: 2px;
+  }
+
+  /* Mobile 木杆变细 */
+  .sunmao-beam-h,
+  .sunmao-beam-v {
+    stroke-width: 0.8;
+  }
+
+  .sunmao-joint {
+    stroke-width: 0.5;
+  }
+
+  .sunmao-tenon {
+    stroke-width: 0.5;
   }
 
   .hero-frame {
