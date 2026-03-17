@@ -269,101 +269,36 @@ defineExpose({
     <NSpace vertical size="large">
       <NGrid :cols="3" :x-gap="16" :y-gap="16">
         <NGridItem>
-          <DataItemCard
-            icon="📚"
-            title="诗词"
-            description="诗词数据库，包含三十万首诗词摘要数据，支持离线浏览"
-            :cached-count="poemStats.cachedChunkIds.length"
-            :total-count="poemStats.totalChunks"
-            :bars="poemChunkBars"
-            :max-count="maxPoemCount"
-            color-class="poems"
-          />
+          <DataItemCard icon="📚" title="诗词" description="诗词数据库，包含三十万首诗词摘要数据，支持离线浏览"
+            :cached-count="poemStats.cachedChunkIds.length" :total-count="poemStats.totalChunks" :bars="poemChunkBars"
+            :max-count="maxPoemCount" color-class="poems" />
         </NGridItem>
         <NGridItem>
-          <DataItemCard
-            icon="👤"
-            title="诗人"
-            description="诗人数据库，包含多位诗人的生平与作品统计"
-            :cached-count="authorStats.cachedChunkIds.length"
-            :total-count="authorStats.totalChunks"
-            :bars="authorChunkBars"
-            :max-count="maxAuthorCount"
-            color-class="authors"
-          />
+          <DataItemCard icon="👤" title="诗人" description="诗人数据库，包含多位诗人的生平与作品统计"
+            :cached-count="authorStats.cachedChunkIds.length" :total-count="authorStats.totalChunks"
+            :bars="authorChunkBars" :max-count="maxAuthorCount" color-class="authors" />
         </NGridItem>
         <NGridItem>
-          <DataItemCard
-            icon="📊"
-            title="词频"
-            description="词频统计数据，支持词频分析和词汇使用统计"
-            :cached-count="wordcountStats.cachedChunkIds.length"
-            :total-count="wordcountStats.totalChunks"
-            :bars="wordcountChunkBars"
-            :max-count="maxWordcountCount"
-            color-class="wordcount"
-          />
+          <DataItemCard icon="📊" title="词频" description="词频统计数据，支持词频分析和词汇使用统计"
+            :cached-count="wordcountStats.cachedChunkIds.length" :total-count="wordcountStats.totalChunks"
+            :bars="wordcountChunkBars" :max-count="maxWordcountCount" color-class="wordcount" />
         </NGridItem>
         <NGridItem>
-          <DataItemCard
-            icon="🔗"
-            title="词境"
-            description="词境探索数据库，包含词汇相似度数据，支持词语关联分析"
-            :cached-count="wordSimStats.cachedChunks"
-            :total-count="wordSimStats.totalChunks"
-            :bars="wordSimChunkBars"
-            :max-count="maxWordSimCount"
-            color-class="wordsim"
-          />
+          <DataItemCard icon="🔗" title="词境" description="词境探索数据库，包含词汇相似度数据，支持词语关联分析"
+            :cached-count="wordSimStats.cachedChunks" :total-count="wordSimStats.totalChunks" :bars="wordSimChunkBars"
+            :max-count="maxWordSimCount" color-class="wordsim" />
         </NGridItem>
         <NGridItem>
-          <DataItemCard
-            icon="🔍"
-            title="搜索索引"
-            description="搜索索引包含诗词前缀数据，支持快速诗词搜索"
-            :cached-count="searchIndexStats.cachedPrefixes"
-            :total-count="searchIndexStats.totalPrefixes"
-            :bars="searchIndexChunkBars"
-            :max-count="maxSearchIndexCount"
-            color-class="searchindex"
-          />
+          <DataItemCard icon="🔍" title="搜索索引" description="搜索索引包含诗词前缀数据，支持快速诗词搜索"
+            :cached-count="searchIndexStats.cachedPrefixes" :total-count="searchIndexStats.totalPrefixes"
+            :bars="searchIndexChunkBars" :max-count="maxSearchIndexCount" color-class="searchindex" />
         </NGridItem>
         <NGridItem>
-          <DataItemCard
-            icon="🔑"
-            title="关键词索引"
-            description="关键词-诗词映射数据，支持按关键词快速检索诗词"
-            :cached-count="keywordIndexStats.cachedChunks"
-            :total-count="keywordIndexStats.totalChunks"
-            :bars="keywordIndexChunkBars"
-            :max-count="keywordIndexStats.totalChunks"
-            color-class="keywordindex"
-          />
+          <DataItemCard icon="🔑" title="关键词索引" description="关键词-诗词映射数据，支持按关键词快速检索诗词"
+            :cached-count="keywordIndexStats.cachedChunks" :total-count="keywordIndexStats.totalChunks"
+            :bars="keywordIndexChunkBars" :max-count="keywordIndexStats.totalChunks" color-class="keywordindex" />
         </NGridItem>
       </NGrid>
-
-      <NCard title="快速操作">
-        <NSpace>
-          <NButton type="primary" @click="emit('switch-tab', 'download')">
-            <template #icon>
-              <CloudDownloadOutline />
-            </template>
-            下载数据
-          </NButton>
-          <NButton type="error" ghost @click="handleClearCache">
-            <template #icon>
-              <TrashOutline />
-            </template>
-            清空缓存
-          </NButton>
-          <NButton @click="emit('refresh')">
-            <template #icon>
-              <SpeedometerOutline />
-            </template>
-            刷新状态
-          </NButton>
-        </NSpace>
-      </NCard>
     </NSpace>
   </NSpin>
 </template>

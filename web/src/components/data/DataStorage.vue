@@ -2,12 +2,12 @@
 import { ref, onMounted, reactive } from 'vue'
 import {
   NCard, NGrid, NGridItem, NProgress, NButton,
-  NSpace, NTag, NTabs, NTabPane, NEmpty, NDivider, NSpin, NSkeleton
+  NSpace, NTag, NTabs, NTabPane, NEmpty, NDivider, NSpin, NSkeleton, NAlert
 } from 'naive-ui'
-import { RefreshOutline } from '@vicons/ionicons5'
+import { RefreshOutline, TrashOutline } from '@vicons/ionicons5'
 
-import { getAllStorageStats, getBrowserStorageInfo, getStorageStats, getMetadata, getCache, type StorageStats, type BrowserStorageInfo } from '@/composables/useCacheV2'
-import { WORD_SIMILARITY_STORAGE, POEM_INDEX_STORAGE } from '@/composables/useMetadataLoader'
+import { getAllStorageStats, getBrowserStorageInfo, getStorageStats, getMetadata, getCache, clearStorage, type StorageStats, type BrowserStorageInfo } from '@/composables/useCacheV2'
+import { WORD_SIMILARITY_STORAGE, POEM_INDEX_STORAGE, POEMS_STORAGE, AUTHORS_STORAGE, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
 import { useKeywordIndex } from '@/composables/useKeywordIndex'
 
 const props = defineProps<{
@@ -51,6 +51,9 @@ const keywordIndexStats = ref({
 })
 
 const keywordIndex = useKeywordIndex()
+
+const isClearing = ref(false)
+const clearMessage = ref('')
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -164,6 +167,45 @@ const formatBytes = (bytes: number) => {
 defineExpose({
   loadStorageDetails
 })
+
+const handleClearCache = async () => {
+  isClearing.value = true
+  clearMessage.value = '正在清空缓存...'
+
+  try {
+    await clearStorage(POEMS_STORAGE)
+    clearMessage.value = '已清空诗词数据'
+    await delay(200)
+
+    await clearStorage(AUTHORS_STORAGE)
+    clearMessage.value = '已清空诗人数据'
+    await delay(200)
+
+    await clearStorage(WORDCOUNT_STORAGE)
+    clearMessage.value = '已清空词频数据'
+    await delay(200)
+
+    await clearStorage(POEM_INDEX_STORAGE)
+    clearMessage.value = '已清空搜索索引'
+    await delay(200)
+
+    await clearStorage(WORD_SIMILARITY_STORAGE)
+    clearMessage.value = '已清空词境数据'
+    await delay(200)
+
+    await clearStorage(keywordIndex.storageName)
+    clearMessage.value = '已清空关键词索引'
+
+    await delay(500)
+    await loadStorageDetails()
+    clearMessage.value = ''
+  } catch (e) {
+    console.error('清空缓存失败:', e)
+    clearMessage.value = '清空失败'
+  } finally {
+    isClearing.value = false
+  }
+}
 </script>
 
 <template>
@@ -205,12 +247,20 @@ defineExpose({
 
     <NSpace v-else vertical size="large">
       <div class="refresh-bar">
-        <NButton quaternary @click="loadStorageDetails">
-          <template #icon>
-            <RefreshOutline />
-          </template>
-          刷新
-        </NButton>
+        <NSpace>
+          <NButton quaternary @click="loadStorageDetails">
+            <template #icon>
+              <RefreshOutline />
+            </template>
+            刷新
+          </NButton>
+          <NButton type="error" quaternary @click="handleClearCache" :loading="isClearing">
+            <template #icon>
+              <TrashOutline />
+            </template>
+            {{ isClearing ? clearMessage : '清空缓存' }}
+          </NButton>
+        </NSpace>
       </div>
 
     <NCard title="🌐 浏览器存储概览">

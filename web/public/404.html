@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>404 - 中华诗词库</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --color-bg: #FAF8F5;
+      --color-bg-paper: #FDFCFA;
+      --color-ink: #2C2416;
+      --color-ink-light: #5C5244;
+      --color-seal: #8B2635;
+      --color-seal-light: #A83246;
+      --color-border: #E8E4DD;
+      --color-accent: #C9A96E;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--color-bg);
+      font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      padding: 40px;
+    }
+    .seal {
+      width: 80px;
+      height: 80px;
+      background: var(--color-seal);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Noto Serif SC", serif;
+      font-size: 36px;
+      font-weight: 700;
+      border-radius: 6px;
+      margin: 0 auto 24px;
+      box-shadow: 0 4px 16px rgba(139, 38, 53, 0.3);
+    }
+    h1 {
+      font-family: "Noto Serif SC", serif;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+    p {
+      color: var(--color-ink-light);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      background: var(--color-seal);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .btn:hover {
+      background: var(--color-seal-light);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="seal">诗</div>
+    <h1>页面未找到</h1>
+    <p>你所访问的页面不存在，正在跳转...</p>
+    <a href="/chinese-poetry-data-mining/" class="btn">返回首页</a>
+  </div>
+  <script>
+    setTimeout(function() {
+      window.location.href = '/chinese-poetry-data-mining/';
+    }, 2000);
+  </script>
+</body>
+</html>
