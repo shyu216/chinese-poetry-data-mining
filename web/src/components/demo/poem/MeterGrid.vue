@@ -145,6 +145,8 @@ const maxCols = computed(() => {
   border: 1px solid var(--color-border, #e8e8e8);
   border-radius: 12px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .grid-header {
@@ -203,6 +205,10 @@ const maxCols = computed(() => {
 .meter-grid {
   padding: 20px;
   background: var(--grid-bg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 300px;
 }
 
 .grid-row {
@@ -294,6 +300,7 @@ const maxCols = computed(() => {
 .grid-footer {
   padding: 12px 16px;
   border-top: 1px solid var(--color-border, #e8e8e8);
+  flex-shrink: 0;
 }
 
 .pattern-bar {

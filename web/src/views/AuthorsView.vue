@@ -14,11 +14,13 @@ import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
 import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
+import { useAuthorSearch } from '@/search'
 import type { AuthorStats } from '@/types/author'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
+import { SearchContainer } from '@/components/search'
 
 const router = useRouter()
 const {
@@ -30,6 +32,11 @@ const {
 } = useAuthorsV2()
 
 const chunkLoader = useChunkLoader()
+
+// 新的作者搜索模块
+const { search: searchAuthors, isReady: authorSearchReady } = useAuthorSearch()
+const isSearching = ref(false)
+const searchStats = ref({ queryTime: 0, source: '' })
 
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -57,6 +64,10 @@ const dynamicStats = computed(() => {
 })
 
 const filteredAuthors = computed(() => {
+  // 如果有搜索且 AuthorSearch 已就绪，返回空（使用搜索结果）
+  if (searchQuery.value.trim() && authorSearchReady.value && isSearching.value) {
+    return []
+  }
   if (!searchQuery.value.trim()) {
     return loadedAuthors.value
   }
@@ -66,7 +77,59 @@ const filteredAuthors = computed(() => {
   )
 })
 
-const displayAuthors = computed(() => filteredAuthors.value)
+// 搜索结果
+const searchResults = ref<AuthorStats[]>([])
+const searchTotal = ref(0)
+
+// 使用 AuthorSearch 搜索
+const performSearch = async () => {
+  const query = searchQuery.value.trim()
+  if (!query || !authorSearchReady.value) {
+    searchResults.value = []
+    searchTotal.value = 0
+    return
+  }
+
+  isSearching.value = true
+  try {
+    const result = await searchAuthors(query, {
+      limit: pageSize.value,
+      offset: (currentPage.value - 1) * pageSize.value
+    })
+    searchResults.value = result.items
+    searchTotal.value = result.total
+    searchStats.value = { queryTime: result.queryTime, source: result.source }
+  } finally {
+    isSearching.value = false
+  }
+}
+
+// 最终显示的作者列表
+const displayAuthors = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && authorSearchReady.value) {
+    return searchResults.value
+  }
+  return filteredAuthors.value
+})
+
+// 显示的总数（用于搜索统计）
+const displayTotal = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && authorSearchReady.value) {
+    return searchTotal.value
+  }
+  return filteredAuthors.value.length
+})
+
+// 总页数
+const totalPages = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && authorSearchReady.value) {
+    return Math.ceil(searchTotal.value / pageSize.value)
+  }
+  return Math.ceil(filteredAuthors.value.length / pageSize.value)
+})
 
 const paginatedAuthors = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
@@ -76,8 +139,6 @@ const paginatedAuthors = computed(() => {
     rank: start + index + 1
   }))
 })
-
-const totalPages = computed(() => Math.ceil(displayAuthors.value.length / pageSize.value))
 
 const getRankColor = (rank: number) => {
   if (rank === 1) return '#FFD700'
@@ -194,6 +255,7 @@ onMounted(() => {
 
 watch(searchQuery, () => {
   currentPage.value = 1
+  performSearch()
 })
 </script>
 
@@ -255,19 +317,16 @@ watch(searchQuery, () => {
       @resume="chunkLoader.resume"
     />
 
-    <FilterSection class="search-section">
-      <NInput
-        v-model:value="searchQuery"
-        placeholder="搜索诗人..."
-        size="large"
-        clearable
-        style="width: 300px;"
-      >
-        <template #prefix>
-          <SearchOutline />
-        </template>
-      </NInput>
-    </FilterSection>
+    <SearchContainer
+      v-model="searchQuery"
+      placeholder="搜索诗人..."
+      size="large"
+      :width="300"
+      :total="displayTotal"
+      :query-time="searchStats.queryTime"
+      :source="searchStats.source as any"
+      :loading="isSearching"
+    />
 
     <NSpin :show="isInitializing && loadedAuthors.length === 0" size="large">
       <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="暂无数据" />

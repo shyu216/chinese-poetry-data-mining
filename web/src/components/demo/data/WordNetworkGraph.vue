@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
-import { NCard, NEmpty, NSpin, NSlider, NSwitch, NTag, NSpace, NButton, NIcon } from 'naive-ui'
+import { NCard, NEmpty, NSpin, NSlider, NSwitch, NTag, NSpace, NButton, NIcon, NDivider } from 'naive-ui'
 import { RefreshOutline } from '@vicons/ionicons5'
 
 interface SimilarWord {
@@ -35,24 +35,20 @@ const emit = defineEmits<{
   (e: 'select-word', word: string): void
 }>()
 
-// 配置状态
 const maxNodes = ref(30)
 const showLabels = ref(true)
 const minLinkStrength = ref(0.7)
 const loading = ref(false)
 
-// 图表容器
 const graphContainer = ref<HTMLElement | null>(null)
 const canvasElement = ref<HTMLCanvasElement | null>(null)
 
-// 过滤后的数据
 const filteredWords = computed(() => {
   return props.similarWords
     .filter(w => w.similarity >= minLinkStrength.value)
     .slice(0, maxNodes.value)
 })
 
-// 颜色映射
 function getNodeColor(similarity: number, isCenter: boolean): string {
   if (isCenter) return '#667eea'
   if (similarity >= 0.9) return '#2ecc71'
@@ -61,7 +57,6 @@ function getNodeColor(similarity: number, isCenter: boolean): string {
   return '#e74c3c'
 }
 
-// 物理模拟参数
 const simulation = {
   nodes: [] as Node[],
   links: [] as Link[],
@@ -69,7 +64,6 @@ const simulation = {
   isRunning: false
 }
 
-// 初始化节点和连接
 function initGraphData(width: number, height: number) {
   const centerX = width / 2
   const centerY = height / 2
@@ -119,13 +113,11 @@ function initGraphData(width: number, height: number) {
   return { nodes, links }
 }
 
-// 力导向模拟步骤
 function simulationStep() {
   const { nodes, links } = simulation
   const centerX = (graphContainer.value?.clientWidth || 800) / 2
   const centerY = (graphContainer.value?.clientHeight || 500) / 2
   
-  // 中心引力
   nodes.forEach(node => {
     if (!node.isCenter) {
       const dx = centerX - node.x
@@ -135,7 +127,6 @@ function simulationStep() {
     }
   })
   
-  // 连接力
   links.forEach(link => {
     const dx = link.target.x - link.source.x
     const dy = link.target.y - link.source.y
@@ -156,7 +147,6 @@ function simulationStep() {
     }
   })
   
-  // 斥力
   for (let i = 0; i < nodes.length; i++) {
     for (let j = i + 1; j < nodes.length; j++) {
       const a = nodes[i]!
@@ -183,15 +173,13 @@ function simulationStep() {
     }
   }
   
-  // 更新位置
   nodes.forEach(node => {
     if (!node.isCenter) {
-      node.vx *= 0.9 // 阻尼
+      node.vx *= 0.9
       node.vy *= 0.9
       node.x += node.vx
       node.y += node.vy
       
-      // 边界限制
       const margin = node.radius + 10
       node.x = Math.max(margin, Math.min((graphContainer.value?.clientWidth || 800) - margin, node.x))
       node.y = Math.max(margin, Math.min((graphContainer.value?.clientHeight || 500) - margin, node.y))
@@ -199,7 +187,6 @@ function simulationStep() {
   })
 }
 
-// 渲染画布
 function renderCanvas() {
   const canvas = canvasElement.value
   if (!canvas) return
@@ -210,10 +197,8 @@ function renderCanvas() {
   const width = canvas.width
   const height = canvas.height
   
-  // 清空画布
   ctx.clearRect(0, 0, width, height)
   
-  // 绘制连接线
   simulation.links.forEach(link => {
     ctx.beginPath()
     ctx.moveTo(link.source.x, link.source.y)
@@ -223,26 +208,21 @@ function renderCanvas() {
     ctx.stroke()
   })
   
-  // 绘制节点
   simulation.nodes.forEach(node => {
-    // 节点圆形
     ctx.beginPath()
     ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2)
     ctx.fillStyle = getNodeColor(node.similarity, node.isCenter)
     ctx.fill()
     
-    // 边框
     ctx.strokeStyle = '#fff'
     ctx.lineWidth = node.isCenter ? 4 : 2
     ctx.stroke()
     
-    // 阴影效果
     ctx.shadowColor = 'rgba(0, 0, 0, 0.2)'
     ctx.shadowBlur = 8
     ctx.shadowOffsetX = 0
     ctx.shadowOffsetY = 2
     
-    // 文字
     if (showLabels.value) {
       ctx.shadowColor = 'transparent'
       ctx.fillStyle = '#fff'
@@ -251,7 +231,6 @@ function renderCanvas() {
       ctx.textBaseline = 'middle'
       ctx.fillText(node.word, node.x, node.y)
       
-      // 相似度标签
       if (!node.isCenter) {
         ctx.fillStyle = '#666'
         ctx.font = '10px sans-serif'
@@ -261,7 +240,6 @@ function renderCanvas() {
   })
 }
 
-// 动画循环
 function animate() {
   if (!simulation.isRunning) return
   
@@ -270,13 +248,11 @@ function animate() {
   simulation.animationId = requestAnimationFrame(animate)
 }
 
-// 开始模拟
 function startSimulation() {
   simulation.isRunning = true
   animate()
 }
 
-// 停止模拟
 function stopSimulation() {
   simulation.isRunning = false
   if (simulation.animationId) {
@@ -284,7 +260,6 @@ function stopSimulation() {
   }
 }
 
-// 渲染图表
 async function renderGraph() {
   if (!graphContainer.value) return
   
@@ -294,7 +269,6 @@ async function renderGraph() {
   
   const { width, height } = graphContainer.value.getBoundingClientRect()
   
-  // 创建或更新 canvas
   let canvas = canvasElement.value
   if (!canvas) {
     canvas = document.createElement('canvas')
@@ -303,25 +277,21 @@ async function renderGraph() {
     graphContainer.value.appendChild(canvas)
     canvasElement.value = canvas
     
-    // 添加交互事件
     setupCanvasInteraction(canvas)
   } else {
     canvas.width = width
     canvas.height = height
   }
   
-  // 初始化数据
   const { nodes, links } = initGraphData(width, height)
   simulation.nodes = nodes
   simulation.links = links
   
-  // 开始动画
   startSimulation()
   
   loading.value = false
 }
 
-// 画布交互
 let hoveredNode: Node | null = null
 let isDragging = false
 let dragNode: Node | null = null
@@ -392,22 +362,18 @@ function setupCanvasInteraction(canvas: HTMLCanvasElement) {
     }
   })
   
-  // 滚轮缩放
   let scale = 1
   canvas.addEventListener('wheel', (e) => {
     e.preventDefault()
     const delta = e.deltaY > 0 ? 0.9 : 1.1
     scale = Math.max(0.5, Math.min(2, scale * delta))
-    // 这里可以实现更复杂的缩放逻辑
   })
 }
 
-// 重置视图
 function resetView() {
   renderGraph()
 }
 
-// 监听数据变化
 watch(() => props.similarWords, () => {
   renderGraph()
 }, { deep: true })
@@ -431,7 +397,6 @@ onUnmounted(() => {
 
 <template>
   <NCard class="network-graph-card">
-    <!-- 控制面板 -->
     <div class="graph-controls">
       <NSpace align="center" wrap>
         <div class="control-item">
@@ -474,7 +439,6 @@ onUnmounted(() => {
     
     <NDivider />
     
-    <!-- 图表容器 -->
     <div class="graph-container-wrapper">
       <NSpin :show="loading" class="graph-spin">
         <div
@@ -484,7 +448,6 @@ onUnmounted(() => {
         />
       </NSpin>
       
-      <!-- 图例 -->
       <div class="graph-legend">
         <div class="legend-title">相似度图例</div>
         <div class="legend-items">
@@ -512,7 +475,6 @@ onUnmounted(() => {
       </div>
     </div>
     
-    <!-- 提示信息 -->
     <div class="graph-hints">
       <NTag size="small" type="info">
         💡 提示：可拖拽节点调整布局，点击节点探索该词

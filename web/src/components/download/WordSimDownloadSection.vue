@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NProgress, NAlert, NSpace, NTag } from 'naive-ui'
-import { DownloadOutline, CheckmarkOutline } from '@vicons/ionicons5'
+import { DownloadOutline, CheckmarkOutline, CloseOutline } from '@vicons/ionicons5'
 import { useWordSimilarityV2 } from '@/composables/useWordSimilarityV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { useWordSimilarityMetadata, WORD_SIMILARITY_STORAGE } from '@/composables/useMetadataLoader'
 import { getCache, getMetadata } from '@/composables/useCacheV2'
-import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
 
 const emit = defineEmits<{
   downloaded: []
@@ -27,14 +26,6 @@ const isFullyDownloaded = computed(() => vocabCached.value && cachedCount.value 
 const progressPercentage = computed(() => {
   if (!vocabCached.value) return 0
   return totalChunks.value > 0 ? Math.round((cachedCount.value / totalChunks.value) * 100) : 0
-})
-
-const loadingHint = computed(() => {
-  if (!vocabCached.value) return '📖 正在加载词表...'
-  const loaded = cachedCount.value
-  if (loaded === 0) return '🚀 准备下载...'
-  if (isFullyDownloaded.value) return '✅ 词境数据已准备就绪'
-  return `🔗 正在下载 ${loaded.toLocaleString()} / ${totalChunks.value} 个分块...`
 })
 
 const loadStats = async () => {
@@ -123,25 +114,10 @@ defineExpose({
       type="line"
       :percentage="progressPercentage"
       :indicator-placement="'inside'"
-      :status="isFullyDownloaded ? 'success' : 'default'"
-      style="margin-bottom: 16px;"
-    />
-
-    <ChunkLoaderStatus
-      v-if="chunkLoader.isLoading.value || cachedCount > 0 || vocabCached"
-      :is-loading="chunkLoader.isLoading.value"
-      :is-paused="chunkLoader.isPaused.value"
-      :progress="Math.round((cachedCount / (totalChunks || 1)) * 100)"
-      :loaded-count="cachedCount"
-      :total-count="totalChunks"
-      title="下载词境数据"
-      :hint="loadingHint"
-      :stats="[
-        { label: '词表状态', value: vocabCached ? '已缓存' : '未缓存' },
-        { label: '已缓存分块', value: cachedCount.toLocaleString() }
-      ]"
-      @pause="chunkLoader.pause"
-      @resume="chunkLoader.resume"
+      :status="isFullyDownloaded ? 'success' : (chunkLoader.isLoading.value ? 'info' : 'default')"
+      :processing="chunkLoader.isLoading.value"
+      :height="8"
+      :border-radius="4"
       style="margin-bottom: 16px;"
     />
 
@@ -159,10 +135,21 @@ defineExpose({
       </NSpace>
 
       <NButton
+        v-if="chunkLoader.isLoading.value"
+        type="error"
+        size="large"
+        @click="chunkLoader.stop"
+      >
+        <template #icon>
+          <CloseOutline />
+        </template>
+        取消下载
+      </NButton>
+      <NButton
+        v-else
         type="primary"
         size="large"
-        :loading="chunkLoader.isLoading.value"
-        :disabled="chunkLoader.isLoading.value || isFullyDownloaded"
+        :disabled="isFullyDownloaded"
         @click="downloadAll"
       >
         <template #icon>

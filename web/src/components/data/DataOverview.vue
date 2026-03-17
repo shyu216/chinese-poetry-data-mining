@@ -10,8 +10,10 @@ import {
 } from '@vicons/ionicons5'
 
 import { usePoemsMetadata, useAuthorsMetadata, useWordcountMetadata, usePoemIndexManifest, useWordSimilarityMetadata, POEMS_STORAGE, AUTHORS_STORAGE, WORDCOUNT_STORAGE, POEM_INDEX_STORAGE, WORD_SIMILARITY_STORAGE } from '@/composables/useMetadataLoader'
+import { useKeywordIndex } from '@/composables/useKeywordIndex'
 import { getMetadata, getCache, clearStorage, getAllStorageStats, getBrowserStorageInfo, type StorageStats, type BrowserStorageInfo } from '@/composables/useCacheV2'
 import type { PoemsIndex, AuthorsIndex, WordCountMeta } from '@/composables/types'
+import DataItemCard from './DataItemCard.vue'
 
 const emit = defineEmits<{
   (e: 'switch-tab', tab: string): void
@@ -63,6 +65,14 @@ const wordSimStats = ref({
   totalChunks: 0
 })
 
+const keywordIndexStats = ref({
+  cachedChunks: 0,
+  totalChunks: 0,
+  loaded: false
+})
+
+const keywordIndex = useKeywordIndex()
+
 const loadStats = async () => {
   const poemsMetaData = await poemsMeta.loadMetadata()
   poemsIndexData.value = poemsMetaData
@@ -97,9 +107,9 @@ const loadStats = async () => {
   const searchIndexMetaData = await poemIndexMeta.loadMetadata()
   searchIndexStats.value.totalPrefixes = Object.keys(searchIndexMetaData?.prefixMap || {}).length
 
-  const searchIndexMetaStored = await getMetadata(POEM_INDEX_STORAGE)
-  if (searchIndexMetaStored) {
-    searchIndexStats.value.cachedPrefixes = searchIndexMetaStored.loadedChunkIds?.length || 0
+  const searchIndexPrefixes = await getCache<string[]>(POEM_INDEX_STORAGE, 'loaded-prefixes')
+  if (searchIndexPrefixes) {
+    searchIndexStats.value.cachedPrefixes = searchIndexPrefixes.length
     searchIndexStats.value.loaded = true
   }
 
@@ -113,9 +123,15 @@ const loadStats = async () => {
   }
 
   const wordSimMetaStored = await getMetadata(WORD_SIMILARITY_STORAGE)
-  if (wordSimMetaStored) {
-    wordSimStats.value.cachedChunks = wordSimMetaStored.loadedChunkIds?.length || 0
+  if (wordSimMetaStored && wordSimMetaStored.loadedChunkIds) {
+    const validIds = wordSimMetaStored.loadedChunkIds.filter((id: number) => id < (wordSimMetaStored.totalChunks || 0))
+    wordSimStats.value.cachedChunks = validIds.length
   }
+
+  const keywordMeta = await keywordIndex.loadMetadata()
+  keywordIndexStats.value.totalChunks = keywordMeta.total_chunks || 201
+  keywordIndexStats.value.cachedChunks = keywordMeta.loadedChunkIds?.length || 0
+  keywordIndexStats.value.loaded = keywordIndexStats.value.cachedChunks > 0
 
   console.log('[DataOverview] wordSimStats:', {
     totalChunks: wordSimStats.value.totalChunks,
@@ -136,6 +152,7 @@ const handleClearCache = async () => {
   await clearStorage(WORDCOUNT_STORAGE)
   await clearStorage(POEM_INDEX_STORAGE)
   await clearStorage(WORD_SIMILARITY_STORAGE)
+  await clearStorage(keywordIndex.storageName)
 
   poemStats.value.cachedChunkIds = []
   authorStats.value.cachedChunkIds = []
@@ -143,6 +160,8 @@ const handleClearCache = async () => {
   searchIndexStats.value.cachedPrefixes = 0
   wordSimStats.value.cachedChunks = 0
   wordSimStats.value.vocabCached = false
+  keywordIndexStats.value.cachedChunks = 0
+  keywordIndexStats.value.loaded = false
 
   emit('refresh')
 }
@@ -218,6 +237,18 @@ const searchIndexChunkBars = computed(() => {
   }))
 })
 
+const keywordIndexChunkBars = computed(() => {
+  const total = keywordIndexStats.value.totalChunks
+  if (total === 0) return []
+  const cached = keywordIndexStats.value.cachedChunks
+  const cachedRatio = total > 0 ? cached / total : 0
+  return Array.from({ length: Math.min(total, 50) }, (_, i) => ({
+    id: i,
+    count: Math.ceil(total / 50),
+    cached: i / 50 < cachedRatio
+  }))
+})
+
 const maxWordSimCount = computed(() => {
   if (!wordSimChunkBars.value.length) return 0
   return Math.max(...wordSimChunkBars.value.map(c => c.count))
@@ -236,219 +267,80 @@ defineExpose({
 <template>
   <NSpin :show="isLoadingStats">
     <NSpace vertical size="large">
-      <NGrid :cols="5" :x-gap="16" :y-gap="16">
+      <NGrid :cols="3" :x-gap="16" :y-gap="16">
         <NGridItem>
-          <NCard class="stat-card">
-            <NStatistic label="诗词分块">
-              <template #prefix>
-                <span class="stat-icon poems">📚</span>
-              </template>
-              <NNumberAnimation :from="0" :to="poemStats.cachedChunkIds.length" />
-              <template #suffix>
-                <span class="stat-suffix">/ {{ poemStats.totalChunks }}</span>
-              </template>
-            </NStatistic>
-          </NCard>
+          <DataItemCard
+            icon="📚"
+            title="诗词"
+            description="诗词数据库，包含三十万首诗词摘要数据，支持离线浏览"
+            :cached-count="poemStats.cachedChunkIds.length"
+            :total-count="poemStats.totalChunks"
+            :bars="poemChunkBars"
+            :max-count="maxPoemCount"
+            color-class="poems"
+          />
         </NGridItem>
         <NGridItem>
-          <NCard class="stat-card">
-            <NStatistic label="诗人分块">
-              <template #prefix>
-                <span class="stat-icon authors">👤</span>
-              </template>
-              <NNumberAnimation :from="0" :to="authorStats.cachedChunkIds.length" />
-              <template #suffix>
-                <span class="stat-suffix">/ {{ authorStats.totalChunks }}</span>
-              </template>
-            </NStatistic>
-          </NCard>
+          <DataItemCard
+            icon="👤"
+            title="诗人"
+            description="诗人数据库，包含多位诗人的生平与作品统计"
+            :cached-count="authorStats.cachedChunkIds.length"
+            :total-count="authorStats.totalChunks"
+            :bars="authorChunkBars"
+            :max-count="maxAuthorCount"
+            color-class="authors"
+          />
         </NGridItem>
         <NGridItem>
-          <NCard class="stat-card">
-            <NStatistic label="词频数据">
-              <template #prefix>
-                <span class="stat-icon wordcount">📊</span>
-              </template>
-              <NNumberAnimation :from="0" :to="wordcountStats.cachedChunkIds.length" />
-              <template #suffix>
-                <span class="stat-suffix">/ {{ wordcountStats.totalChunks }}</span>
-              </template>
-            </NStatistic>
-          </NCard>
+          <DataItemCard
+            icon="📊"
+            title="词频"
+            description="词频统计数据，支持词频分析和词汇使用统计"
+            :cached-count="wordcountStats.cachedChunkIds.length"
+            :total-count="wordcountStats.totalChunks"
+            :bars="wordcountChunkBars"
+            :max-count="maxWordcountCount"
+            color-class="wordcount"
+          />
         </NGridItem>
         <NGridItem>
-          <NCard class="stat-card">
-            <NStatistic label="搜索索引">
-              <template #prefix>
-                <span class="stat-icon search">🔍</span>
-              </template>
-              <NNumberAnimation :from="0" :to="searchIndexStats.cachedPrefixes" />
-              <template #suffix>
-                <span class="stat-suffix">/ {{ searchIndexStats.totalPrefixes }}</span>
-              </template>
-            </NStatistic>
-          </NCard>
+          <DataItemCard
+            icon="🔗"
+            title="词境"
+            description="词境探索数据库，包含词汇相似度数据，支持词语关联分析"
+            :cached-count="wordSimStats.cachedChunks"
+            :total-count="wordSimStats.totalChunks"
+            :bars="wordSimChunkBars"
+            :max-count="maxWordSimCount"
+            color-class="wordsim"
+          />
         </NGridItem>
         <NGridItem>
-          <NCard class="stat-card">
-            <NStatistic label="词境数据">
-              <template #prefix>
-                <span class="stat-icon wordsim">🔗</span>
-              </template>
-              <NTag :type="wordSimStats.vocabCached ? 'success' : 'default'" size="small">
-                {{ wordSimStats.vocabCached ? '已缓存' : '未缓存' }}
-              </NTag>
-              <template #suffix v-if="wordSimStats.vocabCached">
-                <span class="stat-suffix">{{ wordSimStats.cachedChunks }} chunks</span>
-              </template>
-            </NStatistic>
-          </NCard>
+          <DataItemCard
+            icon="🔍"
+            title="搜索索引"
+            description="搜索索引包含诗词前缀数据，支持快速诗词搜索"
+            :cached-count="searchIndexStats.cachedPrefixes"
+            :total-count="searchIndexStats.totalPrefixes"
+            :bars="searchIndexChunkBars"
+            :max-count="maxSearchIndexCount"
+            color-class="searchindex"
+          />
+        </NGridItem>
+        <NGridItem>
+          <DataItemCard
+            icon="🔑"
+            title="关键词索引"
+            description="关键词-诗词映射数据，支持按关键词快速检索诗词"
+            :cached-count="keywordIndexStats.cachedChunks"
+            :total-count="keywordIndexStats.totalChunks"
+            :bars="keywordIndexChunkBars"
+            :max-count="keywordIndexStats.totalChunks"
+            color-class="keywordindex"
+          />
         </NGridItem>
       </NGrid>
-
-      <NCard title="📊 分块分布图" class="chunk-dashboard-card">
-        <NGrid :cols="5" :x-gap="16" :y-gap="16">
-          <NGridItem>
-            <div class="mini-chart">
-              <div class="mini-chart-header">
-                <span class="mini-chart-title">📚 诗词</span>
-                <NTag size="small" :type="poemStats.cachedChunkIds.length === poemStats.totalChunks && poemStats.totalChunks > 0 ? 'success' : 'default'">
-                  {{ poemStats.cachedChunkIds.length }} / {{ poemStats.totalChunks }}
-                </NTag>
-              </div>
-              <div class="mini-chart-body">
-                <div v-if="poemChunkBars.length > 0" class="mini-bars">
-                  <div
-                    v-for="bar in poemChunkBars"
-                    :key="bar.id"
-                    class="mini-bar"
-                    :class="{ 'cached': bar.cached }"
-                    :style="{ height: maxPoemCount > 0 ? (bar.count / maxPoemCount * 100) + '%' : '0%' }"
-                    :title="`分块 ${bar.id}: ${bar.count} 首${bar.cached ? ' (已缓存)' : ''}`"
-                  />
-                </div>
-                <NEmpty v-else description="暂无数据" size="small" />
-              </div>
-              <div class="mini-chart-legend">
-                <span class="legend-dot cached"></span> 已缓存
-                <span class="legend-dot uncached"></span> 未下载
-              </div>
-            </div>
-          </NGridItem>
-
-          <NGridItem>
-            <div class="mini-chart">
-              <div class="mini-chart-header">
-                <span class="mini-chart-title">👤 诗人</span>
-                <NTag size="small" :type="authorStats.cachedChunkIds.length === authorStats.totalChunks && authorStats.totalChunks > 0 ? 'success' : 'default'">
-                  {{ authorStats.cachedChunkIds.length }} / {{ authorStats.totalChunks }}
-                </NTag>
-              </div>
-              <div class="mini-chart-body">
-                <div v-if="authorChunkBars.length > 0" class="mini-bars">
-                  <div
-                    v-for="bar in authorChunkBars"
-                    :key="bar.id"
-                    class="mini-bar author"
-                    :class="{ 'cached': bar.cached }"
-                    :style="{ height: maxAuthorCount > 0 ? (bar.count / maxAuthorCount * 100) + '%' : '0%' }"
-                    :title="`分块 ${bar.id}: ${bar.count} 位${bar.cached ? ' (已缓存)' : ''}`"
-                  />
-                </div>
-                <NEmpty v-else description="暂无数据" size="small" />
-              </div>
-              <div class="mini-chart-legend">
-                <span class="legend-dot cached author"></span> 已缓存
-                <span class="legend-dot uncached"></span> 未下载
-              </div>
-            </div>
-          </NGridItem>
-
-          <NGridItem>
-            <div class="mini-chart">
-              <div class="mini-chart-header">
-                <span class="mini-chart-title">📊 词频</span>
-                <NTag size="small" :type="wordcountStats.cachedChunkIds.length === wordcountStats.totalChunks && wordcountStats.totalChunks > 0 ? 'success' : 'default'">
-                  {{ wordcountStats.cachedChunkIds.length }} / {{ wordcountStats.totalChunks }}
-                </NTag>
-              </div>
-              <div class="mini-chart-body">
-                <div v-if="wordcountChunkBars.length > 0" class="mini-bars">
-                  <div
-                    v-for="bar in wordcountChunkBars"
-                    :key="bar.id"
-                    class="mini-bar wordcount"
-                    :class="{ 'cached': bar.cached }"
-                    :style="{ height: maxWordcountCount > 0 ? (bar.count / maxWordcountCount * 100) + '%' : '0%' }"
-                    :title="`分块 ${bar.id}: ${bar.count} 词${bar.cached ? ' (已缓存)' : ''}`"
-                  />
-                </div>
-                <NEmpty v-else description="暂无数据" size="small" />
-              </div>
-              <div class="mini-chart-legend">
-                <span class="legend-dot cached wordcount"></span> 已缓存
-                <span class="legend-dot uncached"></span> 未下载
-              </div>
-            </div>
-          </NGridItem>
-
-          <NGridItem>
-            <div class="mini-chart">
-              <div class="mini-chart-header">
-                <span class="mini-chart-title">🔗 词境</span>
-                <NTag size="small" :type="wordSimStats.vocabCached ? 'success' : 'default'">
-                  {{ wordSimStats.cachedChunks }} / {{ wordSimStats.totalChunks }}
-                </NTag>
-              </div>
-              <div class="mini-chart-body">
-                <div v-if="wordSimChunkBars.length > 0" class="mini-bars">
-                  <div
-                    v-for="bar in wordSimChunkBars"
-                    :key="bar.id"
-                    class="mini-bar wordsim"
-                    :class="{ 'cached': bar.cached }"
-                    :style="{ height: maxWordSimCount > 0 ? (bar.count / maxWordSimCount * 100) + '%' : '0%' }"
-                    :title="`分块 ${bar.id}: ${bar.count} 词${bar.cached ? ' (已缓存)' : ''}`"
-                  />
-                </div>
-                <NEmpty v-else description="暂无数据" size="small" />
-              </div>
-              <div class="mini-chart-legend">
-                <span class="legend-dot cached wordsim"></span> 已缓存
-                <span class="legend-dot uncached"></span> 未下载
-              </div>
-            </div>
-          </NGridItem>
-
-          <NGridItem>
-            <div class="mini-chart">
-              <div class="mini-chart-header">
-                <span class="mini-chart-title">🔍 搜索索引</span>
-                <NTag size="small" :type="searchIndexStats.loaded && searchIndexStats.cachedPrefixes > 0 ? 'success' : 'default'">
-                  {{ searchIndexStats.cachedPrefixes }} / {{ searchIndexStats.totalPrefixes }}
-                </NTag>
-              </div>
-              <div class="mini-chart-body">
-                <div v-if="searchIndexChunkBars.length > 0" class="mini-bars">
-                  <div
-                    v-for="bar in searchIndexChunkBars"
-                    :key="bar.id"
-                    class="mini-bar searchindex"
-                    :class="{ 'cached': bar.cached }"
-                    :style="{ height: maxSearchIndexCount > 0 ? (bar.count / maxSearchIndexCount * 100) + '%' : '0%' }"
-                    :title="`前缀组 ${bar.id}: ${bar.count} 个前缀${bar.cached ? ' (已缓存)' : ''}`"
-                  />
-                </div>
-                <NEmpty v-else description="暂无数据" size="small" />
-              </div>
-              <div class="mini-chart-legend">
-                <span class="legend-dot cached searchindex"></span> 已缓存
-                <span class="legend-dot uncached"></span> 未下载
-              </div>
-            </div>
-          </NGridItem>
-        </NGrid>
-      </NCard>
 
       <NCard title="快速操作">
         <NSpace>
@@ -576,6 +468,10 @@ defineExpose({
   background: #00bcd4;
 }
 
+.mini-bar.keywordindex.cached {
+  background: #ff9800;
+}
+
 .mini-bar:hover {
   opacity: 0.8;
 }
@@ -615,6 +511,10 @@ defineExpose({
 
 .legend-dot.cached.searchindex {
   background: #00bcd4;
+}
+
+.legend-dot.cached.keywordindex {
+  background: #ff9800;
 }
 
 .legend-dot.uncached {

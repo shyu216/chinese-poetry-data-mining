@@ -6,7 +6,8 @@ import {
   AuthorsDownloadSection,
   WordCountDownloadSection,
   WordSimDownloadSection,
-  PoemIndexDownloadSection
+  PoemIndexDownloadSection,
+  KeywordIndexDownloadSection
 } from '@/components/download'
 
 const emit = defineEmits<{
@@ -18,6 +19,7 @@ const authorsDownloadRef = ref()
 const wordcountDownloadRef = ref()
 const poemIndexDownloadRef = ref()
 const wordSimDownloadRef = ref()
+const keywordIndexDownloadRef = ref()
 
 const handleDownloaded = () => {
   emit('downloaded')
@@ -44,6 +46,10 @@ const handleDownloaded = () => {
     />
     <WordSimDownloadSection
       ref="wordSimDownloadRef"
+      @downloaded="handleDownloaded"
+    />
+    <KeywordIndexDownloadSection
+      ref="keywordIndexDownloadRef"
       @downloaded="handleDownloaded"
     />
   </NSpace>

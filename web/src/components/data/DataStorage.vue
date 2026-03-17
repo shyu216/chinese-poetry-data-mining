@@ -1,16 +1,30 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import {
   NCard, NGrid, NGridItem, NProgress, NButton,
-  NSpace, NTag, NTabs, NTabPane, NEmpty, NDivider
+  NSpace, NTag, NTabs, NTabPane, NEmpty, NDivider, NSpin, NSkeleton
 } from 'naive-ui'
+import { RefreshOutline } from '@vicons/ionicons5'
 
-import { getAllStorageStats, getBrowserStorageInfo, getStorageStats, getMetadata, type StorageStats, type BrowserStorageInfo } from '@/composables/useCacheV2'
+import { getAllStorageStats, getBrowserStorageInfo, getStorageStats, getMetadata, getCache, type StorageStats, type BrowserStorageInfo } from '@/composables/useCacheV2'
 import { WORD_SIMILARITY_STORAGE, POEM_INDEX_STORAGE } from '@/composables/useMetadataLoader'
+import { useKeywordIndex } from '@/composables/useKeywordIndex'
 
 const props = defineProps<{
   isLoadingStats?: boolean
 }>()
+
+const isLoading = ref(false)
+const loadingStep = ref('')
+const loadProgress = ref(0)
+
+const loadingState = reactive({
+  browserInfo: false,
+  wordSim: false,
+  searchIndex: false,
+  keywordIndex: false,
+  storageStats: false
+})
 
 const storageStats = ref<StorageStats[]>([])
 const browserStorageInfo = ref<BrowserStorageInfo | null>(null)
@@ -30,43 +44,107 @@ const searchIndexStats = ref({
   loaded: false
 })
 
+const keywordIndexStats = ref({
+  cachedChunks: 0,
+  totalChunks: 0,
+  loaded: false
+})
+
+const keywordIndex = useKeywordIndex()
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+const updateProgress = async (step: string, stateKey: keyof typeof loadingState, progress: number) => {
+  loadingStep.value = step
+  loadingState[stateKey] = true
+  loadProgress.value = progress
+  await delay(50)
+}
+
+const resetLoadingState = () => {
+  loadingState.browserInfo = false
+  loadingState.wordSim = false
+  loadingState.searchIndex = false
+  loadingState.keywordIndex = false
+  loadingState.storageStats = false
+}
+
 const loadStorageDetails = async () => {
+  resetLoadingState()
+  
+  isLoading.value = true
+  loadProgress.value = 0
+  loadingStep.value = '正在初始化...'
+  await delay(100)
+  
   try {
+    loadingStep.value = '正在获取浏览器存储信息...'
+    await delay(50)
     storageStats.value = await getAllStorageStats()
+    await delay(30)
     browserStorageInfo.value = await getBrowserStorageInfo()
+    await updateProgress('词境数据加载中...', 'browserInfo', 20)
   } catch (e) {
     console.error('Failed to load storage details:', e)
   }
 
   try {
+    loadingStep.value = '正在加载词境数据...'
+    await delay(50)
     const { useWordSimilarityMetadata, usePoemIndexManifest } = await import('@/composables/useMetadataLoader')
     const wsMeta = useWordSimilarityMetadata()
     const piMeta = usePoemIndexManifest()
 
+    await delay(30)
     const wordSimMetaData = await wsMeta.loadMetadata()
     wordSimStats.value.totalChunks = wordSimMetaData?.total_chunks || 0
     wordSimStats.value.vocabSize = wordSimMetaData?.vocab_size || 0
+    await delay(30)
 
-    const wordSimVocab = await getMetadata(WORD_SIMILARITY_STORAGE)
-    if (wordSimVocab) {
+    const wordSimVocab = await getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab')
+    if (wordSimVocab && Object.keys(wordSimVocab).length > 0) {
       wordSimStats.value.vocabCached = true
     }
+    await delay(30)
 
     const wordSimMetaStored = await getMetadata(WORD_SIMILARITY_STORAGE)
-    if (wordSimMetaStored) {
-      wordSimStats.value.cachedChunks = wordSimMetaStored.loadedChunkIds?.length || 0
+    if (wordSimMetaStored && wordSimMetaStored.loadedChunkIds) {
+      const validIds = wordSimMetaStored.loadedChunkIds.filter((id: number) => id < (wordSimMetaStored.totalChunks || 0))
+      wordSimStats.value.cachedChunks = validIds.length
     }
+    await updateProgress('搜索索引加载中...', 'wordSim', 45)
 
+    await delay(50)
     const searchIndexMetaData = await piMeta.loadMetadata()
     searchIndexStats.value.totalPrefixes = Object.keys(searchIndexMetaData?.prefixMap || {}).length
+    await delay(30)
 
-    const searchIndexMetaStored = await getMetadata(POEM_INDEX_STORAGE)
-    if (searchIndexMetaStored) {
-      searchIndexStats.value.cachedPrefixes = searchIndexMetaStored.loadedChunkIds?.length || 0
+    const searchIndexPrefixes = await getCache<string[]>(POEM_INDEX_STORAGE, 'loaded-prefixes')
+    if (searchIndexPrefixes) {
+      searchIndexStats.value.cachedPrefixes = searchIndexPrefixes.length
       searchIndexStats.value.loaded = true
     }
+    await updateProgress('关键词索引加载中...', 'searchIndex', 70)
+
+    await delay(50)
+    const keywordMeta = await keywordIndex.loadMetadata()
+    keywordIndexStats.value.totalChunks = keywordMeta.total_chunks || 201
+    keywordIndexStats.value.cachedChunks = keywordMeta.loadedChunkIds?.length || 0
+    keywordIndexStats.value.loaded = keywordIndexStats.value.cachedChunks > 0
+    await updateProgress('计算存储统计...', 'keywordIndex', 85)
+
+    await delay(50)
+    storageStats.value = await getAllStorageStats()
+    loadingState.storageStats = true
+    loadProgress.value = 100
+    
+    loadingStep.value = '加载完成'
   } catch (e) {
     console.error('Failed to load metadata:', e)
+    loadingStep.value = '加载失败'
+  } finally {
+    await delay(300)
+    isLoading.value = false
   }
 }
 
@@ -89,7 +167,52 @@ defineExpose({
 </script>
 
 <template>
-  <NSpace vertical size="large">
+  <div class="storage-view">
+    <div v-if="isLoading" class="loading-overlay">
+      <NCard class="loading-card">
+        <div class="loading-content">
+          <NSpin size="large" />
+          <div class="loading-progress">
+            <NProgress
+              type="line"
+              :percentage="loadProgress"
+              :indicator-placement="'inside'"
+              :processing="loadProgress < 100"
+            />
+          </div>
+          <div class="loading-step">{{ loadingStep }}</div>
+          <div class="loading-states">
+            <div class="loading-state-item" :class="{ done: loadingState.browserInfo }">
+              <span class="state-icon">{{ loadingState.browserInfo ? '✓' : '○' }}</span>
+              浏览器存储
+            </div>
+            <div class="loading-state-item" :class="{ done: loadingState.wordSim }">
+              <span class="state-icon">{{ loadingState.wordSim ? '✓' : '○' }}</span>
+              词境数据
+            </div>
+            <div class="loading-state-item" :class="{ done: loadingState.searchIndex }">
+              <span class="state-icon">{{ loadingState.searchIndex ? '✓' : '○' }}</span>
+              搜索索引
+            </div>
+            <div class="loading-state-item" :class="{ done: loadingState.keywordIndex }">
+              <span class="state-icon">{{ loadingState.keywordIndex ? '✓' : '○' }}</span>
+              关键词索引
+            </div>
+          </div>
+        </div>
+      </NCard>
+    </div>
+
+    <NSpace v-else vertical size="large">
+      <div class="refresh-bar">
+        <NButton quaternary @click="loadStorageDetails">
+          <template #icon>
+            <RefreshOutline />
+          </template>
+          刷新
+        </NButton>
+      </div>
+
     <NCard title="🌐 浏览器存储概览">
       <NGrid :cols="4" :x-gap="16" :y-gap="16">
         <NGridItem>
@@ -233,7 +356,8 @@ defineExpose({
         </div>
       </div>
     </NCard>
-  </NSpace>
+    </NSpace>
+  </div>
 </template>
 
 <style scoped>
@@ -295,11 +419,45 @@ defineExpose({
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: 12px;
 }
 
 .storage-detail-card:hover {
   border-color: #8b2635;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.storage-detail-card .detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.storage-detail-card .detail-title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.storage-detail-card .detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.storage-detail-card .detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.storage-detail-card .detail-label {
+  color: #666;
+}
+
+.storage-detail-card .detail-value {
+  font-weight: 500;
+  color: #333;
 }
 
 .storage-detail-header {
@@ -338,6 +496,32 @@ defineExpose({
   text-align: right;
 }
 
+.keyword-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.keyword-stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #f8f8f8;
+  border-radius: 6px;
+}
+
+.keyword-stat-label {
+  font-size: 13px;
+  color: #666;
+}
+
+.keyword-stat-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
 .detail-list {
   max-height: 400px;
   overflow-y: auto;
@@ -369,5 +553,78 @@ defineExpose({
 .detail-item-time {
   font-size: 11px;
   color: #999;
+}
+
+.storage-view {
+  position: relative;
+  min-height: 400px;
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 100;
+}
+
+.loading-card {
+  width: 400px;
+  max-width: 90%;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.loading-progress {
+  width: 100%;
+}
+
+.loading-step {
+  font-size: 14px;
+  color: #666;
+}
+
+.loading-states {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  width: 100%;
+}
+
+.loading-state-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #999;
+  transition: all 0.3s;
+}
+
+.loading-state-item.done {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+
+.state-icon {
+  font-size: 14px;
+}
+
+.refresh-bar {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

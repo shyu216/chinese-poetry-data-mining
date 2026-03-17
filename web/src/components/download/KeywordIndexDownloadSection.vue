@@ -2,21 +2,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NProgress, NAlert, NSpace, NTag } from 'naive-ui'
 import { DownloadOutline, CheckmarkOutline, CloseOutline } from '@vicons/ionicons5'
-import { useWordcountV2 } from '@/composables/useWordcountV2'
+import { useKeywordIndex } from '@/composables/useKeywordIndex'
 import { useChunkLoader } from '@/composables/useChunkLoader'
-import { useWordcountMetadata, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata } from '@/composables/useCacheV2'
-import type { WordCountItem } from '@/composables/types'
 
 const emit = defineEmits<{
   downloaded: []
 }>()
 
-const wordcountV2 = useWordcountV2()
-const wordcountMeta = useWordcountMetadata()
+const keywordIndex = useKeywordIndex()
 const chunkLoader = useChunkLoader()
 
-const totalChunks = ref(0)
+const totalChunks = ref(201)
 const cachedChunkIds = ref<number[]>([])
 const isLoadingStats = ref(false)
 
@@ -29,13 +25,9 @@ const progressPercentage = computed(() =>
 const loadStats = async () => {
   isLoadingStats.value = true
   try {
-    const index = await wordcountMeta.loadMetadata()
-    totalChunks.value = index?.total_chunks || 0
-
-    const meta = await getMetadata(WORDCOUNT_STORAGE)
-    if (meta) {
-      cachedChunkIds.value = meta.loadedChunkIds || []
-    }
+    const meta = await keywordIndex.loadMetadata()
+    totalChunks.value = meta.total_chunks || 201
+    cachedChunkIds.value = meta.loadedChunkIds || []
   } finally {
     isLoadingStats.value = false
   }
@@ -43,22 +35,29 @@ const loadStats = async () => {
 
 const downloadAll = async () => {
   try {
-    const index = await wordcountMeta.loadMetadata()
-    const total = index?.total_chunks || 0
-    totalChunks.value = total
+    await keywordIndex.loadMetadata()
+    totalChunks.value = keywordIndex.totalChunks.value
 
-    const allChunkIds = Array.from({ length: total }, (_, i) => i)
-    const unloadedChunkIds = allChunkIds.filter(id => !cachedChunkIds.value.includes(id))
+    const unloadedChunks = []
+    for (let i = 0; i < totalChunks.value; i++) {
+      if (!cachedChunkIds.value.includes(i)) {
+        unloadedChunks.push(i)
+      }
+    }
 
-    if (unloadedChunkIds.length === 0) {
+    if (unloadedChunks.length === 0) {
       return
     }
 
-    await chunkLoader.loadChunks<WordCountItem[]>(unloadedChunkIds, wordcountV2.loadChunk, {
-      chunkDelay: 50,
-      onChunkLoaded: (chunkId) => {
-        if (!cachedChunkIds.value.includes(chunkId)) {
-          cachedChunkIds.value.push(chunkId)
+    await chunkLoader.loadChunks<number>(unloadedChunks, async (index: number) => {
+      await keywordIndex.loadChunk(index)
+      return index
+    }, {
+      chunkDelay: 30,
+      onChunkLoaded: (index) => {
+        const idx = index as number
+        if (!cachedChunkIds.value.includes(idx)) {
+          cachedChunkIds.value.push(idx)
         }
       },
       onComplete: () => {
@@ -82,9 +81,9 @@ defineExpose({
 </script>
 
 <template>
-  <NCard title="📊 词频统计数据" class="download-section">
+  <NCard title="🔑 关键词索引数据" class="download-section">
     <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-      词频数据库包含 {{ totalChunks }} 个分块的词频统计数据，支持离线浏览。
+      关键词索引包含 {{ totalChunks }} 个分块的关键词-诗词映射数据，支持按关键词搜索诗词。
     </NAlert>
 
     <NProgress
@@ -132,7 +131,7 @@ defineExpose({
         <template #icon>
           <DownloadOutline />
         </template>
-        {{ isFullyDownloaded ? '下载完成' : '下载全部词频数据' }}
+        {{ isFullyDownloaded ? '下载完成' : '下载全部关键词索引' }}
       </NButton>
     </NSpace>
   </NCard>

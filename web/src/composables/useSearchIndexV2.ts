@@ -8,9 +8,9 @@ const poemChunkCache = shallowRef<Map<string, Map<string, PoemSummary>>>(new Map
 const loadedPrefixes: Ref<Set<string>> = ref(new Set())
 
 async function initLoadedPrefixes() {
-  const meta = await getMetadata(POEM_INDEX_STORAGE)
-  if (meta) {
-    loadedPrefixes.value = new Set(meta.loadedChunkIds.map(String))
+  const prefixes = await getCache<string[]>(POEM_INDEX_STORAGE, 'loaded-prefixes')
+  if (prefixes) {
+    loadedPrefixes.value = new Set(prefixes)
   }
 }
 initLoadedPrefixes()
@@ -56,6 +56,10 @@ export function useSearchIndexV2() {
     loadedPrefixes.value.add(prefix)
 
     await setChunkedCache(POEM_INDEX_STORAGE, prefix, data)
+
+    const manifestDataForMeta = await loadMetadata()
+    const prefixesArray = [...loadedPrefixes.value]
+    await setCache(POEM_INDEX_STORAGE, 'loaded-prefixes', prefixesArray)
 
     return poemMap
   }

@@ -1,6 +1,6 @@
 import { ref, shallowRef, computed, type Ref } from 'vue'
 
-const KEYWORD_STORAGE = 'keyword-index'
+const KEYWORD_INDEX_STORAGE = 'keyword-index-v2'
 
 interface KeywordIndexMeta {
   total_chunks: number
@@ -19,11 +19,15 @@ const loading = ref(false)
 async function loadMetadata(): Promise<KeywordIndexMeta> {
   if (isMetaInitialized.value) return metadata.value
   
-  const stored = localStorage.getItem(`${KEYWORD_STORAGE}-meta`)
-  if (stored) {
-    const parsed = JSON.parse(stored)
-    metadata.value = parsed
-    loadedChunkIds.value = parsed.loadedChunkIds || []
+  const { getCache, getMetadata } = await import('./useCacheV2')
+  
+  const storedMeta = await getMetadata(KEYWORD_INDEX_STORAGE)
+  if (storedMeta?.loadedChunkIds) {
+    metadata.value = {
+      total_chunks: storedMeta.totalChunks || 201,
+      loadedChunkIds: storedMeta.loadedChunkIds || []
+    }
+    loadedChunkIds.value = storedMeta.loadedChunkIds || []
     isMetaInitialized.value = true
     return metadata.value
   }
@@ -44,8 +48,20 @@ export function useKeywordIndex() {
       return keywordCache.value.get(chunkIndex)!
     }
 
+    const { getChunkedCache, setChunkedCache, setMetadata } = await import('./useCacheV2')
+    
+    const cached = await getChunkedCache<Record<string, string[]>>(KEYWORD_INDEX_STORAGE, chunkIndex)
+    if (cached) {
+      const map = new Map(Object.entries(cached))
+      keywordCache.value.set(chunkIndex, map)
+      if (!loadedChunkIds.value.includes(chunkIndex)) {
+        loadedChunkIds.value.push(chunkIndex)
+      }
+      return map
+    }
+
     const chunkId = chunkIndex.toString().padStart(4, '0')
-    const response = await fetch(`${import.meta.env.BASE_URL}../results/keyword_index/keyword_${chunkId}.json`)
+    const response = await fetch(`${import.meta.env.BASE_URL}data/keyword_index/keyword_${chunkId}.json`)
     if (!response.ok) {
       console.warn(`Failed to load keyword chunk ${chunkIndex}`)
       return new Map()
@@ -55,12 +71,15 @@ export function useKeywordIndex() {
     const map = new Map(Object.entries(data))
     
     keywordCache.value.set(chunkIndex, map)
+    
+    await setChunkedCache(KEYWORD_INDEX_STORAGE, chunkIndex, data)
 
     if (!loadedChunkIds.value.includes(chunkIndex)) {
       loadedChunkIds.value.push(chunkIndex)
-      const meta = await loadMetadata()
-      meta.loadedChunkIds = [...loadedChunkIds.value]
-      localStorage.setItem(`${KEYWORD_STORAGE}-meta`, JSON.stringify(meta))
+      await setMetadata(KEYWORD_INDEX_STORAGE, {
+        loadedChunkIds: [...loadedChunkIds.value],
+        totalChunks: metadata.value.total_chunks
+      })
     }
 
     return map
@@ -85,6 +104,8 @@ export function useKeywordIndex() {
     searchKeyword,
     getKeywordPoemIds,
     totalChunks,
+    loadedChunkIds: computed(() => loadedChunkIds.value),
+    storageName: KEYWORD_INDEX_STORAGE,
     loading: computed(() => loading.value)
   }
 }

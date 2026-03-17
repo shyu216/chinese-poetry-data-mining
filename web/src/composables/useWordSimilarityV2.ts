@@ -2,7 +2,7 @@ import { ref, computed, type Ref } from 'vue'
 import * as flatbuffers from 'flatbuffers'
 import type { WordSimilarityData, WordSimilarityMetadata, SimilarWordResult } from './types'
 import { useWordSimilarityMetadata, WORD_SIMILARITY_STORAGE } from './useMetadataLoader'
-import { getCache, setCache, getChunkedCache, setChunkedCache, getMetadata, setMetadata } from './useCacheV2'
+import { getCache, setCache, getChunkedCache, setChunkedCache, getMetadata, setMetadata, clearStorage } from './useCacheV2'
 
 interface WordSimilarityChunk {
   vocab: string[]
@@ -20,8 +20,15 @@ const loadedChunkIds: Ref<number[]> = ref([])
 
 async function initLoadedChunkIds() {
   const meta = await getMetadata(WORD_SIMILARITY_STORAGE)
-  if (meta) {
-    loadedChunkIds.value = meta.loadedChunkIds
+  if (meta && meta.loadedChunkIds) {
+    const validIds = meta.loadedChunkIds.filter((id: number) => id < (meta.totalChunks || 0))
+    loadedChunkIds.value = validIds
+    if (validIds.length !== meta.loadedChunkIds.length) {
+      await setMetadata(WORD_SIMILARITY_STORAGE, {
+        loadedChunkIds: validIds,
+        totalChunks: meta.totalChunks
+      })
+    }
   }
 }
 initLoadedChunkIds()
@@ -78,10 +85,14 @@ export function useWordSimilarityV2() {
       return chunkCache.get(chunkId)!
     }
 
-    const cached = await getChunkedCache<WordSimilarityChunk>(WORD_SIMILARITY_STORAGE, chunkId)
+    const cached = await getChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
     if (cached) {
-      chunkCache.set(chunkId, cached)
-      return cached
+      const chunk: WordSimilarityChunk = {
+        vocab: cached.vocab,
+        entries: new Map(cached.entries)
+      }
+      chunkCache.set(chunkId, chunk)
+      return chunk
     }
 
     const chunkIdStr = chunkId.toString().padStart(4, '0')
@@ -92,12 +103,16 @@ export function useWordSimilarityV2() {
     const chunk = await parseWordSimilarityChunk(buffer)
 
     chunkCache.set(chunkId, chunk)
-    await setChunkedCache(WORD_SIMILARITY_STORAGE, chunkId, chunk)
+    const serializableChunk = {
+      vocab: chunk.vocab,
+      entries: Array.from(chunk.entries.entries())
+    }
+    await setChunkedCache(WORD_SIMILARITY_STORAGE, chunkId, serializableChunk)
 
     if (!loadedChunkIds.value.includes(chunkId)) {
       loadedChunkIds.value.push(chunkId)
       await setMetadata(WORD_SIMILARITY_STORAGE, { 
-        loadedChunkIds: loadedChunkIds.value, 
+        loadedChunkIds: [...loadedChunkIds.value], 
         totalChunks: totalChunks.value 
       })
     }
@@ -313,6 +328,7 @@ export function useWordSimilarityV2() {
     wordToChunkMap.value.clear()
     chunkCache.clear()
     loadedChunkIds.value = []
+    await clearStorage(WORD_SIMILARITY_STORAGE)
   }
 
   return {

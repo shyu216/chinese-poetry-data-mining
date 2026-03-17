@@ -185,6 +185,30 @@ const getDynastyConfig = (dynasty: string) => {
           </div>
         </NCard>
 
+        <NCard class="meter-grid-card">
+          <template #header>
+            <div class="meter-grid-header">
+              <span class="meter-grid-title">米字格</span>
+            </div>
+          </template>
+          <div class="meter-grid">
+            <div 
+              v-for="(sentence, rowIndex) in poem.sentences" 
+              :key="rowIndex"
+              class="meter-row"
+            >
+              <div 
+                v-for="(char, charIndex) in sentence.split('')" 
+                :key="charIndex"
+                class="meter-cell"
+                :title="`第${rowIndex + 1}句 · 第${charIndex + 1}字`"
+              >
+                {{ char }}
+              </div>
+            </div>
+          </div>
+        </NCard>
+
         <NCard v-if="poem.words.length > 0" title="关键词" class="words-card">
           <div class="words-list">
             <NTag
@@ -299,6 +323,59 @@ const getDynastyConfig = (dynasty: string) => {
 
 .poem-content-card {
   margin-bottom: 24px;
+}
+
+.meter-grid-card {
+  margin-bottom: 24px;
+}
+
+.meter-grid-header {
+  display: flex;
+  align-items: center;
+}
+
+.meter-grid-title {
+  font-family: "Noto Serif SC", serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-seal, #8b2635);
+}
+
+.meter-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef6f6 0%, #fafafa 100%);
+  border-radius: 8px;
+}
+
+.meter-row {
+  display: flex;
+  gap: 6px;
+}
+
+.meter-cell {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e8d4d4;
+  border-radius: 4px;
+  font-family: "Noto Serif SC", "KaiTi", "楷体", serif;
+  font-size: 20px;
+  color: #2c3e50;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.meter-cell:hover {
+  background: rgba(139, 38, 53, 0.1);
+  border-color: #8b2635;
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(139, 38, 53, 0.15);
 }
 
 .poem-content {

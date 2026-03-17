@@ -5,6 +5,7 @@ import { usePoemsV2 } from '@/composables/usePoemsV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
 import { POEMS_STORAGE } from '@/composables/useMetadataLoader'
+import { usePoemSearch } from '@/search'
 import type { PoemSummary, PoemFilter } from '@/composables/types'
 import {
   NCard, NSpin, NEmpty, NSelect, NSpace, NTag,
@@ -21,6 +22,7 @@ import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import DynastyBadge from '@/components/DynastyBadge.vue'
 import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
+import { SearchContainer } from '@/components/search'
 
 const router = useRouter()
 const {
@@ -37,6 +39,11 @@ const {
 } = usePoemsV2()
 
 const chunkLoader = useChunkLoader()
+
+// 新的诗词搜索模块
+const { search: searchPoems, isReady: poemSearchReady } = usePoemSearch()
+const isSearching = ref(false)
+const searchStats = ref({ queryTime: 0, source: '' })
 
 const poems = ref<PoemSummary[]>([])
 const totalCount = ref(0)
@@ -103,6 +110,30 @@ const loadingHint = computed(() => {
 })
 
 const loadPoemsFromLoadedChunks = async () => {
+  const query = searchQuery.value.trim()
+  
+  // 如果有搜索关键词，使用新的 PoemSearch
+  if (query && poemSearchReady.value) {
+    isSearching.value = true
+    try {
+      const result = await searchPoems(query, {
+        limit: pageSize.value,
+        offset: (page.value - 1) * pageSize.value,
+        filters: {
+          dynasty: dynastyFilter.value || undefined,
+          genre: genreFilter.value || undefined
+        }
+      })
+      poems.value = result.items
+      totalCount.value = result.total
+      searchStats.value = { queryTime: result.queryTime, source: result.source }
+    } finally {
+      isSearching.value = false
+    }
+    return
+  }
+  
+  // 否则使用原有的筛选逻辑
   const filter: PoemFilter = {}
 
   if (dynastyFilter.value) {
@@ -110,9 +141,6 @@ const loadPoemsFromLoadedChunks = async () => {
   }
   if (genreFilter.value) {
     filter.genre = genreFilter.value
-  }
-  if (searchQuery.value.trim()) {
-    filter.search = searchQuery.value
   }
 
   const result = await queryPoems(filter, page.value, pageSize.value)
@@ -330,8 +358,17 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
       @resume="chunkLoader.resume"
     />
 
-    <FilterSection class="filters-section">
-      <NSpace align="center" :size="12">
+    <SearchContainer
+      v-model="searchQuery"
+      placeholder="搜索标题或作者..."
+      :total="totalCount"
+      :query-time="searchStats.queryTime"
+      :source="searchStats.source as any"
+      :loading="isSearching"
+      @search="handleSearch"
+      @clear="clearFilters"
+    >
+      <template #filters>
         <NSelect
           v-model:value="dynastyFilter"
           :options="dynastyOptions"
@@ -348,38 +385,8 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
           size="medium"
           clearable
         />
-        <NInput
-          v-model:value="searchQuery"
-          placeholder="搜索标题或作者..."
-          style="width: 220px"
-          size="medium"
-          clearable
-          @keyup.enter="handleSearch"
-        >
-          <template #prefix>
-            <SearchOutline style="opacity: 0.5" />
-          </template>
-        </NInput>
-        <NButton
-          type="primary"
-          size="medium"
-          @click="handleSearch"
-          :loading="isLoading"
-        >
-          <template #icon>
-            <FilterOutline />
-          </template>
-          筛选
-        </NButton>
-        <NButton
-          v-if="dynastyFilter || genreFilter || searchQuery"
-          size="medium"
-          @click="clearFilters"
-        >
-          清除
-        </NButton>
-      </NSpace>
-    </FilterSection>
+      </template>
+    </SearchContainer>
 
     <NSpin :show="isInitializing && poems.length === 0" size="large">
       <NEmpty

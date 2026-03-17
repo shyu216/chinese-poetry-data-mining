@@ -13,16 +13,23 @@ import { useWordcountV2 } from '@/composables/useWordcountV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { useWordcountMetadata, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
 import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
+import { useWordSearch } from '@/search'
 import type { WordCountItem } from '@/composables/types'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
+import { SearchContainer } from '@/components/search'
 
 const wordcountV2 = useWordcountV2()
 const router = useRouter()
 const wordcountMeta = useWordcountMetadata()
 const chunkLoader = useChunkLoader()
+
+// 新的词汇搜索模块
+const { search: searchWords, isReady: wordSearchReady } = useWordSearch()
+const isSearching = ref(false)
+const searchStats = ref({ queryTime: 0, source: '' })
 
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -43,6 +50,10 @@ const lengthOptions = [
   { label: '四字', value: '4' },
   { label: '五字及以上', value: '5+' }
 ]
+
+// 搜索结果
+const searchResults = ref<WordCountItem[]>([])
+const searchTotal = ref(0)
 
 const filteredWords = computed(() => {
   let result = loadedWords.value
@@ -65,15 +76,59 @@ const filteredWords = computed(() => {
   )
 })
 
-const displayWords = computed(() => filteredWords.value)
+// 使用 WordSearch 搜索
+const performSearch = async () => {
+  const query = searchQuery.value.trim()
+  if (!query || !wordSearchReady.value) {
+    searchResults.value = []
+    searchTotal.value = 0
+    return
+  }
+
+  isSearching.value = true
+  try {
+    const result = await searchWords(query, {
+      limit: pageSize.value,
+      offset: (currentPage.value - 1) * pageSize.value
+    })
+    searchResults.value = result.items
+    searchTotal.value = result.total
+    searchStats.value = { queryTime: result.queryTime, source: result.source }
+  } finally {
+    isSearching.value = false
+  }
+}
+
+const displayWords = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && wordSearchReady.value) {
+    return searchResults.value
+  }
+  return filteredWords.value
+})
+
+// 显示的总数（用于搜索统计）
+const displayTotal = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && wordSearchReady.value) {
+    return searchTotal.value
+  }
+  return filteredWords.value.length
+})
+
+const totalPages = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && wordSearchReady.value) {
+    return Math.ceil(searchTotal.value / pageSize.value)
+  }
+  return Math.ceil(displayWords.value.length / pageSize.value)
+})
 
 const paginatedWords = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
   const end = start + pageSize.value
   return displayWords.value.slice(start, end)
 })
-
-const totalPages = computed(() => Math.ceil(displayWords.value.length / pageSize.value))
 
 const globalTotalWords = computed(() => wordcountV2.totalWords.value || 0)
 const globalTotalChunks = computed(() => wordcountV2.totalChunks.value || 0)
@@ -200,6 +255,7 @@ onMounted(() => {
 
 watch(searchQuery, () => {
   currentPage.value = 1
+  performSearch()
 })
 
 watch(lengthFilter, () => {
@@ -264,8 +320,17 @@ watch(lengthFilter, () => {
       @resume="chunkLoader.resume"
     />
 
-    <FilterSection class="search-section">
-      <NSpace align="center" :size="12">
+    <SearchContainer
+      v-model="searchQuery"
+      placeholder="搜索词汇..."
+      :total="displayTotal"
+      :query-time="searchStats.queryTime"
+      :source="searchStats.source as any"
+      :loading="isSearching"
+      @search="handleSearch"
+      @clear="clearFilters"
+    >
+      <template #filters>
         <NSelect
           v-model:value="lengthFilter"
           :options="lengthOptions"
@@ -274,35 +339,8 @@ watch(lengthFilter, () => {
           size="medium"
           clearable
         />
-        <NInput
-          v-model:value="searchQuery"
-          placeholder="搜索词汇..."
-          style="width: 220px"
-          size="medium"
-          clearable
-          @keyup.enter="handleSearch"
-        >
-          <template #prefix>
-            <SearchOutline style="opacity: 0.5" />
-          </template>
-        </NInput>
-        <NButton
-          type="primary"
-          size="medium"
-          @click="handleSearch"
-          :loading="isLoading"
-        >
-          搜索
-        </NButton>
-        <NButton
-          v-if="searchQuery || lengthFilter"
-          size="medium"
-          @click="clearFilters"
-        >
-          清除
-        </NButton>
-      </NSpace>
-    </FilterSection>
+      </template>
+    </SearchContainer>
 
     <NSpin :show="isInitializing && loadedWords.length === 0" size="large">
       <NEmpty

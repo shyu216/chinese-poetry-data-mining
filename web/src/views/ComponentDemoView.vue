@@ -1,25 +1,32 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NCard, NTabs, NTabPane, NButton, NSpace, NGrid, NGi } from 'naive-ui'
+import { NCard, NTabs, NTabPane, NButton, NSpace, NGrid, NGi, NDivider } from 'naive-ui'
 
-import SearchBar from '@/components/common/SearchBar.vue'
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
-import EmptyState from '@/components/common/EmptyState.vue'
+import SearchBar from '@/components/demo/common/SearchBar.vue'
+import LoadingSpinner from '@/components/demo/common/LoadingSpinner.vue'
+import EmptyState from '@/components/demo/common/EmptyState.vue'
 
-import PoemTypeBadge from '@/components/poem/PoemTypeBadge.vue'
-import PoemDisplayCard from '@/components/poem/PoemDisplayCard.vue'
-import MeterPatternCard from '@/components/poem/MeterPatternCard.vue'
+import PoemTypeBadge from '@/components/demo/poem/PoemTypeBadge.vue'
+import PoemDisplayCard from '@/components/demo/poem/PoemDisplayCard.vue'
+import MeterPatternCard from '@/components/demo/poem/MeterPatternCard.vue'
+import MeterAnalysis from '@/components/demo/poem/MeterAnalysis.vue'
+import MeterGrid from '@/components/demo/poem/MeterGrid.vue'
 
-import AuthorMiniCard from '@/components/author/AuthorMiniCard.vue'
+import AuthorMiniCard from '@/components/demo/author/AuthorMiniCard.vue'
 
-import StatsOverview from '@/components/data/StatsOverview.vue'
+import StatsOverview from '@/components/demo/data/StatsOverview.vue'
+import DataPacket from '@/components/demo/data/DataPacket.vue'
+import WordNetworkGraph from '@/components/demo/data/WordNetworkGraph.vue'
 
-import PaginationBar from '@/components/layout/PaginationBar.vue'
-import TabNavigation from '@/components/layout/TabNavigation.vue'
+import PaginationBar from '@/components/demo/layout/PaginationBar.vue'
+import TabNavigation from '@/components/demo/layout/TabNavigation.vue'
+import ContentSection from '@/components/demo/layout/ContentSection.vue'
 
 import DynastyBadge from '@/components/DynastyBadge.vue'
 import KeywordTag from '@/components/KeywordTag.vue'
 import StatsCard from '@/components/StatsCard.vue'
+
+import { BookOutline, PersonOutline, LeafOutline } from '@vicons/ionicons5'
 
 const currentPage = ref(1)
 const totalPages = ref(10)
@@ -33,6 +40,20 @@ const tabs = [
   { name: 'data', label: '数据组件' },
   { name: 'layout', label: '布局组件' },
   { name: 'original', label: '原有组件' }
+]
+
+
+const meterPoemContent = ['床前明月光，', '疑是地上霜。', '举头望明月，', '低头思故乡。']
+
+const similarWordsData = [
+  { word: '明月', similarity: 0.95 },
+  { word: '月光', similarity: 0.92 },
+  { word: '故乡', similarity: 0.88 },
+  { word: '思乡', similarity: 0.85 },
+  { word: '乡愁', similarity: 0.82 },
+  { word: '月色', similarity: 0.78 },
+  { word: '夜景', similarity: 0.75 },
+  { word: '失眠', similarity: 0.72 }
 ]
 
 const handleSearch = (value: string) => {
@@ -133,6 +154,24 @@ const toggleBookmark = () => {
               tone-pattern="仄仄平平仄平平仄仄平"
             />
           </NCard>
+
+          <NCard title="MeterAnalysis 格律分析" class="demo-card">
+            <NSpace vertical>
+              <MeterAnalysis meter-pattern="5,5,5,5" poem-type="五言绝句" />
+              <NDivider />
+              <MeterAnalysis meter-pattern="7,7,7,7" poem-type="七言绝句" />
+            </NSpace>
+          </NCard>
+
+          <NCard title="MeterGrid 米字格" class="demo-card">
+            <MeterGrid
+              :sentences="meterPoemContent"
+              meter-pattern="5,5,5,5"
+              theme="red"
+              :show-grid="true"
+              @update:theme="(t: string) => {}"
+            />
+          </NCard>
         </div>
       </NTabPane>
 
@@ -172,6 +211,37 @@ const toggleBookmark = () => {
               :total-dynasties="12"
             />
           </NCard>
+
+          <NCard title="DataPacket 数据包" class="demo-card">
+            <NSpace vertical>
+              <DataPacket
+                name="唐诗三百首"
+                description="唐代经典诗歌合集"
+                :poems="320"
+                :authors="120"
+                :keywords="2500"
+                :chunks="5"
+                size="12.5 MB"
+                lastUpdated="2024-01-15"
+              />
+              <DataPacket
+                name="宋词精选"
+                description="宋代词作名篇"
+                :poems="280"
+                :authors="85"
+                :keywords="1800"
+                :chunks="3"
+                size="8.2 MB"
+              />
+            </NSpace>
+          </NCard>
+
+          <NCard title="WordNetworkGraph 词语关系图" class="demo-card">
+            <WordNetworkGraph
+              center-word="月光"
+              :similar-words="similarWordsData"
+            />
+          </NCard>
         </div>
       </NTabPane>
 
@@ -190,6 +260,18 @@ const toggleBookmark = () => {
               :tabs="tabs"
               :active-name="activeTab"
             />
+          </NCard>
+
+          <NCard title="ContentSection 内容区块" class="demo-card">
+            <ContentSection
+              title="诗词列表"
+              subtitle="唐代诗歌精选"
+              :icon="BookOutline"
+              :collapsible="true"
+            >
+              <p>床前明月光，疑是地上霜。</p>
+              <p>举头望明月，低头思故乡。</p>
+            </ContentSection>
           </NCard>
         </div>
       </NTabPane>
