@@ -56,6 +56,10 @@ jobs:
           echo "Copying poem search index..."
           cp -r results/poem_index web/public/data/
 
+          # 6. Copy keyword index (needed for keyword search)
+          echo "Copying keyword index..."
+          cp -r results/keyword_index web/public/data/
+
           # Verify data directory structure
           echo "Data directory structure:"
           find web/public/data -type d | head -20
@@ -65,6 +69,7 @@ jobs:
           echo "Wordcount files: $(find web/public/data/wordcount_v2 -type f | wc -l)"
           echo "Word similarity files: $(find web/public/data/word_similarity_v3 -type f | wc -l)"
           echo "Poem search index files: $(find web/public/data/poem_index -type f | wc -l)"
+          echo "Keyword index files: $(find web/public/data/keyword_index -type f | wc -l)"
 
       - name: Install dependencies
         working-directory: ./web
