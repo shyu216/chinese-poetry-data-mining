@@ -13,7 +13,8 @@ import {
 import {
   BookOutline, FilterOutline, SearchOutline,
   ChevronForwardOutline, TimeOutline, PersonOutline,
-  DownloadOutline
+  DownloadOutline, LibraryOutline, FlameOutline,
+  SchoolOutline, MusicalNotesOutline
 } from '@vicons/ionicons5'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterSection from '@/components/FilterSection.vue'
@@ -28,6 +29,7 @@ const {
   totalChunks,
   dynasties,
   genres,
+  poemCounts,
   indexLoading,
   loadMetadata,
   loadChunkSummaries,
@@ -50,6 +52,35 @@ const genreFilter = ref<string | null>(null)
 const globalTotal = computed(() => totalPoems.value || 0)
 const totalChunksCount = computed(() => totalChunks.value || 0)
 
+// 实时统计已加载的诗词数量（按朝代和体裁）
+const loadedPoemStats = ref({
+  total: 0,
+  tangshi: 0,
+  songshi: 0,
+  songci: 0
+})
+
+// 计算实时数量：如果已全部加载则显示总数，否则显示已加载数
+const displayTotal = computed(() => {
+  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
+  return isFullyLoaded ? globalTotal.value : loadedPoemStats.value.total
+})
+
+const displayTangshi = computed(() => {
+  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
+  return isFullyLoaded ? poemCounts.value.tangshi : loadedPoemStats.value.tangshi
+})
+
+const displaySongshi = computed(() => {
+  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
+  return isFullyLoaded ? poemCounts.value.songshi : loadedPoemStats.value.songshi
+})
+
+const displaySongci = computed(() => {
+  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
+  return isFullyLoaded ? poemCounts.value.songci : loadedPoemStats.value.songci
+})
+
 const dynastyOptions = computed(() => [
   { label: '全部朝代', value: '' },
   ...dynasties.value.map(d => ({ label: d, value: d }))
@@ -66,7 +97,7 @@ const loadedChunksCount = computed(() => cachedChunksCount.value + chunkLoader.l
 const hasMoreChunks = computed(() => loadedChunksCount.value < totalChunksCount.value)
 
 const loadingHint = computed(() => {
-  const count = poems.value.length
+  const count = displayTotal.value
   if (count === 0) return '🚀 正在连接...'
   return `📚 已加载 ${count.toLocaleString()} 首诗词...`
 })
@@ -89,6 +120,27 @@ const loadPoemsFromLoadedChunks = async () => {
   totalCount.value = result.filteredTotal
 }
 
+// 统计诗词数量（按朝代和体裁）
+const countPoemsByCategory = (poems: PoemSummary[]) => {
+  let tangshi = 0
+  let songshi = 0
+  let songci = 0
+  let total = 0
+
+  for (const poem of poems) {
+    total++
+    if (poem.dynasty === '唐' && poem.genre === '诗') {
+      tangshi++
+    } else if (poem.dynasty === '宋' && poem.genre === '诗') {
+      songshi++
+    } else if (poem.dynasty === '宋' && poem.genre === '词') {
+      songci++
+    }
+  }
+
+  return { tangshi, songshi, songci, total }
+}
+
 // 从 IndexedDB 加载缓存的 chunk 数据
 const loadCachedChunks = async (): Promise<number[]> => {
   const meta = await getMetadata(POEMS_STORAGE)
@@ -101,12 +153,28 @@ const loadCachedChunks = async (): Promise<number[]> => {
     return []
   }
 
-  // 从 IndexedDB 读取每个 chunk 的数据到内存缓存
+  // 从 IndexedDB 读取每个 chunk 的数据并统计
+  let totalCount = 0
+  let totalTangshi = 0
+  let totalSongshi = 0
+  let totalSongci = 0
+
   for (const chunkId of loadedChunkIds) {
     const chunkData = await getChunkedCache<PoemSummary[]>(POEMS_STORAGE, chunkId)
     if (chunkData) {
-      // 数据已经被加载到内存缓存中，queryPoems 会使用这些缓存
+      totalCount += chunkData.length
+      const counts = countPoemsByCategory(chunkData)
+      totalTangshi += counts.tangshi
+      totalSongshi += counts.songshi
+      totalSongci += counts.songci
     }
+  }
+
+  loadedPoemStats.value = {
+    total: totalCount,
+    tangshi: totalTangshi,
+    songshi: totalSongshi,
+    songci: totalSongci
   }
 
   return loadedChunkIds
@@ -136,8 +204,15 @@ const loadData = async () => {
 
     await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, loadChunkSummaries, {
       chunkDelay: 150,
-      onChunkLoaded: () => {
-        // 每加载一个 chunk，更新显示
+      onChunkLoaded: (_, chunk) => {
+        // 每加载一个 chunk，更新统计
+        if (chunk) {
+          const counts = countPoemsByCategory(chunk as PoemSummary[])
+          loadedPoemStats.value.tangshi += counts.tangshi
+          loadedPoemStats.value.songshi += counts.songshi
+          loadedPoemStats.value.songci += counts.songci
+          loadedPoemStats.value.total += counts.total
+        }
         loadPoemsFromLoadedChunks()
       },
       onComplete: () => {
@@ -205,31 +280,30 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
       <NGridItem>
         <StatsCard
-          label="总收录"
-          :value="globalTotal.toLocaleString()"
-          :prefix-icon="BookOutline"
+          label="总收录诗词"
+          :value="`${globalTotal.toLocaleString()}`"
+          :prefix-icon="LibraryOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
-          label="已加载分块"
-          :value="`${loadedChunksCount}/${totalChunksCount}`"
-          :prefix-icon="DownloadOutline"
+          label="唐诗数量"
+          :value="`${(poemCounts.tangshi || 0).toLocaleString()}`"
+          :prefix-icon="FlameOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
-          label="已加载诗词"
-          :value="poems.length.toLocaleString()"
-          :prefix-icon="TimeOutline"
+          label="宋诗数量"
+          :value="`${(poemCounts.songshi || 0).toLocaleString()}`"
+          :prefix-icon="SchoolOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
-          label="加载进度"
-          :value="`${Math.round((loadedChunksCount / (totalChunksCount || 1)) * 100)}%`"
-          trend="up"
-          :prefix-icon="PersonOutline"
+          label="宋词数量"
+          :value="`${(poemCounts.songci || 0).toLocaleString()}`"
+          :prefix-icon="MusicalNotesOutline"
         />
       </NGridItem>
     </NGrid>
@@ -244,9 +318,14 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
       title="加载诗词数据"
       :hint="loadingHint"
       :stats="[
-        { label: '已收录诗词', value: globalTotal.toLocaleString() + ' 首' },
-        { label: '当前显示', value: poems.length.toLocaleString() + ' 首' }
+        { label: '已加载诗词', value: displayTotal.toLocaleString() + ' 首' },
+        { label: '已加载唐诗', value: displayTangshi.toLocaleString() + ' 首' },
+        { label: '已加载宋诗', value: displaySongshi.toLocaleString() + ' 首' },
+        { label: '已加载宋词', value: displaySongci.toLocaleString() + ' 首' },
       ]"
+
+
+
       @pause="chunkLoader.pause"
       @resume="chunkLoader.resume"
     />
@@ -473,20 +552,38 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
 
 @media (max-width: 768px) {
   .poems-view {
-    padding: 16px;
+    padding: 12px;
   }
 
   .poems-grid {
     grid-template-columns: 1fr;
   }
 
-  .filters-section :deep(.n-space) {
-    flex-wrap: wrap;
+  .filters-section {
+    gap: 8px;
+    padding: 12px;
   }
 
-  .filters-section .n-select,
-  .filters-section .n-input {
-    width: 100% !important;
+  .filters-section :deep(.n-space) {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .filters-section :deep(.n-select),
+  .filters-section :deep(.n-input) {
+    flex: 1 1 calc(50% - 4px) !important;
+    min-width: calc(50% - 4px) !important;
+  }
+
+  .filters-section :deep(.n-input) {
+    flex: 1 1 100% !important;
+    min-width: 100% !important;
+  }
+
+  .filters-section :deep(.n-button) {
+    flex: 0 0 auto;
   }
 }
 </style>

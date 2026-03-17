@@ -50,6 +50,8 @@ onUnmounted(() => {
 const menuOptions = [
   { label: '诗词宝库', key: 'poems', path: '/poems', icon: BookIcon },
   { label: '高产文人', key: 'authors', path: '/authors', icon: PeopleIcon },
+  { label: '词频统计', key: 'word-count', path: '/word-count', icon: StatsIcon },
+  // { label: '词义相似度', key: 'word-sim', path: '/word-sim', icon: StatsIcon },
   { label: '数据管理', key: 'data', path: '/data', icon: DataIcon },
   { label: '组件测试', key: 'test', path: '/test', icon: TestIcon },
   { label: '布局测试', key: 'components-demo', path: '/components-demo', icon: TestIcon },

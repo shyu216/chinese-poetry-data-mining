@@ -39,6 +39,11 @@ export interface PoemsIndexMeta {
 export interface PoemsIndexStats {
   dynasties: string[]
   genres: string[]
+  counts: {
+    songshi: number
+    songci: number
+    tangshi: number
+  }
 }
 
 export interface PoemsIndex {

@@ -34,6 +34,7 @@ export function usePoemsV2() {
   const totalChunks = computed(() => poemsIndex.value?.metadata?.chunks || 0)
   const dynasties = computed(() => poemsIndex.value?.stats?.dynasties || [])
   const genres = computed(() => poemsIndex.value?.stats?.genres || [])
+  const poemCounts = computed(() => poemsIndex.value?.stats?.counts || { songshi: 0, songci: 0, tangshi: 0 })
 
   const loadedChunkCount = computed(() => loadedChunkIds.value.length)
 
@@ -297,6 +298,7 @@ export function usePoemsV2() {
     loadedChunkCount,
     dynasties,
     genres,
+    poemCounts,
     indexLoading,
     loadMetadata,
     loadChunkSummaries,

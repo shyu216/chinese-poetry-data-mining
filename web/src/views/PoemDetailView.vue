@@ -54,6 +54,10 @@ const goToAuthor = (author: string) => {
   router.push(`/authors/${encodeURIComponent(author)}`)
 }
 
+const goToKeyword = (word: string) => {
+  router.push(`/keyword/${encodeURIComponent(word)}`)
+}
+
 const copyPoem = () => {
   if (!poem.value) return
   const text = `${poem.value.title}\n${poem.value.author}〔${poem.value.dynasty}〕\n\n${poem.value.sentences.join('\n')}`
@@ -189,6 +193,7 @@ const getDynastyConfig = (dynasty: string) => {
               size="medium"
               :bordered="false"
               class="word-tag"
+              @click="goToKeyword(word)"
             >
               {{ word }}
             </NTag>
@@ -327,6 +332,7 @@ const getDynastyConfig = (dynasty: string) => {
 }
 
 .word-tag {
+  cursor: pointer;
   transition: all 0.2s ease;
   background: rgba(139, 38, 53, 0.08);
   color: #8b2635;

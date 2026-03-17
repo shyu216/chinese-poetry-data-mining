@@ -30,6 +30,21 @@ const router = createRouter({
       component: () => import('@/views/PoemDetailView.vue')
     },
     {
+      path: '/word-count',
+      name: 'word-count',
+      component: () => import('@/views/WordCountView.vue')
+    },
+    {
+      path: '/keyword/:word',
+      name: 'keyword-detail',
+      component: () => import('@/views/KeywordDetailView.vue')
+    },
+    {
+      path: '/word-sim',
+      name: 'word-sim',
+      component: () => import('@/views/WordSimView.vue')
+    },
+    {
       path: '/data',
       name: 'data',
       component: () => import('@/views/DataDashboardView.vue')

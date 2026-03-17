@@ -109,11 +109,18 @@ export function useWordSimilarityV2() {
     const bb = new flatbuffers.ByteBuffer(buffer)
 
     const WordSimilarityFile = (await import('@/generated/word-similarity/word-similarity-file')).WordSimilarityFile
-    if (!WordSimilarityFile.bufferHasIdentifier(bb)) {
-      throw new Error('Invalid WRSV file: wrong identifier')
+    
+    let file
+    try {
+      if (WordSimilarityFile.bufferHasIdentifier(bb)) {
+        file = WordSimilarityFile.getRootAsWordSimilarityFile(bb)
+      } else {
+        bb.setPosition(0)
+        file = WordSimilarityFile.getRootAsWordSimilarityFile(bb)
+      }
+    } catch (e) {
+      throw new Error(`Invalid WRSV file: ${e}`)
     }
-
-    const file = WordSimilarityFile.getRootAsWordSimilarityFile(bb)
 
     const vocab: string[] = []
     for (let i = 0; i < file.vocabLength(); i++) {
@@ -315,6 +322,7 @@ export function useWordSimilarityV2() {
     loading,
     error,
     loadMetadata,
+    loadChunk,
     loadVocab,
     initialize,
     hasWord,
