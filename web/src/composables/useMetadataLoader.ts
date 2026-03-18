@@ -154,6 +154,7 @@ export const AUTHORS_STORAGE = 'authors-v2'
 export const WORDCOUNT_STORAGE = 'wordcount-v2'
 export const WORD_SIMILARITY_STORAGE = 'word-similarity-v2'
 export const POEM_INDEX_STORAGE = 'poem-index-v2'
+export const KEYWORD_INDEX_STORAGE = 'keyword-index-v2'
 
 export function getChunkUrl(basePath: string, chunkId: number, padding = 4): string {
   const paddedId = chunkId.toString().padStart(padding, '0')

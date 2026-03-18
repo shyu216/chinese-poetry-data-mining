@@ -133,6 +133,7 @@ export interface WordCountQueryResult {
 
 export interface WordSimilarityData {
   word: string
+  /** FastText 内部索引值，非真实词频 */
   frequency: number
   similarWords: Array<{
     word: string
@@ -143,6 +144,7 @@ export interface WordSimilarityData {
 export interface SimilarWordResult {
   word: string
   similarity: number
+  /** FastText 内部索引值，非真实词频 */
   frequency: number
 }
 

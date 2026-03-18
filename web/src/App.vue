@@ -48,10 +48,11 @@ onUnmounted(() => {
 })
 
 const menuOptions = [
+  { label: '诗词检索', key: 'poems-search', path: '/poems-search', icon: BookIcon },
   { label: '诗词宝库', key: 'poems', path: '/poems', icon: BookIcon },
   { label: '高产文人', key: 'authors', path: '/authors', icon: PeopleIcon },
   { label: '词频统计', key: 'word-count', path: '/word-count', icon: StatsIcon },
-  // { label: '词义相似度', key: 'word-sim', path: '/word-sim', icon: StatsIcon },
+  { label: '词义相似度', key: 'word-sim', path: '/word-sim', icon: StatsIcon },
   { label: '数据管理', key: 'data', path: '/data', icon: DataIcon },
   { label: '读取测试', key: 'test', path: '/test', icon: TestIcon },
   { label: '组件演示', key: 'components-demo', path: '/components-demo', icon: TestIcon },
@@ -115,7 +116,7 @@ const themeOverrides = {
                 :key="item.key"
                 :to="item.path"
                 class="nav-item"
-                :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path) && item.path !== '/') }"
+                :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path + '/') && item.path !== '/') }"
                 @click="isMobile && (mobileMenuOpen = false)"
               >
                 <component :is="item.icon" class="nav-icon" />

@@ -1,6 +1,5 @@
 import { ref, shallowRef, computed, type Ref } from 'vue'
-
-const KEYWORD_INDEX_STORAGE = 'keyword-index-v2'
+import { KEYWORD_INDEX_STORAGE } from './useMetadataLoader'
 
 interface KeywordIndexMeta {
   total_chunks: number
@@ -115,7 +114,7 @@ function hashKeyword(keyword: string): number {
   for (let i = 0; i < keyword.length; i++) {
     const char = keyword.charCodeAt(i)
     hash = ((hash << 5) - hash) + char
-    hash = hash & hash
+    hash = hash & 0xFFFFFFFF // 限制为32位整数
   }
   return Math.abs(hash)
 }

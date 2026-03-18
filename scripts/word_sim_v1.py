@@ -65,7 +65,7 @@ def find_similar_words(model: FastText, vocab_items, threshold=SIMILARITY_THRESH
     results = []
     total = len(vocab_items)
 
-    for idx, (word, freq) in enumerate(vocab_items, 1):
+    for idx, (word, word_index) in enumerate(vocab_items, 1):
         if idx % 10000 == 0:
             print(f"  进度: [{idx}/{total}]")
 
@@ -80,7 +80,7 @@ def find_similar_words(model: FastText, vocab_items, threshold=SIMILARITY_THRESH
             if similar_words:
                 results.append({
                     "word": word,
-                    "frequency": freq,
+                    "frequency": word_index,  # FastText 内部索引，非真实词频
                     "similar_words": similar_words
                 })
 

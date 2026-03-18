@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import {
   NCard, NSpin, NEmpty, NInput, NSpace, NTag,
   NButton, NPagination, NGrid, NGridItem, NProgress
@@ -19,10 +19,12 @@ import PageHeader from '@/components/PageHeader.vue'
 import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
+import WordCloud from '@/components/WordCloud.vue'
 import { SearchContainer } from '@/components/search'
 
 const wordcountV2 = useWordcountV2()
 const router = useRouter()
+const route = useRoute()
 const wordcountMeta = useWordcountMetadata()
 const chunkLoader = useChunkLoader()
 
@@ -247,10 +249,45 @@ const goToKeyword = (word: string) => {
   router.push(`/keyword/${encodeURIComponent(word)}`)
 }
 
+const goToWordSim = (word: string) => {
+  router.push(`/word-sim?word=${encodeURIComponent(word)}`)
+}
+
+const MIN_WORD_COUNT = 5
+
+const isRareWord = (count: number) => count < MIN_WORD_COUNT
+
 const isLoading = computed(() => (chunkLoader.isLoading.value && loadedWords.value.length === 0))
 
-onMounted(() => {
-  loadData()
+const wordcloudWords = computed(() => {
+  let result = loadedWords.value
+
+  if (lengthFilter.value) {
+    if (lengthFilter.value === '5+') {
+      result = result.filter(w => w.word.length >= 5)
+    } else {
+      const len = parseInt(lengthFilter.value)
+      result = result.filter(w => w.word.length === len)
+    }
+  }
+
+  return result.slice(0, 100)
+})
+
+const isWordCloudReady = computed(() => loadedWords.value.length > 0 && !chunkLoader.isLoading.value)
+
+const handleWordCloudClick = (word: WordCountItem) => {
+  goToKeyword(word.word)
+}
+
+onMounted(async () => {
+  await loadData()
+  
+  const queryWord = route.query.word as string
+  if (queryWord) {
+    searchQuery.value = queryWord
+    await performSearch()
+  }
 })
 
 watch(searchQuery, () => {
@@ -320,6 +357,16 @@ watch(lengthFilter, () => {
       @resume="chunkLoader.resume"
     />
 
+    <WordCloud
+      v-if="isWordCloudReady"
+      :words="wordcloudWords"
+      :max-words="80"
+      :width="700"
+      :height="350"
+      :loading="chunkLoader.isLoading.value"
+      @click="handleWordCloudClick"
+    />
+
     <SearchContainer
       v-model="searchQuery"
       placeholder="搜索词汇..."
@@ -363,7 +410,6 @@ watch(lengthFilter, () => {
             v-for="word in paginatedWords"
             :key="word.rank"
             class="word-card"
-            @click="goToKeyword(word.word)"
           >
             <div class="rank-badge" :class="{ 'top-ten': word.rank <= 10 }">
               {{ word.rank }}
@@ -375,6 +421,34 @@ watch(lengthFilter, () => {
                   {{ word.count.toLocaleString() }} 次
                 </NTag>
               </div>
+            </div>
+            <div class="word-actions">
+              <NButton
+                v-if="!isRareWord(word.count)"
+                type="info"
+                size="small"
+                quaternary
+                @click.stop="goToWordSim(word.word)"
+              >
+                词境
+              </NButton>
+              <NButton
+                v-else
+                type="default"
+                size="small"
+                quaternary
+                disabled
+              >
+                少见词
+              </NButton>
+              <NButton
+                type="primary"
+                size="small"
+                quaternary
+                @click.stop="goToKeyword(word.word)"
+              >
+                诗词
+              </NButton>
             </div>
           </div>
         </div>
@@ -477,6 +551,12 @@ watch(lengthFilter, () => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.word-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .pagination-wrapper {

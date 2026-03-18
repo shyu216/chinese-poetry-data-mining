@@ -9,8 +9,8 @@ table SimilarWord {
 }
 
 table WordEntry {
-  word_id: int;
-  frequency: int;
+  word_id: int;           // 词在词表中的索引 ID (非词频!)
+  frequency: int;        // FastText 内部索引 (非真实词频!)
   similar_words: [SimilarWord];
 }
 

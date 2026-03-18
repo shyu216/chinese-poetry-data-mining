@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import {
   NCard, NSpin, NEmpty, NInput, NSpace, NTag,
   NButton, NGrid, NGridItem, NPagination
@@ -11,7 +12,7 @@ import {
 import { useWordSimilarityV2 } from '@/composables/useWordSimilarityV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { useWordSimilarityMetadata, WORD_SIMILARITY_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata, getCache } from '@/composables/useCacheV2'
+import { getMetadata, getCache, getChunkedCache } from '@/composables/useCacheV2'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
@@ -20,6 +21,7 @@ import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
 interface WordItem {
   word: string
   wordId: number
+  /** FastText 内部索引值，非真实词频 */
   frequency: number
   loaded: boolean
   similarWords: Array<{ word: string; similarity: number }>
@@ -28,6 +30,8 @@ interface WordItem {
 const wordSimV2 = useWordSimilarityV2()
 const wordSimMeta = useWordSimilarityMetadata()
 const chunkLoader = useChunkLoader()
+const route = useRoute()
+const router = useRouter()
 
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -85,28 +89,13 @@ const totalPages = computed(() => Math.ceil(displayWords.value.length / pageSize
 const globalTotalWords = computed(() => wordSimV2.vocabSize.value || 0)
 const globalTotalChunks = computed(() => wordSimV2.totalChunks.value || 0)
 
-const topWord = computed(() => {
-  if (loadedWords.value.length === 0) return '-'
-  const sorted = [...loadedWords.value].sort((a, b) => b.frequency - a.frequency)
-  return sorted[0]?.word || '-'
-})
-
-const topFrequency = computed(() => {
-  if (loadedWords.value.length === 0) return 0
-  const sorted = [...loadedWords.value].sort((a, b) => b.frequency - a.frequency)
-  return sorted[0]?.frequency || 0
-})
-
 const longestWord = computed(() => {
   if (loadedWords.value.length === 0) return '-'
-  const totalWeightedLength = loadedWords.value.reduce(
-    (sum, w) => sum + w.word.length * w.frequency, 0
-  )
-  const totalFreq = loadedWords.value.reduce(
-    (sum, w) => sum + w.frequency, 0
-  )
-  const avgLength = totalFreq > 0 ? (totalWeightedLength / totalFreq).toFixed(2) : '0'
-  return avgLength
+  const first = loadedWords.value[0]
+  if (!first) return '-'
+  const longest = loadedWords.value.reduce((max, w) => 
+    w.word.length > max.word.length ? w : max, first)
+  return longest.word.length.toFixed(2)
 })
 
 const loadedChunksCount = computed(() => cachedChunksCount.value + chunkLoader.loadedCount.value)
@@ -131,18 +120,25 @@ const loadCachedChunks = async (): Promise<number[]> => {
 
   cachedChunksCount.value = loadedChunkIds.length
 
-  const vocabMap = vocab!
-  const wordsArray: WordItem[] = Object.entries(vocabMap).map(([word, wordId]) => ({
-    word,
-    wordId: wordId as number,
-    frequency: 0,
-    loaded: false,
-    similarWords: []
-  }))
-
-  if (wordsArray.length > 0) {
-    loadedWords.value = wordsArray.sort((a, b) => a.wordId - b.wordId)
-    totalWords.value = wordsArray.length
+  const vocabReverseMap = wordSimV2.getVocabReverseMap()
+  for (const chunkId of loadedChunkIds) {
+    const cached = await getChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
+    if (cached) {
+      const entries = new Map(cached.entries)
+      for (const [wordId, entry] of entries) {
+        const word = vocabReverseMap.get(wordId) || ''
+        loadedWords.value.push({
+          word,
+          wordId,
+          frequency: entry.frequency,
+          loaded: true,
+          similarWords: entry.similarWords.slice(0, 5).map(sw => ({
+            word: vocabReverseMap.get(sw.wordId) || '',
+            similarity: sw.similarity
+          }))
+        })
+      }
+    }
   }
 
   return loadedChunkIds
@@ -171,26 +167,41 @@ const loadData = async () => {
     await chunkLoader.loadChunks(unloadedChunkIds, wordSimV2.loadChunk, {
       chunkDelay: 100,
       onChunkLoaded: (_, chunk: any) => {
-        const vocab = chunk.vocab as string[]
+        const vocabReverseMap = wordSimV2.getVocabReverseMap()
         const entries = chunk.entries as Map<number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }>
         
         for (const [wordId, entry] of entries) {
-          const wordIndex = loadedWords.value.findIndex(w => w.wordId === wordId)
-          if (wordIndex !== -1) {
-            const existingWord = loadedWords.value[wordIndex]
-            loadedWords.value[wordIndex] = {
-              word: existingWord?.word || '',
-              wordId: existingWord?.wordId || 0,
+          const existingWord = loadedWords.value.find(w => w.wordId === wordId)
+          if (!existingWord) {
+            const word = vocabReverseMap.get(wordId) || ''
+            loadedWords.value.push({
+              word,
+              wordId,
               frequency: entry.frequency,
               loaded: true,
               similarWords: entry.similarWords.slice(0, 5).map(sw => ({
-                word: vocab[sw.wordId] || '',
+                word: vocabReverseMap.get(sw.wordId) || '',
                 similarity: sw.similarity
               }))
-            }
+            })
+          } else {
+            const word = vocabReverseMap.get(wordId) || existingWord.word
+            loadedWords.value = loadedWords.value.map(w => 
+              w.wordId === wordId 
+                ? { 
+                    ...w, 
+                    word, 
+                    frequency: entry.frequency, 
+                    loaded: true,
+                    similarWords: entry.similarWords.slice(0, 5).map(sw => ({
+                      word: vocabReverseMap.get(sw.wordId) || '',
+                      similarity: sw.similarity
+                    }))
+                  } 
+                : w
+            )
           }
         }
-        totalWords.value = loadedWords.value.length
       },
       onComplete: () => {
         hasMoreChunks.value = false
@@ -233,8 +244,19 @@ const getSimilarityPercent = (similarity: number) => {
   return Math.round(similarity * 100)
 }
 
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  await loadData()
+  
+  const queryWord = route.query.word as string
+  if (queryWord) {
+    searchQuery.value = queryWord
+    
+    await wordSimV2.hasWord(queryWord).then(hasWord => {
+      if (!hasWord) {
+        console.warn(`[WordSimView] 词汇 "${queryWord}" 不存在于词境数据中`)
+      }
+    })
+  }
 })
 
 watch(searchQuery, () => {
@@ -250,36 +272,21 @@ watch(lengthFilter, () => {
   <div class="wordsim-view">
     <PageHeader
       title="词境探索"
-      :subtitle="`收录 ${globalTotalWords.toLocaleString()} 个词汇，探索词语间的相似关系`"
+      :subtitle="`探索词语间的相似关系，已加载 ${loadedWords.length.toLocaleString()} 个词汇`"
       :icon="GitNetworkOutline"
     />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
       <NGridItem>
         <StatsCard
-          label="总收录词汇"
-          :value="globalTotalWords.toLocaleString()"
+          label="已加载词汇"
+          :value="loadedWords.length.toLocaleString()"
           :prefix-icon="LibraryOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
-          label="最高频词"
-          :value="topWord"
-          :prefix-icon="TextOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="最高词频"
-          :value="topFrequency.toLocaleString()"
-          suffix="次"
-          :prefix-icon="StarOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="加权平均长度"
+          label="最长词"
           :value="longestWord"
           :prefix-icon="ResizeOutline"
         />
@@ -334,6 +341,14 @@ watch(lengthFilter, () => {
           搜索
         </NButton>
         <NButton
+          v-if="searchQuery"
+          type="info"
+          size="medium"
+          @click="router.push(`/word-count?word=${encodeURIComponent(searchQuery)}`)"
+        >
+          词频
+        </NButton>
+        <NButton
           v-if="searchQuery || lengthFilter"
           size="medium"
           @click="clearFilters"
@@ -365,17 +380,17 @@ watch(lengthFilter, () => {
             :key="word.wordId"
             class="word-card"
           >
-            <div class="rank-badge" :class="{ 'top-ten': word.loaded && word.frequency > 0 }">
-              {{ word.wordId }}
-            </div>
             <div class="word-info">
               <h3 class="word-text">{{ word.word }}</h3>
               <div class="word-stats">
-                <NTag v-if="word.loaded" type="primary" size="small">
-                  {{ word.frequency.toLocaleString() }} 次
+                <NTag v-if="word.similarWords.length > 0" type="primary" size="small">
+                  {{ word.similarWords.length }} 个相似词
+                </NTag>
+                <NTag v-else-if="word.loaded" type="warning" size="small">
+                  无相似词
                 </NTag>
                 <NTag v-else type="default" size="small">
-                  未加载
+                  少见词
                 </NTag>
               </div>
               <div v-if="word.similarWords.length > 0" class="similar-words">

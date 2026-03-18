@@ -42,7 +42,7 @@ const statusType = computed(() => {
 </script>
 
 <template>
-  <NCard class="chunk-loader-status" :class="{ 'is-loading': isLoading, 'is-paused': isPaused }">
+  <NCard v-if="props.isLoading" class="chunk-loader-status" :class="{ 'is-loading': isLoading, 'is-paused': isPaused }">
     <div class="loader-header">
       <div class="loader-title">
         <span class="title-text">{{ title }}</span>

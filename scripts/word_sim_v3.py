@@ -198,7 +198,7 @@ def process_and_save_chunk(chunk_data, vocab_builder, threshold, output_path):
     filtered_data = []
     for item in chunk_data:
         word = item[0]
-        freq = item[1]
+        word_index = item[1]  # FastText 内部索引，非真实词频
         similar_words = item[2]
 
         # 过滤相似度
@@ -215,7 +215,7 @@ def process_and_save_chunk(chunk_data, vocab_builder, threshold, output_path):
             sw_id = vocab_builder.get_or_add(sw_word)
             similar_with_ids.append((sw_id, sw_sim))
 
-        filtered_data.append((word_id, freq, similar_with_ids))
+        filtered_data.append((word_id, word_index, similar_with_ids))
 
     if not filtered_data:
         return 0
@@ -224,7 +224,7 @@ def process_and_save_chunk(chunk_data, vocab_builder, threshold, output_path):
     builder = flatbuffers.Builder(1024 * 1024 * 50)
 
     entries = []
-    for word_id, freq, similar_words in filtered_data:
+    for word_id, word_index, similar_words in filtered_data:
         similar_offsets = []
         for sw_id, sw_sim in similar_words:
             sw_sim_int = int(sw_sim * 10000)
@@ -241,7 +241,7 @@ def process_and_save_chunk(chunk_data, vocab_builder, threshold, output_path):
 
         WordEntryStart(builder)
         WordEntryAddWordId(builder, word_id)
-        WordEntryAddFrequency(builder, freq)
+        WordEntryAddFrequency(builder, word_index)  # 存储 FastText 内部索引
         WordEntryAddSimilarWords(builder, similar_vec)
         entries.append(WordEntryEnd(builder))
 

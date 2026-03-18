@@ -7,6 +7,7 @@ import { getCache, setCache, getChunkedCache, setChunkedCache, getMetadata, setM
 interface WordSimilarityChunk {
   vocab: string[]
   entries: Map<number, {
+    /** FastText 内部索引，非真实词频 */
     frequency: number
     similarWords: Array<{ wordId: number; similarity: number }>
   }>
@@ -348,6 +349,7 @@ export function useWordSimilarityV2() {
     searchSimilarWords,
     getLoadedChunkCount,
     preloadChunks,
-    clearCache
+    clearCache,
+    getVocabReverseMap: () => vocabReverseCache.value
   }
 }
