@@ -3,16 +3,18 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   NCard, NSpin, NEmpty, NInput, NSpace, NTag,
-  NButton, NPagination, NGrid, NGridItem, NProgress
+  NButton, NPagination, NGrid, NGridItem, NProgress, NSelect
 } from 'naive-ui'
 import {
-  SearchOutline, TextOutline, TrendingUpOutline,
-  LibraryOutline, StarOutline, ResizeOutline
+  TextOutline,
+  LibraryOutline, StarOutline, ResizeOutline, GitNetworkOutline
 } from '@vicons/ionicons5'
 import { useWordcountV2 } from '@/composables/useWordcountV2'
+import { useWordSimilarityV2 } from '@/composables/useWordSimilarityV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { useWordcountMetadata, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
+import { useWordSimilarityMetadata, WORD_SIMILARITY_STORAGE } from '@/composables/useMetadataLoader'
+import { getMetadata, getCache, getChunkedCache } from '@/composables/useCacheV2'
 import { useWordSearch } from '@/search'
 import type { WordCountItem } from '@/composables/types'
 import PageHeader from '@/components/PageHeader.vue'
@@ -23,10 +25,13 @@ import WordCloud from '@/components/WordCloud.vue'
 import { SearchContainer } from '@/components/search'
 
 const wordcountV2 = useWordcountV2()
+const wordSimV2 = useWordSimilarityV2()
 const router = useRouter()
 const route = useRoute()
 const wordcountMeta = useWordcountMetadata()
+const wordSimMeta = useWordSimilarityMetadata()
 const chunkLoader = useChunkLoader()
+const wordSimChunkLoader = useChunkLoader()
 
 // 新的词汇搜索模块
 const { search: searchWords, isReady: wordSearchReady } = useWordSearch()
@@ -43,6 +48,21 @@ const cachedChunksCount = ref(0)
 const totalWords = ref(0)
 const totalChunks = ref(0)
 const lengthFilter = ref<string | null>(null)
+
+// 词境模块数据
+interface WordSimItem {
+  word: string
+  wordId: number
+  frequency: number
+  loaded: boolean
+  similarWords: Array<{ word: string; similarity: number }>
+}
+
+const loadedWordSimWords = ref<WordSimItem[]>([])
+const wordSimCachedChunksCount = ref(0)
+const wordSimTotalChunks = ref(0)
+const isWordSimInitializing = ref(true)
+const wordSimHasMoreChunks = ref(true)
 
 const lengthOptions = [
   { label: '全部长度', value: '' },
@@ -132,6 +152,7 @@ const paginatedWords = computed(() => {
   return displayWords.value.slice(start, end)
 })
 
+// 合并后的统计计算属性
 const globalTotalWords = computed(() => wordcountV2.totalWords.value || 0)
 const globalTotalChunks = computed(() => wordcountV2.totalChunks.value || 0)
 
@@ -145,7 +166,7 @@ const topCount = computed(() => {
   return loadedWords.value[0]?.count || 0
 })
 
-const longestWord = computed(() => {
+const avgWordLength = computed(() => {
   if (loadedWords.value.length === 0) return '-'
   const totalWeightedLength = loadedWords.value.reduce(
     (sum, w) => sum + w.word.length * w.count, 0
@@ -153,9 +174,11 @@ const longestWord = computed(() => {
   const totalCount = loadedWords.value.reduce(
     (sum, w) => sum + w.count, 0
   )
-  const avgLength = totalCount > 0 ? (totalWeightedLength / totalCount).toFixed(2) : '0'
-  return avgLength
+  return totalCount > 0 ? (totalWeightedLength / totalCount).toFixed(2) : '0'
 })
+
+// 词境统计
+const wordSimTotalWords = computed(() => wordSimV2.vocabSize.value || 0)
 
 const loadedChunksCount = computed(() => cachedChunksCount.value + chunkLoader.loadedCount.value)
 const hasMoreToLoad = computed(() => loadedChunksCount.value < totalChunks.value)
@@ -249,13 +272,146 @@ const goToKeyword = (word: string) => {
   router.push(`/keyword/${encodeURIComponent(word)}`)
 }
 
-const goToWordSim = (word: string) => {
-  router.push(`/word-sim?word=${encodeURIComponent(word)}`)
+// 词境模块加载函数
+const loadWordSimCachedChunks = async (): Promise<number[]> => {
+  const vocab = await getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab')
+
+  if (!vocab || Object.keys(vocab).length === 0) {
+    return []
+  }
+
+  const meta = await getMetadata(WORD_SIMILARITY_STORAGE)
+  const loadedChunkIds = meta?.loadedChunkIds || []
+
+  wordSimCachedChunksCount.value = loadedChunkIds.length
+
+  const vocabReverseMap = wordSimV2.getVocabReverseMap()
+  for (const chunkId of loadedChunkIds) {
+    const cached = await getChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
+    if (cached) {
+      const entries = new Map(cached.entries)
+      for (const [wordId, entry] of entries) {
+        const word = vocabReverseMap.get(wordId) || ''
+        loadedWordSimWords.value.push({
+          word,
+          wordId,
+          frequency: entry.frequency,
+          loaded: true,
+          similarWords: entry.similarWords.slice(0, 5).map(sw => ({
+            word: vocabReverseMap.get(sw.wordId) || '',
+            similarity: sw.similarity
+          }))
+        })
+      }
+    }
+  }
+
+  return loadedChunkIds
 }
 
-const MIN_WORD_COUNT = 5
+const loadWordSimData = async () => {
+  isWordSimInitializing.value = true
+  try {
+    await wordSimMeta.loadMetadata()
+    const totalChunksCount = wordSimV2.totalChunks.value || 0
+    wordSimTotalChunks.value = totalChunksCount
 
-const isRareWord = (count: number) => count < MIN_WORD_COUNT
+    await wordSimV2.loadVocab()
+
+    const loadedChunkIds = await loadWordSimCachedChunks()
+
+    const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
+    const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
+
+    if (unloadedChunkIds.length === 0) {
+      wordSimHasMoreChunks.value = false
+      return
+    }
+
+    await wordSimChunkLoader.loadChunks(unloadedChunkIds, wordSimV2.loadChunk, {
+      chunkDelay: 100,
+      onChunkLoaded: (_, chunk: any) => {
+        const vocabReverseMap = wordSimV2.getVocabReverseMap()
+        const entries = chunk.entries as Map<number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }>
+
+        for (const [wordId, entry] of entries) {
+          const existingWord = loadedWordSimWords.value.find(w => w.wordId === wordId)
+          if (!existingWord) {
+            const word = vocabReverseMap.get(wordId) || ''
+            loadedWordSimWords.value.push({
+              word,
+              wordId,
+              frequency: entry.frequency,
+              loaded: true,
+              similarWords: entry.similarWords.slice(0, 5).map(sw => ({
+                word: vocabReverseMap.get(sw.wordId) || '',
+                similarity: sw.similarity
+              }))
+            })
+          } else {
+            const word = vocabReverseMap.get(wordId) || existingWord.word
+            loadedWordSimWords.value = loadedWordSimWords.value.map(w =>
+              w.wordId === wordId
+                ? {
+                    ...w,
+                    word,
+                    frequency: entry.frequency,
+                    loaded: true,
+                    similarWords: entry.similarWords.slice(0, 5).map(sw => ({
+                      word: vocabReverseMap.get(sw.wordId) || '',
+                      similarity: sw.similarity
+                    }))
+                  }
+                : w
+            )
+          }
+        }
+      },
+      onComplete: () => {
+        wordSimHasMoreChunks.value = false
+      }
+    })
+  } finally {
+    isWordSimInitializing.value = false
+  }
+}
+
+// 词境模块计算属性
+const wordSimLoadedChunksCount = computed(() => wordSimCachedChunksCount.value + wordSimChunkLoader.loadedCount.value)
+const wordSimHasMoreToLoad = computed(() => wordSimLoadedChunksCount.value < wordSimTotalChunks.value)
+
+const wordSimLoadingHint = computed(() => {
+  const count = loadedWordSimWords.value.length
+  if (count === 0) return '🚀 正在连接...'
+  return `🔗 已加载 ${count.toLocaleString()} 个词汇...`
+})
+
+// 获取词的词境信息
+const getWordSimInfo = (word: string): { status: 'loading' | 'no-data' | 'has-data', similarWords: Array<{ word: string; similarity: number }> } => {
+  const simWord = loadedWordSimWords.value.find(w => w.word === word)
+  if (!simWord) {
+    // 如果词境数据还在加载中，返回loading状态
+    if (wordSimChunkLoader.isLoading.value || isWordSimInitializing.value) {
+      return { status: 'loading', similarWords: [] }
+    }
+    return { status: 'no-data', similarWords: [] }
+  }
+  if (simWord.similarWords.length === 0) {
+    return { status: 'no-data', similarWords: [] }
+  }
+  return { status: 'has-data', similarWords: simWord.similarWords }
+}
+
+const getSimilarityColor = (similarity: number) => {
+  if (similarity >= 0.9) return 'success'
+  if (similarity >= 0.7) return 'warning'
+  if (similarity >= 0.5) return 'info'
+  return 'default'
+}
+
+const getSimilarityPercent = (similarity: number) => {
+  return Math.round(similarity * 100)
+}
 
 const isLoading = computed(() => (chunkLoader.isLoading.value && loadedWords.value.length === 0))
 
@@ -282,7 +438,10 @@ const handleWordCloudClick = (word: WordCountItem) => {
 
 onMounted(async () => {
   await loadData()
-  
+
+  // 同时加载词境数据
+  loadWordSimData()
+
   const queryWord = route.query.word as string
   if (queryWord) {
     searchQuery.value = queryWord
@@ -311,21 +470,21 @@ watch(lengthFilter, () => {
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
       <NGridItem>
         <StatsCard
-          label="总收录词汇"
+          label="总收录词"
           :value="globalTotalWords.toLocaleString()"
           :prefix-icon="LibraryOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
-          label="最高频词"
-          :value="topWord"
-          :prefix-icon="TrendingUpOutline"
+          label="高频词"
+          :value="wordSimTotalWords.toLocaleString()"
+          :prefix-icon="GitNetworkOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
-          label="最高次数"
+          label="最高频率"
           :value="topCount.toLocaleString()"
           suffix="次"
           :prefix-icon="StarOutline"
@@ -333,8 +492,8 @@ watch(lengthFilter, () => {
       </NGridItem>
       <NGridItem>
         <StatsCard
-          label="加权平均长度"
-          :value="longestWord"
+          label="平均长度"
+          :value="avgWordLength"
           :prefix-icon="ResizeOutline"
         />
       </NGridItem>
@@ -355,6 +514,23 @@ watch(lengthFilter, () => {
       ]"
       @pause="chunkLoader.pause"
       @resume="chunkLoader.resume"
+    />
+
+    <ChunkLoaderStatus
+      v-if="wordSimChunkLoader.isLoading.value || wordSimCachedChunksCount > 0"
+      :is-loading="wordSimChunkLoader.isLoading.value"
+      :is-paused="wordSimChunkLoader.isPaused.value"
+      :progress="Math.round((wordSimLoadedChunksCount / (wordSimTotalChunks || 1)) * 100)"
+      :loaded-count="wordSimLoadedChunksCount"
+      :total-count="wordSimTotalChunks"
+      title="加载词境数据"
+      :hint="wordSimLoadingHint"
+      :stats="[
+        { label: '已加载词汇', value: loadedWordSimWords.length.toLocaleString() + ' 个' },
+        { label: '缓存分块', value: wordSimCachedChunksCount.toLocaleString() + ' 个' }
+      ]"
+      @pause="wordSimChunkLoader.pause"
+      @resume="wordSimChunkLoader.resume"
     />
 
     <WordCloud
@@ -410,6 +586,7 @@ watch(lengthFilter, () => {
             v-for="word in paginatedWords"
             :key="word.rank"
             class="word-card"
+            @click="goToKeyword(word.word)"
           >
             <div class="rank-badge" :class="{ 'top-ten': word.rank <= 10 }">
               {{ word.rank }}
@@ -421,34 +598,30 @@ watch(lengthFilter, () => {
                   {{ word.count.toLocaleString() }} 次
                 </NTag>
               </div>
-            </div>
-            <div class="word-actions">
-              <NButton
-                v-if="!isRareWord(word.count)"
-                type="info"
-                size="small"
-                quaternary
-                @click.stop="goToWordSim(word.word)"
-              >
-                词境
-              </NButton>
-              <NButton
-                v-else
-                type="default"
-                size="small"
-                quaternary
-                disabled
-              >
-                少见词
-              </NButton>
-              <NButton
-                type="primary"
-                size="small"
-                quaternary
-                @click.stop="goToKeyword(word.word)"
-              >
-                诗词
-              </NButton>
+              <!-- 词境信息 -->
+              <div class="word-similarity">
+                <template v-if="getWordSimInfo(word.word).status === 'loading'">
+                  <NTag type="default" size="small" class="sim-tag loading-tag">
+                    解析中...
+                  </NTag>
+                </template>
+                <template v-else-if="getWordSimInfo(word.word).status === 'has-data'">
+                  <div class="similar-words">
+                    <NTag
+                      v-for="sw in getWordSimInfo(word.word).similarWords.slice(0, 3)"
+                      :key="sw.word"
+                      :type="getSimilarityColor(sw.similarity)"
+                      size="small"
+                      class="sim-tag"
+                    >
+                      {{ sw.word }}
+                    </NTag>
+                  </div>
+                </template>
+                <template v-else>
+                  <!-- no-data: 不显示任何内容 -->
+                </template>
+              </div>
             </div>
           </div>
         </div>
@@ -551,6 +724,28 @@ watch(lengthFilter, () => {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.word-similarity {
+  margin-top: 6px;
+  min-height: 24px;
+}
+
+.similar-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.sim-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sim-text {
+  margin-left: 4px;
 }
 
 .word-actions {

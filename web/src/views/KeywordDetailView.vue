@@ -7,7 +7,7 @@ import { useWordcountV2 } from '@/composables/useWordcountV2'
 import type { PoemSummary } from '@/composables/types'
 import {
   NCard, NSpin, NEmpty, NTag, NButton, NSpace,
-  NPageHeader, NGrid, NGridItem, NStatistic, NBackTop
+  NPageHeader, NGrid, NGridItem, NStatistic, NBackTop, NPagination
 } from 'naive-ui'
 import {
   ArrowBackOutline, SearchOutline, BookOutline,
@@ -26,6 +26,11 @@ const poems = ref<PoemSummary[]>([])
 const loading = ref(true)
 const wordRank = ref<number | null>(null)
 const wordCount = ref<number | null>(null)
+
+// 分页相关
+const page = ref(1)
+const pageSize = ref(24)
+const loadingPoems = ref(false)
 
 const totalPoems = computed(() => poemsV2.totalPoems.value)
 
@@ -52,16 +57,19 @@ const genreStats = computed(() => {
     .slice(0, 10)
 })
 
-const loadData = async () => {
-  loading.value = true
-  try {
-    poemIds.value = await keywordIndex.getKeywordPoemIds(keyword.value)
-    
-    const poemSummaries: PoemSummary[] = []
-    for (const id of poemIds.value) {
-      const poem = await poemsV2.getPoemById(id)
+// 批量加载诗词（带分页）
+const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSummary[]> => {
+  const batchSize = 50 // 每批加载50首
+  const results: PoemSummary[] = []
+
+  for (let i = 0; i < ids.length; i += batchSize) {
+    const batch = ids.slice(i, i + batchSize)
+    const batchPromises = batch.map(id => poemsV2.getPoemById(id))
+    const batchResults = await Promise.all(batchPromises)
+
+    for (const poem of batchResults) {
       if (poem) {
-        poemSummaries.push({
+        results.push({
           id: poem.id,
           title: poem.title,
           author: poem.author,
@@ -70,8 +78,59 @@ const loadData = async () => {
         })
       }
     }
-    poems.value = poemSummaries
+
+    // 只在初始加载时更新UI，避免后台加载时覆盖当前页
+    if (updateUI && i === 0 && results.length > 0) {
+      poems.value = results.slice(0, pageSize.value)
+    }
+  }
+
+  return results
+}
+
+const loadData = async () => {
+  loading.value = true
+  loadingPoems.value = true
+  poems.value = []
+  page.value = 1
+  
+  try {
+    // 1. 获取关键词对应的诗词ID列表
+    poemIds.value = await keywordIndex.getKeywordPoemIds(keyword.value)
+    console.log(`[KeywordDetail] Found ${poemIds.value.length} poems for keyword "${keyword.value}"`)
     
+    if (poemIds.value.length === 0) {
+      loading.value = false
+      loadingPoems.value = false
+      return
+    }
+    
+    // 2. 批量加载诗词（只加载第一页用于快速显示）
+    const firstPageIds = poemIds.value.slice(0, pageSize.value)
+    const firstPagePromises = firstPageIds.map(id => poemsV2.getPoemById(id))
+    const firstPageResults = await Promise.all(firstPagePromises)
+    
+    poems.value = firstPageResults
+      .filter((poem): poem is NonNullable<typeof poem> => poem !== null)
+      .map(poem => ({
+        id: poem.id,
+        title: poem.title,
+        author: poem.author,
+        dynasty: poem.dynasty,
+        genre: poem.genre
+      }))
+    
+    loading.value = false // 先显示第一页
+    
+    // 3. 后台加载剩余诗词用于统计
+    if (poemIds.value.length > pageSize.value) {
+      const remainingIds = poemIds.value.slice(pageSize.value)
+      loadRemainingPoems(remainingIds)
+    } else {
+      loadingPoems.value = false
+    }
+    
+    // 4. 获取词频统计
     const allWords = await wordcountV2.getTopWords(10000)
     const foundWord = allWords.find(w => w.word === keyword.value)
     if (foundWord) {
@@ -83,6 +142,55 @@ const loadData = async () => {
   } finally {
     loading.value = false
   }
+}
+
+// 后台加载剩余诗词
+const allPoems = ref<PoemSummary[]>([])
+const loadRemainingPoems = async (ids: string[]) => {
+  try {
+    // 后台加载，不更新UI，避免覆盖当前页
+    const remaining = await loadPoemsBatch(ids, false)
+    allPoems.value = [...poems.value, ...remaining]
+    loadingPoems.value = false
+    console.log(`[KeywordDetail] Loaded all ${allPoems.value.length} poems`)
+  } catch (e) {
+    console.error('Failed to load remaining poems:', e)
+    loadingPoems.value = false
+  }
+}
+
+// 处理分页变化
+const handlePageChange = async (newPage: number) => {
+  page.value = newPage
+  const start = (newPage - 1) * pageSize.value
+  const end = start + pageSize.value
+  
+  // 如果已经加载了所有诗词，直接从缓存取
+  if (allPoems.value.length >= poemIds.value.length) {
+    poems.value = allPoems.value.slice(start, end)
+    return
+  }
+  
+  // 否则按需加载
+  const pageIds = poemIds.value.slice(start, end)
+  const pagePromises = pageIds.map(id => poemsV2.getPoemById(id))
+  const pageResults = await Promise.all(pagePromises)
+  
+  poems.value = pageResults
+    .filter((poem): poem is NonNullable<typeof poem> => poem !== null)
+    .map(poem => ({
+      id: poem.id,
+      title: poem.title,
+      author: poem.author,
+      dynasty: poem.dynasty,
+      genre: poem.genre
+    }))
+}
+
+const handlePageSizeChange = (newSize: number) => {
+  pageSize.value = newSize
+  page.value = 1
+  handlePageChange(1)
 }
 
 const goBack = () => {
@@ -232,6 +340,9 @@ watch(keyword, () => {
         </NCard>
 
         <NCard title="包含该关键词的诗词" class="poems-card">
+          <div v-if="loadingPoems && allPoems.length === 0" class="loading-more">
+            <NSpin size="small" /> <span>正在加载诗词数据...</span>
+          </div>
           <div class="poems-list">
             <div
               v-for="poem in poems"
@@ -242,8 +353,8 @@ watch(keyword, () => {
               <div class="poem-info">
                 <h3 class="poem-title">{{ poem.title || '无题' }}</h3>
                 <div class="poem-meta">
-                  <span 
-                    class="dynasty-badge" 
+                  <span
+                    class="dynasty-badge"
                     :style="{ color: getDynastyColor(poem.dynasty) }"
                   >
                     {{ poem.dynasty || '未知' }}
@@ -254,6 +365,18 @@ watch(keyword, () => {
                 </div>
               </div>
             </div>
+          </div>
+          <div class="pagination-wrapper">
+            <NPagination
+              :page="page"
+              :page-count="Math.ceil(poemIds.length / pageSize)"
+              :page-sizes="[12, 24, 48, 96]"
+              :page-size="pageSize"
+              show-size-picker
+              show-quick-jumper
+              @update:page="handlePageChange"
+              @update:page-size="handlePageSizeChange"
+            />
           </div>
         </NCard>
       </template>
@@ -422,6 +545,24 @@ watch(keyword, () => {
 .author-link:hover {
   opacity: 0.7;
   text-decoration: underline;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+  border-top: 1px solid #f0f0f0;
+  margin-top: 16px;
+}
+
+.loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  color: #666;
+  font-size: 14px;
 }
 
 @media (max-width: 768px) {

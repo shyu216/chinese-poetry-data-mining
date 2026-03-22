@@ -21,6 +21,9 @@ import FilterSection from '@/components/FilterSection.vue'
 import StatsCard from '@/components/StatsCard.vue'
 import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
 import { SearchContainer } from '@/components/search'
+import AuthorClusterViz from '@/components/AuthorClusterViz.vue'
+import { useAuthorClusters } from '@/composables/useAuthorClusters'
+import type { AuthorNode } from '@/types/cluster'
 
 const router = useRouter()
 const {
@@ -30,6 +33,9 @@ const {
   loadMetadata,
   loadAuthorChunk
 } = useAuthorsV2()
+
+// 聚类数据
+const { clusters, authors: clusterAuthors, loading: clusterLoading } = useAuthorClusters()
 
 const chunkLoader = useChunkLoader()
 
@@ -249,6 +255,17 @@ const goToAuthorDetail = (author: AuthorStats) => {
   router.push(`/authors/${encodeURIComponent(author.author)}`)
 }
 
+// 从聚组件点击诗人跳转
+const onSelectClusterAuthor = (author: AuthorNode) => {
+  router.push(`/authors/${encodeURIComponent(author.name)}`)
+}
+
+// 从聚类组件点击流派筛选
+const onSelectCluster = (clusterId: number) => {
+  // 可以扩展为筛选显示该流派的诗人
+  console.log('Selected cluster:', clusterId)
+}
+
 onMounted(() => {
   loadData()
 })
@@ -299,6 +316,15 @@ watch(searchQuery, () => {
         />
       </NGridItem>
     </NGrid>
+    
+    <!-- 诗人聚类可视化 -->
+    <AuthorClusterViz
+      :clusters="clusters"
+      :authors="clusterAuthors"
+      :loading="clusterLoading"
+      @select-author="onSelectClusterAuthor"
+      @select-cluster="onSelectCluster"
+    />
 
     <ChunkLoaderStatus
       v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"

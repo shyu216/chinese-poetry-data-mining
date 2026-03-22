@@ -5,7 +5,12 @@
 1. 读取 results/preprocessed/poems_chunk_*.csv 文件
 2. 对每首诗进行分词统计
 3. 在每个 chunk 文件中添加 words 字段
-4. 创建关键词到诗 hash 的映射索引
+4. 创建关键词到诗 id 的映射索引
+
+重要说明:
+- 使用诗词的 UUID (id 字段) 而非 hash 字段作为索引键
+- 原因: author 数据和前端查询都使用 UUID，使用 hash 会导致无法关联
+- 必须与 author_sim_v1.py 保持一致，使用 poem_id = row.get('id', '')
 
 输入:
 - results/preprocessed/poems_chunk_*.csv
@@ -89,12 +94,15 @@ def process_poem(poem: Dict[str, str]) -> Dict[str, str]:
 
 
 def build_keyword_index(all_poems: List[Dict[str, str]]) -> Dict[str, Set[str]]:
-    """构建关键词到诗hash的索引"""
+    """构建关键词到诗 id 的索引
+    
+    注意: 使用 id (UUID) 作为索引键，以与 author 数据和前端查询保持一致
+    """
     keyword_index = defaultdict(set)
     
     for poem in all_poems:
-        poem_hash = poem.get('hash', '')
-        if not poem_hash:
+        poem_id = poem.get('id', '')  # 使用 UUID，与 author_sim_v1.py 保持一致
+        if not poem_id:
             continue
         
         try:
@@ -102,7 +110,7 @@ def build_keyword_index(all_poems: List[Dict[str, str]]) -> Dict[str, Set[str]]:
             if words_str:
                 words = words_str.split()
                 for word in words:
-                    keyword_index[word].add(poem_hash)
+                    keyword_index[word].add(poem_id)
         except Exception:
             continue
     
@@ -112,6 +120,10 @@ def build_keyword_index(all_poems: List[Dict[str, str]]) -> Dict[str, Set[str]]:
 def save_keyword_index(keyword_index: Dict[str, Set[str]], output_dir: Path, chunk_size: int = 1000):
     """保存关键词索引"""
     output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 清理旧的索引文件，避免重复或冲突
+    for old_file in output_dir.glob("keyword_*.json"):
+        old_file.unlink()
     
     keywords = sorted(keyword_index.keys())
     total_chunks = (len(keywords) + chunk_size - 1) // chunk_size

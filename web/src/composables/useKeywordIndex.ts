@@ -18,24 +18,52 @@ const loading = ref(false)
 async function loadMetadata(): Promise<KeywordIndexMeta> {
   if (isMetaInitialized.value) return metadata.value
   
-  const { getCache, getMetadata } = await import('./useCacheV2')
+  const { getCache, getMetadata, setMetadata: setCacheMetadata } = await import('./useCacheV2')
   
+  // 首先尝试从服务器获取真实的 metadata
+  try {
+    const response = await fetch(`${import.meta.env.BASE_URL}data/keyword_index/metadata.json`)
+    if (response.ok) {
+      const serverMeta = await response.json()
+      if (serverMeta?.statistics?.index_chunks) {
+        metadata.value = {
+          total_chunks: serverMeta.statistics.index_chunks,
+          loadedChunkIds: []
+        }
+        // 缓存到 IndexedDB
+        await setCacheMetadata(KEYWORD_INDEX_STORAGE, {
+          totalChunks: serverMeta.statistics.index_chunks,
+          loadedChunkIds: []
+        })
+        isMetaInitialized.value = true
+        console.log(`[KeywordIndex] Loaded metadata from server: ${serverMeta.statistics.index_chunks} chunks`)
+        return metadata.value
+      }
+    }
+  } catch (e) {
+    console.warn('[KeywordIndex] Failed to load metadata from server:', e)
+  }
+  
+  // 回退到本地缓存
   const storedMeta = await getMetadata(KEYWORD_INDEX_STORAGE)
-  if (storedMeta?.loadedChunkIds) {
+  if (storedMeta?.totalChunks) {
     metadata.value = {
-      total_chunks: storedMeta.totalChunks || 201,
+      total_chunks: storedMeta.totalChunks,
       loadedChunkIds: storedMeta.loadedChunkIds || []
     }
     loadedChunkIds.value = storedMeta.loadedChunkIds || []
     isMetaInitialized.value = true
+    console.log(`[KeywordIndex] Loaded metadata from cache: ${storedMeta.totalChunks} chunks`)
     return metadata.value
   }
   
+  // 最后的默认值
   metadata.value = {
-    total_chunks: 201,
+    total_chunks: 894, // 根据实际数据更新
     loadedChunkIds: []
   }
   isMetaInitialized.value = true
+  console.warn('[KeywordIndex] Using default metadata: 894 chunks')
   return metadata.value
 }
 
@@ -87,10 +115,30 @@ export function useKeywordIndex() {
   async function searchKeyword(keyword: string): Promise<string[]> {
     await loadMetadata()
     
-    const targetChunk = Math.floor(hashKeyword(keyword) % (metadata.value?.total_chunks || 201))
+    // 首先检查已加载的 chunk
+    for (const chunkIndex of loadedChunkIds.value) {
+      const chunkMap = keywordCache.value.get(chunkIndex)
+      if (chunkMap && chunkMap.has(keyword)) {
+        return chunkMap.get(keyword) || []
+      }
+    }
     
-    const chunkMap = await loadChunk(targetChunk)
-    return chunkMap.get(keyword) || []
+    // 遍历所有 chunk 查找关键词
+    // 注意：后端是按字母顺序分块，不是哈希分桶
+    const totalChunks = metadata.value?.total_chunks || 894
+    for (let i = 0; i < totalChunks; i++) {
+      // 跳过已检查的 chunk
+      if (loadedChunkIds.value.includes(i)) continue
+      
+      const chunkMap = await loadChunk(i)
+      if (chunkMap.has(keyword)) {
+        console.log(`[KeywordIndex] Found keyword "${keyword}" in chunk ${i}`)
+        return chunkMap.get(keyword) || []
+      }
+    }
+    
+    console.warn(`[KeywordIndex] Keyword "${keyword}" not found in any chunk`)
+    return []
   }
 
   async function getKeywordPoemIds(keyword: string): Promise<string[]> {
@@ -109,12 +157,4 @@ export function useKeywordIndex() {
   }
 }
 
-function hashKeyword(keyword: string): number {
-  let hash = 0
-  for (let i = 0; i < keyword.length; i++) {
-    const char = keyword.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & 0xFFFFFFFF // 限制为32位整数
-  }
-  return Math.abs(hash)
-}
+

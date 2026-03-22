@@ -33,43 +33,16 @@ jobs:
           # Create data directory in web/public
           mkdir -p web/public/data
 
-          # Copy only necessary data files from results to web/public/data
+          # Copy all data files from results to web/public/data
           # This avoids symlink issues between Windows and Ubuntu
-
-          # 1. Copy author chunks v2 (FlatBuffers format - needed for author browsing)
-          echo "Copying author chunks v2 (FBS format)..."
-          cp -r results/author_v2 web/public/data/
-
-          # 2. Copy preprocessed data (needed for search and poem display)
-          echo "Copying preprocessed data..."
-          cp -r results/preprocessed web/public/data/
-
-          # 3. Copy wordcount data (needed for word cloud)
-          echo "Copying wordcount data..."
-          cp -r results/wordcount_v2 web/public/data/
-
-          # 4. Copy word similarity data (needed for word similarity)
-          echo "Copying word similarity data..."
-          cp -r results/word_similarity_v3 web/public/data/
-
-          # 5. Poem search index (needed for search)
-          echo "Copying poem search index..."
-          cp -r results/poem_index web/public/data/
-
-          # 6. Copy keyword index (needed for keyword search)
-          echo "Copying keyword index..."
-          cp -r results/keyword_index web/public/data/
+          echo "Copying all data files..."
+          cp -r results/* web/public/data/
 
           # Verify data directory structure
           echo "Data directory structure:"
           find web/public/data -type d | head -20
-          echo "File counts:"
-          echo "Author chunks v2 (FBS): $(find web/public/data/author_v2 -name '*.fbs' | wc -l)"
-          echo "Preprocessed files: $(find web/public/data/preprocessed -type f | wc -l)"
-          echo "Wordcount files: $(find web/public/data/wordcount_v2 -type f | wc -l)"
-          echo "Word similarity files: $(find web/public/data/word_similarity_v3 -type f | wc -l)"
-          echo "Poem search index files: $(find web/public/data/poem_index -type f | wc -l)"
-          echo "Keyword index files: $(find web/public/data/keyword_index -type f | wc -l)"
+          echo "Total files:"
+          find web/public/data -type f | wc -l
 
       - name: Install dependencies
         working-directory: ./web

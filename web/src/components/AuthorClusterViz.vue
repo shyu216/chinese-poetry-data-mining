@@ -1,0 +1,510 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
+import { NCard, NTabs, NTabPane, NSpin, NEmpty, NTag, NSpace, NButton, NTooltip } from 'naive-ui'
+import type { AuthorCluster, AuthorNode } from '@/types/cluster'
+
+interface Props {
+  clusters: AuthorCluster[]
+  authors: AuthorNode[]
+  loading?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  loading: false
+})
+
+const emit = defineEmits<{
+  selectAuthor: [author: AuthorNode]
+  selectCluster: [clusterId: number]
+}>()
+
+const activeTab = ref('2d')
+const selectedCluster = ref<number | null>(null)
+const hoveredAuthor = ref<AuthorNode | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+
+// 画布配置
+const CANVAS_WIDTH = 800
+const CANVAS_HEIGHT = 500
+const POINT_RADIUS = 4
+const HOVER_RADIUS = 8
+
+// 计算缩放比例
+const scaleX = computed(() => {
+  if (!props.authors.length) return 1
+  const coords = props.authors.map(a => a.coord_2d[0])
+  const min = Math.min(...coords)
+  const max = Math.max(...coords)
+  return CANVAS_WIDTH / (max - min + 20) || 1
+})
+
+const scaleY = computed(() => {
+  if (!props.authors.length) return 1
+  const coords = props.authors.map(a => a.coord_2d[1])
+  const min = Math.min(...coords)
+  const max = Math.max(...coords)
+  return CANVAS_HEIGHT / (max - min + 20) || 1
+})
+
+const offsetX = computed(() => {
+  if (!props.authors.length) return 0
+  const coords = props.authors.map(a => a.coord_2d[0])
+  return -Math.min(...coords) + 10
+})
+
+const offsetY = computed(() => {
+  if (!props.authors.length) return 0
+  const coords = props.authors.map(a => a.coord_2d[1])
+  return -Math.min(...coords) + 10
+})
+
+// 转换坐标
+const transformCoord = (coord: [number, number]): [number, number] => {
+  return [
+    (coord[0] + offsetX.value) * scaleX.value,
+    (coord[1] + offsetY.value) * scaleY.value
+  ]
+}
+
+// 绘制2D散点图
+const draw2D = () => {
+  const canvas = canvasRef.value
+  if (!canvas) return
+  
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  
+  // 清空画布
+  ctx.fillStyle = '#fafafa'
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  
+  // 绘制网格
+  ctx.strokeStyle = '#e0e0e0'
+  ctx.lineWidth = 1
+  for (let i = 0; i < CANVAS_WIDTH; i += 50) {
+    ctx.beginPath()
+    ctx.moveTo(i, 0)
+    ctx.lineTo(i, CANVAS_HEIGHT)
+    ctx.stroke()
+  }
+  for (let i = 0; i < CANVAS_HEIGHT; i += 50) {
+    ctx.beginPath()
+    ctx.moveTo(0, i)
+    ctx.lineTo(CANVAS_WIDTH, i)
+    ctx.stroke()
+  }
+  
+  // 绘制聚类中心
+  props.clusters.forEach(cluster => {
+    const [x, y] = transformCoord(cluster.center_2d as [number, number])
+    ctx.beginPath()
+    ctx.arc(x, y, 15, 0, Math.PI * 2)
+    ctx.fillStyle = cluster.color + '30'
+    ctx.fill()
+    ctx.strokeStyle = cluster.color
+    ctx.lineWidth = 2
+    ctx.stroke()
+    
+    // 绘制标签
+    ctx.fillStyle = cluster.color
+    ctx.font = 'bold 12px sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(cluster.name, x, y - 20)
+    ctx.font = '10px sans-serif'
+    ctx.fillStyle = '#666'
+    ctx.fillText(`${cluster.size}人`, x, y - 8)
+  })
+  
+  // 绘制诗人点
+  props.authors.forEach(author => {
+    const [x, y] = transformCoord(author.coord_2d)
+    const cluster = props.clusters.find(c => c.id === author.cluster)
+    const color = cluster?.color || '#999'
+    
+    // 如果选中某个聚类，淡化其他聚类
+    const isDimmed = selectedCluster.value !== null && author.cluster !== selectedCluster.value
+    const alpha = isDimmed ? 0.2 : 0.8
+    
+    ctx.beginPath()
+    ctx.arc(x, y, POINT_RADIUS, 0, Math.PI * 2)
+    ctx.fillStyle = color + Math.floor(alpha * 255).toString(16).padStart(2, '0')
+    ctx.fill()
+    
+    // 高亮悬停
+    if (hoveredAuthor.value?.id === author.id) {
+      ctx.beginPath()
+      ctx.arc(x, y, HOVER_RADIUS, 0, Math.PI * 2)
+      ctx.strokeStyle = color
+      ctx.lineWidth = 2
+      ctx.stroke()
+    }
+  })
+}
+
+// 处理鼠标移动
+const handleMouseMove = (e: MouseEvent) => {
+  const canvas = canvasRef.value
+  if (!canvas) return
+  
+  const rect = canvas.getBoundingClientRect()
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+  
+  // 找到最近的诗人
+  let nearest: AuthorNode | null = null
+  let minDist = Infinity
+  
+  props.authors.forEach(author => {
+    const [x, y] = transformCoord(author.coord_2d)
+    const dist = Math.sqrt((mouseX - x) ** 2 + (mouseY - y) ** 2)
+    if (dist < HOVER_RADIUS && dist < minDist) {
+      minDist = dist
+      nearest = author
+    }
+  })
+  
+  hoveredAuthor.value = nearest
+  draw2D()
+}
+
+// 处理点击
+const handleClick = () => {
+  if (hoveredAuthor.value) {
+    emit('selectAuthor', hoveredAuthor.value)
+  }
+}
+
+// 监听数据变化
+watch(() => [props.authors, props.clusters, selectedCluster.value], () => {
+  if (activeTab.value === '2d') {
+    draw2D()
+  }
+}, { deep: true })
+
+onMounted(() => {
+  draw2D()
+})
+
+// 按聚类分组的诗人
+const authorsByCluster = computed(() => {
+  const grouped: Record<number, AuthorNode[]> = {}
+  props.clusters.forEach(c => {
+    grouped[c.id] = props.authors.filter(a => a.cluster === c.id)
+  })
+  return grouped
+})
+</script>
+
+<template>
+  <NCard class="cluster-viz-card" :content-style="{ padding: '16px' }">
+    <template #header>
+      <div class="cluster-header">
+        <span class="title">🎭 诗人流派聚类</span>
+        <span class="subtitle">基于词频和诗体特征的谱聚类分析</span>
+      </div>
+    </template>
+
+    <NSpin :show="loading" size="large">
+      <NEmpty v-if="!loading && (!authors.length || !clusters.length)" description="暂无聚类数据" />
+      
+      <div v-else class="cluster-content">
+        <!-- 聚类筛选 -->
+        <div class="cluster-filters">
+          <NSpace>
+            <NButton 
+              size="small" 
+              :type="selectedCluster === null ? 'primary' : 'default'"
+              @click="selectedCluster = null"
+            >
+              全部流派
+            </NButton>
+            <NButton
+              v-for="cluster in clusters"
+              :key="cluster.id"
+              size="small"
+              :type="selectedCluster === cluster.id ? 'primary' : 'default'"
+              :style="{ borderColor: cluster.color, color: selectedCluster === cluster.id ? '#fff' : cluster.color }"
+              @click="selectedCluster = selectedCluster === cluster.id ? null : cluster.id"
+            >
+              {{ cluster.name }} ({{ cluster.size }})
+            </NButton>
+          </NSpace>
+        </div>
+
+        <NTabs v-model:value="activeTab" type="line" animated>
+          <NTabPane name="2d" tab="2D分布">
+            <div class="viz-container">
+              <canvas
+                ref="canvasRef"
+                :width="CANVAS_WIDTH"
+                :height="CANVAS_HEIGHT"
+                class="cluster-canvas"
+                @mousemove="handleMouseMove"
+                @click="handleClick"
+              />
+              
+              <!-- 悬停提示 -->
+              <div v-if="hoveredAuthor" class="hover-tooltip">
+                <div class="author-name">{{ hoveredAuthor.name }}</div>
+                <div class="author-info">
+                  <NTag size="tiny" :color="{ 
+                    color: clusters.find(c => c.id === hoveredAuthor?.cluster)?.color + '20',
+                    textColor: clusters.find(c => c.id === hoveredAuthor?.cluster)?.color 
+                  }">
+                    {{ clusters.find(c => c.id === hoveredAuthor?.cluster)?.name }}
+                  </NTag>
+                  <span>{{ hoveredAuthor.poem_count }}首</span>
+                </div>
+              </div>
+            </div>
+          </NTabPane>
+
+          <NTabPane name="list" tab="流派列表">
+            <div class="clusters-list">
+              <div
+                v-for="cluster in clusters"
+                :key="cluster.id"
+                class="cluster-item"
+                :class="{ active: selectedCluster === cluster.id }"
+                :style="{ borderLeftColor: cluster.color }"
+                @click="emit('selectCluster', cluster.id)"
+              >
+                <div class="cluster-info">
+                  <div class="cluster-name" :style="{ color: cluster.color }">
+                    {{ cluster.name }}
+                    <span class="cluster-size">({{ cluster.size }}人)</span>
+                  </div>
+                  <div class="cluster-reps">
+                    代表: {{ cluster.representatives.slice(0, 3).join('、') }}
+                  </div>
+                  <div class="cluster-words">
+                    <NTag 
+                      v-for="word in cluster.top_words.slice(0, 5)" 
+                      :key="word.word"
+                      size="tiny"
+                      class="word-tag"
+                    >
+                      {{ word.word }}
+                    </NTag>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </NTabPane>
+
+          <NTabPane name="stats" tab="统计">
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-value">{{ authors.length }}</div>
+                <div class="stat-label">分析诗人</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ clusters.length }}</div>
+                <div class="stat-label">识别流派</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">{{ Math.round(authors.reduce((a, b) => a + b.poem_count, 0) / authors.length) }}</div>
+                <div class="stat-label">平均诗数</div>
+              </div>
+            </div>
+            
+            <div class="cluster-distribution">
+              <h4>流派分布</h4>
+              <div class="distribution-bars">
+                <div
+                  v-for="cluster in clusters"
+                  :key="cluster.id"
+                  class="dist-bar"
+                  :style="{ 
+                    width: (cluster.size / authors.length * 100) + '%',
+                    backgroundColor: cluster.color 
+                  }"
+                  :title="`${cluster.name}: ${cluster.size}人`"
+                />
+              </div>
+            </div>
+          </NTabPane>
+        </NTabs>
+      </div>
+    </NSpin>
+  </NCard>
+</template>
+
+<style scoped>
+.cluster-viz-card {
+  margin-bottom: 24px;
+}
+
+.cluster-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-ink, #2c3e50);
+}
+
+.subtitle {
+  font-size: 12px;
+  color: var(--color-ink-light, #7f8c8d);
+}
+
+.cluster-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cluster-filters {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.viz-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+
+.cluster-canvas {
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 8px;
+  background: #fafafa;
+  cursor: crosshair;
+}
+
+.hover-tooltip {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 150px;
+}
+
+.author-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #666;
+}
+
+.clusters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.cluster-item {
+  padding: 12px 16px;
+  border-left: 4px solid;
+  background: var(--color-bg-elevated, #fafafa);
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cluster-item:hover,
+.cluster-item.active {
+  background: var(--color-bg-paper, #fff);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cluster-name {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.cluster-size {
+  font-weight: normal;
+  font-size: 12px;
+  color: #666;
+}
+
+.cluster-reps {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.cluster-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.word-tag {
+  font-size: 11px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px;
+  background: var(--color-bg-elevated, #fafafa);
+  border-radius: 8px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-seal, #8b2635);
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+.cluster-distribution {
+  padding: 16px;
+  background: var(--color-bg-elevated, #fafafa);
+  border-radius: 8px;
+}
+
+.cluster-distribution h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  color: var(--color-ink, #2c3e50);
+}
+
+.distribution-bars {
+  display: flex;
+  height: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.dist-bar {
+  height: 100%;
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+
+.dist-bar:hover {
+  opacity: 0.8;
+}
+</style>

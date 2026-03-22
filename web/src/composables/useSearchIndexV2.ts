@@ -61,6 +61,12 @@ export function useSearchIndexV2() {
     const prefixesArray = [...loadedPrefixes.value]
     await setCache(POEM_INDEX_STORAGE, 'loaded-prefixes', prefixesArray)
 
+    // 更新 metadata 以支持存储统计展示
+    await setMetadata(POEM_INDEX_STORAGE, {
+      loadedChunkIds: prefixesArray.map(p => p.charCodeAt(0)),
+      totalChunks: Object.keys(manifestDataForMeta.prefixMap).length
+    })
+
     return poemMap
   }
 

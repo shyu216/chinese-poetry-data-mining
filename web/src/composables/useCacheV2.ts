@@ -6,6 +6,7 @@ interface CacheItem<T = unknown> {
   data: T
   timestamp: number
   expireAt?: number
+  sourceUrl?: string
 }
 
 interface ChunkItem<T = unknown> {
@@ -14,6 +15,7 @@ interface ChunkItem<T = unknown> {
   chunkId: number | string
   data: T
   timestamp: number
+  sourceUrl?: string
 }
 
 interface MetadataItem {
@@ -77,6 +79,7 @@ function makeChunkKey(storage: string, chunkId: number | string): string {
 export interface CacheOptions {
   expire?: number
   storage?: string
+  sourceUrl?: string
 }
 
 export async function getCache<T>(storage: string, key: string): Promise<T | null> {
@@ -103,7 +106,8 @@ export async function setCache<T>(storage: string, key: string, data: T, options
     storage,
     data,
     timestamp: Date.now(),
-    expireAt: options?.expire ? Date.now() + options.expire : undefined
+    expireAt: options?.expire ? Date.now() + options.expire : undefined,
+    sourceUrl: options?.sourceUrl
   })
 }
 
@@ -147,7 +151,11 @@ export async function getChunkedCache<T>(storage: string, chunkId: number | stri
   return item.data as T
 }
 
-export async function setChunkedCache<T>(storage: string, chunkId: number | string, data: T): Promise<void> {
+export interface ChunkCacheOptions {
+  sourceUrl?: string
+}
+
+export async function setChunkedCache<T>(storage: string, chunkId: number | string, data: T, options?: ChunkCacheOptions): Promise<void> {
   const db = await getDB()
   const chunkKey = makeChunkKey(storage, chunkId)
 
@@ -156,7 +164,8 @@ export async function setChunkedCache<T>(storage: string, chunkId: number | stri
     storage,
     chunkId,
     data,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    sourceUrl: options?.sourceUrl
   })
 }
 
@@ -207,11 +216,13 @@ export interface StorageStats {
     chunkId: number | string
     size: number
     timestamp: number
+    sourceUrl?: string
   }>
   caches: Array<{
     key: string
     size: number
     timestamp: number
+    sourceUrl?: string
   }>
 }
 
@@ -264,7 +275,8 @@ export async function getStorageStats(storage: string): Promise<StorageStats> {
     chunks.push({
       chunkId: item.chunkId,
       size,
-      timestamp: item.timestamp
+      timestamp: item.timestamp,
+      sourceUrl: item.sourceUrl
     })
     chunkTotalSize += size
     cursor = await cursor.continue()
@@ -285,7 +297,8 @@ export async function getStorageStats(storage: string): Promise<StorageStats> {
     caches.push({
       key: item.key.replace(`${storage}:`, ''),
       size,
-      timestamp: item.timestamp
+      timestamp: item.timestamp,
+      sourceUrl: item.sourceUrl
     })
     cacheTotalSize += size
     cacheCursor = await cacheCursor.continue()

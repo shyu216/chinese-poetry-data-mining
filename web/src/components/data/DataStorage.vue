@@ -10,6 +10,10 @@ import { getAllStorageStats, getBrowserStorageInfo, getStorageStats, getMetadata
 import { WORD_SIMILARITY_STORAGE, POEM_INDEX_STORAGE, POEMS_STORAGE, AUTHORS_STORAGE, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
 import { useKeywordIndex } from '@/composables/useKeywordIndex'
 
+// 诗词数据存储键
+const POEMS_SUMMARY_STORAGE = 'poems-summary-v2'
+const POEMS_DETAIL_STORAGE = 'poems-detail-v2'
+
 const props = defineProps<{
   isLoadingStats?: boolean
 }>()
@@ -174,7 +178,15 @@ const handleClearCache = async () => {
 
   try {
     await clearStorage(POEMS_STORAGE)
-    clearMessage.value = '已清空诗词数据'
+    clearMessage.value = '已清空诗词索引'
+    await delay(200)
+
+    await clearStorage(POEMS_SUMMARY_STORAGE)
+    clearMessage.value = '已清空诗词摘要数据'
+    await delay(200)
+
+    await clearStorage(POEMS_DETAIL_STORAGE)
+    clearMessage.value = '已清空诗词详情数据'
     await delay(200)
 
     await clearStorage(AUTHORS_STORAGE)
@@ -366,6 +378,7 @@ const handleClearCache = async () => {
             <div v-for="chunk in selectedStorageDetail.chunks" :key="chunk.chunkId" class="detail-item">
               <div class="detail-item-info">
                 <span class="detail-item-name">分块 #{{ chunk.chunkId }}</span>
+                <span v-if="chunk.sourceUrl" class="detail-item-source" :title="chunk.sourceUrl">{{ chunk.sourceUrl }}</span>
                 <span class="detail-item-time">{{ new Date(chunk.timestamp).toLocaleString() }}</span>
               </div>
               <NTag size="small" type="info">{{ formatBytes(chunk.size) }}</NTag>
@@ -377,6 +390,7 @@ const handleClearCache = async () => {
             <div v-for="cache in selectedStorageDetail.caches" :key="cache.key" class="detail-item">
               <div class="detail-item-info">
                 <span class="detail-item-name">{{ cache.key }}</span>
+                <span v-if="cache.sourceUrl" class="detail-item-source" :title="cache.sourceUrl">{{ cache.sourceUrl }}</span>
                 <span class="detail-item-time">{{ new Date(cache.timestamp).toLocaleString() }}</span>
               </div>
               <NTag size="small" type="info">{{ formatBytes(cache.size) }}</NTag>
@@ -598,6 +612,16 @@ const handleClearCache = async () => {
 .detail-item-name {
   font-size: 13px;
   color: #333;
+}
+
+.detail-item-source {
+  font-size: 11px;
+  color: #666;
+  font-family: monospace;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .detail-item-time {

@@ -17,12 +17,22 @@ const POEMS_DETAIL_STORAGE = 'poems-detail-v2'
 const poemSummaryCache = shallowRef<Map<number, PoemSummary[]>>(new Map())
 const poemDetailCache = shallowRef<Map<number, Map<string, PoemDetail>>>(new Map())
 const loadedChunkIds: Ref<number[]> = ref([])
+const loadedSummaryChunkIds: Ref<number[]> = ref([])
+const loadedDetailChunkIds: Ref<number[]> = ref([])
 const indexLoading: Ref<boolean> = ref(false)
 
 async function initLoadedChunkIds() {
   const meta = await getMetadata(POEMS_STORAGE)
   if (meta) {
     loadedChunkIds.value = meta.loadedChunkIds
+  }
+  const summaryMeta = await getMetadata(POEMS_SUMMARY_STORAGE)
+  if (summaryMeta) {
+    loadedSummaryChunkIds.value = summaryMeta.loadedChunkIds
+  }
+  const detailMeta = await getMetadata(POEMS_DETAIL_STORAGE)
+  if (detailMeta) {
+    loadedDetailChunkIds.value = detailMeta.loadedChunkIds
   }
 }
 initLoadedChunkIds()
@@ -82,6 +92,15 @@ export function usePoemsV2() {
       await setMetadata(POEMS_STORAGE, { loadedChunkIds: [...loadedChunkIds.value], totalChunks: totalChunks.value })
     }
 
+    // 为 poems-summary-v2 存储添加 metadata 以支持统计展示
+    if (!loadedSummaryChunkIds.value.includes(chunkNum)) {
+      loadedSummaryChunkIds.value.push(chunkNum)
+      await setMetadata(POEMS_SUMMARY_STORAGE, {
+        loadedChunkIds: [...loadedSummaryChunkIds.value],
+        totalChunks: totalChunks.value
+      })
+    }
+
     return poems
   }
 
@@ -130,6 +149,15 @@ export function usePoemsV2() {
 
     poemDetailCache.value.set(chunkNum, poemMap)
     await setChunkedCache(POEMS_DETAIL_STORAGE, chunkNum, Object.fromEntries(poemMap))
+
+    // 为 poems-detail-v2 存储添加 metadata 以支持统计展示
+    if (!loadedDetailChunkIds.value.includes(chunkNum)) {
+      loadedDetailChunkIds.value.push(chunkNum)
+      await setMetadata(POEMS_DETAIL_STORAGE, {
+        loadedChunkIds: [...loadedDetailChunkIds.value],
+        totalChunks: totalChunks.value
+      })
+    }
 
     return poemMap
   }

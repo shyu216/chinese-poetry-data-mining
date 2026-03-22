@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import { usePoemsV2 } from '@/composables/usePoemsV2'
@@ -42,6 +42,13 @@ const totalPoemsPages = computed(() =>
 
 onMounted(async () => {
   await loadAuthorData()
+})
+
+watch(() => route.params.name, async (newName, oldName) => {
+  if (newName !== oldName && newName) {
+    poemsPage.value = 1
+    await loadAuthorData()
+  }
 })
 
 const loadAuthorData = async () => {

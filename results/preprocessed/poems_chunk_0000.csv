@@ -1,4 +1,4 @@
-id,title,author,dynasty,genre,poem_type,sentences_simplified,meter_pattern,hash,words
+﻿id,title,author,dynasty,genre,poem_type,sentences_simplified,meter_pattern,hash,words
 3db53cab-f710-458e-93c0-e36a15142ec7,,佚名,唐,诗,其他,,,bd5bd878d5824c0a41823620f86531d8,
 08e41396-2809-423d-9bbc-1e6fb24c0ca1,日诗,宋太祖,宋,诗,七言绝句,欲出未出光辣达 千山万山如火发 须臾走向天上来 逐却残星赶却月,"7,7,7,7",c6fdfe745ea133ee84b4049f740f8c63,欲 出 未 出 光辣 达 千山 万山 如 火 发 须臾 走向 天上 来 逐 却 残 星 赶 却 月
 adaa27a4-389b-48ca-8021-80f0471433c4,句,宋太祖,宋,诗,七言古体,未离海底千山黑 才到天中万国明,"7,7",7662a0824470a9de832224b61a899d3c,未 离 海底 千山 黑 才 到 天 中 万国 明

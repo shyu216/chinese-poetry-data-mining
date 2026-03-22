@@ -25,11 +25,6 @@ const router = createRouter({
       component: () => import('@/views/PoemsView.vue')
     },
     {
-      path: '/poems-search',
-      name: 'poems-search',
-      component: () => import('@/views/PoemSearchView.vue')
-    },
-    {
       path: '/poems/:id',
       name: 'poem-detail',
       component: () => import('@/views/PoemDetailView.vue')
@@ -47,7 +42,7 @@ const router = createRouter({
     {
       path: '/word-sim',
       name: 'word-sim',
-      component: () => import('@/views/WordSimView.vue')
+      redirect: '/word-count'
     },
     {
       path: '/data',
