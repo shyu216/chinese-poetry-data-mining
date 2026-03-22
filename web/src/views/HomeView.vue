@@ -6,41 +6,47 @@ import { BookOutline, PeopleOutline, GitNetworkOutline, SearchOutline, FlameOutl
 import { usePoemsV2 } from '@/composables/usePoemsV2'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import { useWordSimilarityV2 } from '@/composables/useWordSimilarityV2'
+import { useLoading } from '@/composables/useLoading'
 
 const router = useRouter()
+const loading = useLoading()
 
 const poemsV2 = usePoemsV2()
 const authorsV2 = useAuthorsV2()
 const wordSimilarityV2 = useWordSimilarityV2()
 
-const loading = ref(true)
-const loadedCount = ref(0)
-const totalToLoad = 3
 const animationStarted = ref(false)
 
-const checkLoadComplete = () => {
-  loadedCount.value++
-  if (loadedCount.value >= totalToLoad) {
-    loading.value = false
-    setTimeout(() => {
-      animationStarted.value = true
-    }, 100)
-  }
-}
-
 const loadAllData = async () => {
-  loading.value = true
-  loadedCount.value = 0
   animationStarted.value = false
 
-  await poemsV2.loadMetadata()
-  checkLoadComplete()
+  const taskId = loading.startBlocking(
+    '文脉初启',
+    '正在加载诗词数据...',
+    10
+  )
 
-  await authorsV2.loadMetadata()
-  checkLoadComplete()
+  try {
+    loading.update(taskId, { description: '正在加载诗词元数据...', progress: 10 })
+    await poemsV2.loadMetadata()
+    loading.update(taskId, { description: '正在加载诗人数据...', progress: 40 })
 
-  await wordSimilarityV2.loadMetadata()
-  checkLoadComplete()
+    await authorsV2.loadMetadata()
+    loading.update(taskId, { description: '正在加载词频数据...', progress: 70 })
+
+    await wordSimilarityV2.loadMetadata()
+    loading.update(taskId, { description: '数据加载完成', progress: 100 })
+
+    setTimeout(() => {
+      loading.finish(taskId)
+      setTimeout(() => {
+        animationStarted.value = true
+      }, 100)
+    }, 300)
+  } catch (error) {
+    loading.update(taskId, { description: '加载失败，请刷新重试' })
+    console.error('数据加载失败:', error)
+  }
 }
 
 onMounted(() => {

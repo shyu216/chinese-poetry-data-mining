@@ -12,6 +12,7 @@ export interface PoemListItem {
   dynasty: string
   content?: string
   tags?: string[]
+  chunk_id?: number // 用于快速定位诗词详情
 }
 
 interface Props {
@@ -45,8 +46,15 @@ const hasMore = computed(() => {
   return props.total > props.poems.length
 })
 
-const goToPoem = (id: string) => {
-  router.push(`/poem/${id}`)
+const goToPoem = (poem: PoemListItem) => {
+  if (poem.chunk_id !== undefined) {
+    router.push({
+      path: `/poems/${poem.id}`,
+      query: { chunk_id: poem.chunk_id.toString() }
+    })
+  } else {
+    router.push(`/poems/${poem.id}`)
+  }
 }
 
 const goToAuthor = (author: string, e: Event) => {
@@ -65,11 +73,11 @@ const handleLoadMore = () => {
       <NEmpty v-if="!loading && poems.length === 0" :description="emptyText" />
       
       <NList v-else clickable class="list-container">
-        <NListItem 
-          v-for="poem in poems" 
+        <NListItem
+          v-for="poem in poems"
           :key="poem.id"
           class="poem-item"
-          @click="goToPoem(poem.id)"
+          @click="goToPoem(poem)"
         >
           <NThing>
             <template #header>

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  NCard, NSpin, NEmpty, NInput, NSpace, NTag,
+  NCard, NEmpty, NInput, NSpace, NTag,
   NButton, NPagination, NGrid, NGridItem
 } from 'naive-ui'
 import {
@@ -24,8 +24,10 @@ import { SearchContainer } from '@/components/search'
 import AuthorClusterViz from '@/components/AuthorClusterViz.vue'
 import { useAuthorClusters } from '@/composables/useAuthorClusters'
 import type { AuthorNode } from '@/types/cluster'
+import { useLoading } from '@/composables/useLoading'
 
 const router = useRouter()
+const globalLoading = useLoading()
 const {
   totalAuthors: totalAuthorsCount,
   totalChunks,
@@ -191,22 +193,32 @@ const loadingHint = computed(() => {
 
 // 从 IndexedDB 加载缓存的 chunk 数据
 const loadCachedChunks = async (): Promise<number[]> => {
+  console.log('[AuthorsView] 🔄 开始加载本地缓存...')
+  const startTime = performance.now()
+
   const meta = await getMetadata(AUTHORS_STORAGE)
   const loadedChunkIds = meta?.loadedChunkIds || []
 
   // 更新缓存的 chunk 数量
   cachedChunksCount.value = loadedChunkIds.length
+  console.log(`[AuthorsView] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
 
   if (loadedChunkIds.length === 0) {
+    console.log('[AuthorsView] ⚠️ 无缓存数据，将从服务器加载')
     return []
   }
 
   // 从 IndexedDB 读取每个 chunk 的数据
   const cachedAuthors: AuthorStats[] = []
+  console.log(`[AuthorsView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
   for (const chunkId of loadedChunkIds) {
+    const chunkStartTime = performance.now()
     const chunkData = await getChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
+    const chunkDuration = Math.round(performance.now() - chunkStartTime)
+
     if (chunkData) {
       cachedAuthors.push(...chunkData)
+      console.log(`[AuthorsView]   ├─ 分块 #${chunkId}: ${chunkData.length} 位诗人 (${chunkDuration}ms)`)
     }
   }
 
@@ -214,39 +226,123 @@ const loadCachedChunks = async (): Promise<number[]> => {
     loadedAuthors.value = cachedAuthors.sort((a, b) => b.poem_count - a.poem_count)
   }
 
+  const totalDuration = Math.round(performance.now() - startTime)
+  console.log(`[AuthorsView] ✅ 缓存加载完成: ${cachedAuthors.length} 位诗人 - ${totalDuration}ms`)
+
   return loadedChunkIds
 }
 
 const loadData = async () => {
+  console.log('[AuthorsView] 🚀 开始加载数据...')
+  const totalStartTime = performance.now()
+
+  // 阶段1：阻塞性加载 - 元数据和搜索索引（必须等待）
+  const initTaskId = globalLoading.startBlocking(
+    '准备诗人群像',
+    '正在建立数据连接...'
+  )
+
   isInitializing.value = true
   try {
+    // 阶段1：加载元数据
+    globalLoading.update(initTaskId, { phase: 'meta' })
+    console.log('[AuthorsView] 📋 阶段1: 加载元数据...')
+    const metaStartTime = performance.now()
     await loadMetadata()
     const totalChunksCount = totalChunks.value || 0
+    console.log(`[AuthorsView] ✅ 元数据加载完成: ${totalAuthorsCount.value} 位诗人, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 首先从 IndexedDB 加载缓存的数据
+    // 阶段2：检查缓存（快速操作）
+    globalLoading.update(initTaskId, {
+      phase: 'search',
+      description: '正在检查本地缓存...',
+      progress: 30
+    })
+    console.log('[AuthorsView] 💾 阶段2: 检查本地缓存...')
+    const cacheStartTime = performance.now()
     const loadedChunkIds = await loadCachedChunks()
+    console.log(`[AuthorsView] ✅ 缓存检查完成 - ${Math.round(performance.now() - cacheStartTime)}ms`)
+
+    // 阶段3：UI 准备
+    globalLoading.update(initTaskId, {
+      phase: 'ui',
+      description: '正在调整布局...',
+      progress: 50
+    })
+    console.log('[AuthorsView] 🎨 阶段3: 准备UI...')
+    const uiStartTime = performance.now()
 
     // 只加载未加载的 chunk
     const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
     const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
+    console.log(`[AuthorsView] 📊 需要加载的分块: ${unloadedChunkIds.length} 个 (已缓存: ${loadedChunkIds.length} 个)`)
+    console.log(`[AuthorsView] ✅ UI准备完成 - ${Math.round(performance.now() - uiStartTime)}ms`)
 
+    // 完成阻塞性加载，用户可以开始交互了
+    globalLoading.update(initTaskId, {
+      description: '准备就绪',
+      progress: 100
+    })
+    setTimeout(() => globalLoading.finish(initTaskId), 200)
+
+    // 如果没有需要加载的 chunk，直接返回
     if (unloadedChunkIds.length === 0) {
+      console.log('[AuthorsView] ✨ 所有数据已从缓存加载，无需网络请求')
       hasMoreChunks.value = false
+      isInitializing.value = false
       return
     }
 
+    // 阶段4：后台加载剩余数据（不阻塞用户交互）
+    console.log('[AuthorsView] 🌐 阶段4: 开始后台加载网络数据...')
+    const bgStartTime = performance.now()
+    const bgTaskId = globalLoading.startBackground(
+      '补充诗人数据',
+      '正在汇聚千年文脉...'
+    )
+
+    let loadedCount = loadedChunkIds.length
+    const totalCount = totalChunksCount
+    let networkDataCount = 0
+
     await chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, loadAuthorChunk, {
-      chunkDelay: 150,
-      onChunkLoaded: (_, authors) => {
+      concurrency: 5,
+      chunkDelay: 0,
+      onChunkLoaded: (chunkId, authors) => {
         const authorsArray = authors as AuthorStats[]
         loadedAuthors.value.push(...authorsArray)
         loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
+        networkDataCount += authorsArray.length
+
+        loadedCount++
+        const progress = Math.round((loadedCount / totalCount) * 100)
+
+        // 每加载10%更新一次提示
+        if (loadedCount % Math.max(1, Math.floor(totalCount / 10)) === 0) {
+          const phases = ['正在读取诗人档案...', '正在整理诗作数据...', '正在汇聚千年文脉...', '正在构建诗人图谱...']
+          const phase = phases[Math.floor((loadedCount / totalCount) * phases.length)] || phases[0]
+          globalLoading.update(bgTaskId, {
+            description: `${phase} (${loadedCount}/${totalCount})`,
+            progress,
+            current: loadedCount,
+            total: totalCount
+          })
+          console.log(`[AuthorsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalCount} 分块, ${networkDataCount} 位诗人)`)
+        }
       },
       onComplete: () => {
+        const bgDuration = Math.round(performance.now() - bgStartTime)
+        console.log(`[AuthorsView] ✅ 后台加载完成: ${networkDataCount} 位诗人 - ${bgDuration}ms`)
         hasMoreChunks.value = false
+        globalLoading.finish(bgTaskId)
       }
     })
+  } catch (error) {
+    globalLoading.update(initTaskId, { description: '加载失败，请刷新重试' })
+    console.error('[AuthorsView] ❌ 诗人数据加载失败:', error)
   } finally {
+    const totalDuration = Math.round(performance.now() - totalStartTime)
+    console.log(`[AuthorsView] 🏁 总加载时间: ${totalDuration}ms`)
     isInitializing.value = false
   }
 }
@@ -354,10 +450,9 @@ watch(searchQuery, () => {
       :loading="isSearching"
     />
 
-    <NSpin :show="isInitializing && loadedAuthors.length === 0" size="large">
-      <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="暂无数据" />
+    <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="暂无诗人数据" />
 
-      <div v-else class="authors-list">
+    <div v-else class="authors-list">
         <TransitionGroup name="author-item">
           <div
             v-for="author in paginatedAuthors"
@@ -401,7 +496,6 @@ watch(searchQuery, () => {
           </div>
         </TransitionGroup>
       </div>
-    </NSpin>
 
     <div class="pagination-wrapper" v-if="totalPages > 1">
       <NPagination

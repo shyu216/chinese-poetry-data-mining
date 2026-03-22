@@ -262,49 +262,24 @@ function estimateSize(data: unknown): number {
 export async function getStorageStats(storage: string): Promise<StorageStats> {
   const db = await getDB()
 
-  const chunks: StorageStats['chunks'] = []
-  let chunkTotalSize = 0
+  // 使用 getAll 替代 cursor 遍历，性能更好
+  const allChunks = await db.getAllFromIndex('chunks', 'by-storage', storage)
+  const chunks: StorageStats['chunks'] = allChunks.map(item => ({
+    chunkId: item.chunkId,
+    size: estimateSize(item.data),
+    timestamp: item.timestamp,
+    sourceUrl: item.sourceUrl
+  }))
+  const chunkTotalSize = chunks.reduce((sum, c) => sum + c.size, 0)
 
-  const tx = db.transaction('chunks', 'readonly')
-  const index = tx.store.index('by-storage')
-  let cursor = await index.openCursor(IDBKeyRange.only(storage))
-
-  while (cursor) {
-    const item = cursor.value
-    const size = estimateSize(item.data)
-    chunks.push({
-      chunkId: item.chunkId,
-      size,
-      timestamp: item.timestamp,
-      sourceUrl: item.sourceUrl
-    })
-    chunkTotalSize += size
-    cursor = await cursor.continue()
-  }
-
-  await tx.done
-
-  const caches: StorageStats['caches'] = []
-  let cacheTotalSize = 0
-
-  const cacheTx = db.transaction('cache', 'readonly')
-  const cacheIndex = cacheTx.store.index('by-storage')
-  let cacheCursor = await cacheIndex.openCursor(IDBKeyRange.only(storage))
-
-  while (cacheCursor) {
-    const item = cacheCursor.value
-    const size = estimateSize(item.data)
-    caches.push({
-      key: item.key.replace(`${storage}:`, ''),
-      size,
-      timestamp: item.timestamp,
-      sourceUrl: item.sourceUrl
-    })
-    cacheTotalSize += size
-    cacheCursor = await cacheCursor.continue()
-  }
-
-  await cacheTx.done
+  const allCaches = await db.getAllFromIndex('cache', 'by-storage', storage)
+  const caches: StorageStats['caches'] = allCaches.map(item => ({
+    key: item.key.replace(`${storage}:`, ''),
+    size: estimateSize(item.data),
+    timestamp: item.timestamp,
+    sourceUrl: item.sourceUrl
+  }))
+  const cacheTotalSize = caches.reduce((sum, c) => sum + c.size, 0)
 
   return {
     storage,

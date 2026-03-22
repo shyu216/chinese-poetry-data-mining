@@ -4,6 +4,7 @@ export interface PoemSummary {
   author: string
   dynasty: string
   genre: string
+  chunk_id?: number  // 诗词所在的 chunk 编号，用于快速定位
 }
 
 export interface PoemDetail extends PoemSummary {

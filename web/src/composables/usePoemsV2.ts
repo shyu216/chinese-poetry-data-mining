@@ -80,7 +80,8 @@ export function usePoemsV2() {
         title: title || '',
         author: author || '佚名',
         dynasty: dynasty || '',
-        genre: genre || ''
+        genre: genre || '',
+        chunk_id: chunkNum // 添加 chunk_id 用于快速定位
       })
     }
 
@@ -162,13 +163,39 @@ export function usePoemsV2() {
     return poemMap
   }
 
-  async function getPoemById(poemId: string): Promise<PoemDetail | null> {
+  async function getPoemById(poemId: string, chunkId?: number): Promise<PoemDetail | null> {
+    console.log(`[usePoemsV2] getPoemById START: ${poemId}, chunkId=${chunkId}`)
+    const startTime = Date.now()
+
+    // 1. 检查缓存
     for (const [chunkNum, chunkMap] of poemDetailCache.value.entries()) {
       if (chunkMap.has(poemId)) {
+        console.log(`[usePoemsV2] Found in cache (chunk ${chunkNum}) in ${Date.now() - startTime}ms`)
         return chunkMap.get(poemId)!
       }
     }
 
+    // 2. 如果提供了 chunk_id，直接加载该 chunk（快速路径）
+    if (chunkId !== undefined) {
+      console.log(`[usePoemsV2] Using fast path with chunkId ${chunkId}`)
+      if (!poemDetailCache.value.has(chunkId)) {
+        const loadStart = Date.now()
+        const chunk = await loadChunkDetails(chunkId)
+        console.log(`[usePoemsV2] Loaded chunk ${chunkId} in ${Date.now() - loadStart}ms`)
+        poemDetailCache.value.set(chunkId, chunk)
+      }
+      const chunk = poemDetailCache.value.get(chunkId)
+      if (chunk && chunk.has(poemId)) {
+        console.log(`[usePoemsV2] Found in chunk ${chunkId} in ${Date.now() - startTime}ms`)
+        return chunk.get(poemId)!
+      }
+      console.log(`[usePoemsV2] Not found in chunk ${chunkId}, falling back to full scan`)
+      // 如果指定的 chunk 中没有，继续回退到全量搜索
+    }
+
+    // 3. 回退：顺序扫描所有 chunk（慢速路径）
+    console.log(`[usePoemsV2] Using slow path: scanning all chunks`)
+    const scanStart = Date.now()
     const index = await loadMetadata()
 
     for (const chunkInfo of index.chunks) {
@@ -178,11 +205,124 @@ export function usePoemsV2() {
       poemDetailCache.value.set(chunkInfo.id, chunk)
 
       if (chunk.has(poemId)) {
+        console.log(`[usePoemsV2] Found in chunk ${chunkInfo.id} after scanning in ${Date.now() - scanStart}ms`)
         return chunk.get(poemId)!
       }
     }
 
+    console.log(`[usePoemsV2] Poem ${poemId} not found after scanning all chunks in ${Date.now() - startTime}ms`)
     return null
+  }
+
+  /**
+   * 批量获取诗词详情，使用 chunk_id 优化加载
+   * 这个函数会先按 chunk_id 分组，然后并行加载所需的 chunks
+   */
+  async function getPoemsByIds(poemIds: string[], chunkIds?: number[]): Promise<PoemDetail[]> {
+    console.log(`[usePoemsV2] getPoemsByIds START: ${poemIds.length} poems`)
+    const startTime = Date.now()
+    const results: PoemDetail[] = []
+    const missingIds: string[] = []
+    const missingChunkIds: (number | undefined)[] = []
+
+    // 1. 先检查缓存
+    const cacheCheckStart = Date.now()
+    for (let i = 0; i < poemIds.length; i++) {
+      const poemId = poemIds[i]
+      if (poemId === undefined) continue
+      let found = false
+
+      for (const [chunkNum, chunkMap] of poemDetailCache.value.entries()) {
+        if (chunkMap.has(poemId)) {
+          results.push(chunkMap.get(poemId)!)
+          found = true
+          break
+        }
+      }
+
+      if (!found) {
+        missingIds.push(poemId)
+        missingChunkIds.push(chunkIds?.[i])
+      }
+    }
+    console.log(`[usePoemsV2] Cache check: ${results.length} cached, ${missingIds.length} missing in ${Date.now() - cacheCheckStart}ms`)
+
+    if (missingIds.length === 0) {
+      console.log(`[usePoemsV2] All poems in cache, returning ${results.length} poems`)
+      return results
+    }
+
+    // 2. 按 chunk_id 分组，准备批量加载
+    const chunksToLoad = new Map<number, string[]>()
+    const idsWithoutChunk: string[] = []
+
+    for (let i = 0; i < missingIds.length; i++) {
+      const poemId = missingIds[i]
+      if (poemId === undefined) continue
+      const chunkId = missingChunkIds[i]
+
+      if (chunkId !== undefined) {
+        if (!chunksToLoad.has(chunkId)) {
+          chunksToLoad.set(chunkId, [])
+        }
+        chunksToLoad.get(chunkId)!.push(poemId)
+      } else {
+        idsWithoutChunk.push(poemId)
+      }
+    }
+    console.log(`[usePoemsV2] Grouped by chunk: ${chunksToLoad.size} chunks, ${idsWithoutChunk.length} without chunk_id`)
+
+    // 3. 并行加载所有需要的 chunks
+    const loadPromises: Promise<void>[] = []
+    const loadStart = Date.now()
+
+    for (const [chunkId, ids] of chunksToLoad.entries()) {
+      if (poemDetailCache.value.has(chunkId)) {
+        // chunk 已在缓存中，直接查找
+        console.log(`[usePoemsV2] Chunk ${chunkId} already cached`)
+        const chunk = poemDetailCache.value.get(chunkId)!
+        for (const poemId of ids) {
+          const poem = chunk.get(poemId)
+          if (poem) {
+            results.push(poem)
+          }
+        }
+      } else {
+        // 需要加载 chunk
+        console.log(`[usePoemsV2] Loading chunk ${chunkId} with ${ids.length} poems`)
+        loadPromises.push(
+          loadChunkDetails(chunkId).then(chunk => {
+            console.log(`[usePoemsV2] Chunk ${chunkId} loaded, size: ${chunk.size}`)
+            poemDetailCache.value.set(chunkId, chunk)
+            for (const poemId of ids) {
+              const poem = chunk.get(poemId)
+              if (poem) {
+                results.push(poem)
+              }
+            }
+          })
+        )
+      }
+    }
+
+    await Promise.all(loadPromises)
+    console.log(`[usePoemsV2] All chunks loaded in ${Date.now() - loadStart}ms`)
+
+    // 4. 处理没有 chunk_id 的诗词（回退到逐个查找）
+    if (idsWithoutChunk.length > 0) {
+      console.log(`[usePoemsV2] Loading ${idsWithoutChunk.length} poems without chunk_id individually`)
+      const fallbackStart = Date.now()
+      for (const poemId of idsWithoutChunk) {
+        const poem = await getPoemById(poemId)
+        if (poem) {
+          results.push(poem)
+        }
+      }
+      console.log(`[usePoemsV2] Fallback loading done in ${Date.now() - fallbackStart}ms`)
+    }
+
+    console.log(`[usePoemsV2] getPoemsByIds DONE: ${results.length} poems in ${Date.now() - startTime}ms`)
+    return results
   }
 
   function getRelevantChunks(filter?: PoemFilter): number[] {
@@ -332,6 +472,7 @@ export function usePoemsV2() {
     loadChunkSummaries,
     loadChunkDetails,
     getPoemById,
+    getPoemsByIds,
     queryPoems,
     getPoemsByDynasty,
     getPoemsByGenre,

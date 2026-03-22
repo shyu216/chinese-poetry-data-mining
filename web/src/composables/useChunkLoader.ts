@@ -2,6 +2,7 @@ import { ref, computed, onUnmounted } from 'vue'
 
 export interface ChunkLoaderOptions {
   chunkDelay?: number
+  concurrency?: number  // 并发数，默认5
   onProgress?: (loaded: number, total: number) => void
   onChunkLoaded?: (chunkId: number, data: unknown) => void
   onComplete?: () => void
@@ -41,60 +42,97 @@ export function useChunkLoader() {
     return new Promise(resolve => setTimeout(resolve, ms))
   }
 
+  /**
+   * 并行加载 chunks，使用队列控制并发
+   */
   async function loadChunks<T>(
     chunkIds: number[],
     loadFn: (chunkId: number, signal: AbortSignal) => Promise<T>,
     options: ChunkLoaderOptions = {}
   ): Promise<T[]> {
-    const { chunkDelay = 100, onProgress, onChunkLoaded, onComplete, onError } = options
+    const { 
+      chunkDelay = 0,  // 默认移除延迟
+      concurrency = 5,  // 默认5个并发
+      onProgress, 
+      onChunkLoaded, 
+      onComplete, 
+      onError 
+    } = options
 
     isLoading.value = true
     isPaused.value = false
     loadedCount.value = 0
     totalCount.value = chunkIds.length
-    currentChunkId.value = 0
     abortController.value = new AbortController()
 
-    const results: T[] = []
+    const results: (T | null)[] = new Array(chunkIds.length).fill(null)
+    let completedCount = 0
+    let currentIndex = 0
 
-    try {
-      for (let i = 0; i < chunkIds.length; i++) {
-        if (abortController.value.signal.aborted) {
-          break
+    // 检查是否应该中止
+    const shouldAbort = () => abortController.value?.signal.aborted ?? false
+
+    // 等待暂停恢复
+    const waitIfPaused = async () => {
+      while (isPaused.value && !shouldAbort()) {
+        await sleep(50)  // 减少检查频率
+      }
+    }
+
+    // 单个 chunk 加载任务
+    const loadSingleChunk = async (index: number): Promise<void> => {
+      if (shouldAbort()) return
+
+      await waitIfPaused()
+      if (shouldAbort()) return
+
+      const chunkId = chunkIds[index]!
+      
+      try {
+        const data = await loadFn(chunkId, abortController.value!.signal)
+        results[index] = data
+        completedCount++
+        loadedCount.value = completedCount
+
+        onProgress?.(completedCount, totalCount.value)
+        onChunkLoaded?.(chunkId, data)
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          return
         }
+        console.error(`Failed to load chunk ${chunkId}:`, error)
+        completedCount++
+        loadedCount.value = completedCount
+        onError?.(error as Error)
+      }
+    }
 
-        while (isPaused.value && !abortController.value.signal.aborted) {
-          await sleep(100)
-        }
-
-        if (abortController.value.signal.aborted) {
-          break
-        }
-
-        const chunkId = chunkIds[i]!
-        currentChunkId.value = chunkId
-
-        try {
-          const data = await loadFn(chunkId, abortController.value.signal)
-          results.push(data)
-          loadedCount.value++
-
-          onProgress?.(loadedCount.value, totalCount.value)
-          onChunkLoaded?.(chunkId, data)
-        } catch (error) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            break
+    // 工作线程 - 持续从队列取任务执行
+    const worker = async () => {
+      while (currentIndex < chunkIds.length) {
+        if (shouldAbort()) break
+        
+        const index = currentIndex++
+        if (index < chunkIds.length) {
+          await loadSingleChunk(index)
+          // 可选的延迟，用于控制请求频率
+          if (chunkDelay > 0 && currentIndex < chunkIds.length) {
+            await sleep(chunkDelay)
           }
-          console.error(`Failed to load chunk ${chunkId}:`, error)
-          onError?.(error as Error)
-        }
-
-        if (i < chunkIds.length - 1 && chunkDelay > 0) {
-          await sleep(chunkDelay)
         }
       }
+    }
 
-      if (!abortController.value.signal.aborted) {
+    try {
+      // 启动并发工作线程
+      const workers: Promise<void>[] = []
+      for (let i = 0; i < Math.min(concurrency, chunkIds.length); i++) {
+        workers.push(worker())
+      }
+
+      await Promise.all(workers)
+
+      if (!shouldAbort()) {
         onComplete?.()
       }
     } finally {
@@ -102,7 +140,22 @@ export function useChunkLoader() {
       abortController.value = null
     }
 
-    return results
+    return results.filter((r): r is T => r !== null)
+  }
+
+  /**
+   * 快速批量加载 - 无延迟，最大并发
+   */
+  async function loadChunksFast<T>(
+    chunkIds: number[],
+    loadFn: (chunkId: number, signal: AbortSignal) => Promise<T>,
+    options: Omit<ChunkLoaderOptions, 'chunkDelay' | 'concurrency'> = {}
+  ): Promise<T[]> {
+    return loadChunks(chunkIds, loadFn, {
+      ...options,
+      concurrency: 10,  // 最大并发
+      chunkDelay: 0     // 无延迟
+    })
   }
 
   function pause(): void {
@@ -139,6 +192,7 @@ export function useChunkLoader() {
     currentChunkId,
     state,
     loadChunks,
+    loadChunksFast,
     pause,
     resume,
     stop,

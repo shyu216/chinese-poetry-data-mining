@@ -3,27 +3,34 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { useSearchIndexV2 } from '@/composables/useSearchIndexV2'
 import type { AuthorStats } from '@/composables/types'
 import type { PoemDetail } from '@/composables/types'
 import {
-  NCard, NSpin, NEmpty, NTag, NButton, NSpace,
-  NDivider, NList, NListItem, NThing, NPageHeader,
-  NGrid, NGridItem, NStatistic, NProgress, NPagination
+  NCard, NEmpty, NTag, NButton, NSpace,
+  NDivider, NList, NListItem, NThing,
+  NGrid, NGridItem, NProgress, NPagination
 } from 'naive-ui'
 import {
-  ArrowBackOutline, PersonOutline, BookOutline,
+  PersonOutline, BookOutline,
   ChevronForwardOutline, MedalOutline, BarChartOutline,
   TextOutline
 } from '@vicons/ionicons5'
+import PageHeader from '@/components/PageHeader.vue'
+import StatsCard from '@/components/StatsCard.vue'
+import { useLoading } from '@/composables/useLoading'
 
+const globalLoading = useLoading()
 const route = useRoute()
 const router = useRouter()
 const { getAuthorByName } = useAuthorsV2()
-const { getPoemById } = usePoemsV2()
+const { getPoemById, getPoemsByIds } = usePoemsV2()
+const { getPoemSummariesByIds } = useSearchIndexV2()
 
 const authorName = computed(() => route.params.name as string)
 const author = ref<AuthorStats | null>(null)
 const poems = ref<PoemDetail[]>([])
+const poemChunkMap = ref<Map<string, number>>(new Map()) // 存储 poem_id -> chunk_id 映射
 const loading = ref(true)
 const poemsLoading = ref(false)
 
@@ -52,32 +59,94 @@ watch(() => route.params.name, async (newName, oldName) => {
 })
 
 const loadAuthorData = async () => {
+  const taskId = globalLoading.startBlocking(
+    '载入诗人详情',
+    '正在加载诗人信息...',
+    5
+  )
+
   loading.value = true
   try {
     author.value = await getAuthorByName(authorName.value)
     if (author.value && author.value.poem_ids.length > 0) {
-      await loadAuthorPoems()
+      globalLoading.update(taskId, {
+        description: `正在加载诗词作品 (0/${author.value.poem_ids.length})...`,
+        progress: 50
+      })
+      await loadAuthorPoems(taskId)
     }
+    globalLoading.update(taskId, { description: '加载完成', progress: 100 })
+    setTimeout(() => globalLoading.finish(taskId), 300)
   } catch (e) {
+    globalLoading.update(taskId, { description: '加载失败' })
     console.error('Error loading author:', e)
   } finally {
     loading.value = false
   }
 }
 
-const loadAuthorPoems = async () => {
+const loadAuthorPoems = async (taskId?: string) => {
   if (!author.value) return
   poemsLoading.value = true
   poems.value = []
 
+  const totalPoems = author.value.poem_ids.length
+  const loadedPoems: PoemDetail[] = []
+
   try {
-    const loadedPoems: PoemDetail[] = []
-    for (const id of author.value.poem_ids) {
-      const poem = await getPoemById(id)
-      if (poem) {
-        loadedPoems.push(poem)
+    // 使用批量加载优化：先获取诗词摘要（含 chunk_id），再批量加载详情
+    const batchSize = 50
+
+    for (let i = 0; i < author.value.poem_ids.length; i += batchSize) {
+      const batchIds = author.value.poem_ids.slice(i, i + batchSize)
+
+      // 1. 从 poem_index 获取诗词摘要（包含 chunk_id）
+      const poemSummaries = await getPoemSummariesByIds(batchIds)
+
+      // 2. 提取 chunk_ids 用于批量加载，并存储到映射表
+      const idsWithChunkIds: string[] = []
+      const chunkIds: number[] = []
+
+      for (const [id, summary] of poemSummaries.entries()) {
+        if (summary.chunk_id !== undefined) {
+          idsWithChunkIds.push(id)
+          chunkIds.push(summary.chunk_id)
+          poemChunkMap.value.set(id, summary.chunk_id)
+        }
+      }
+
+      // 3. 使用 chunk_id 批量加载诗词详情
+      let batchResults: PoemDetail[] = []
+
+      if (idsWithChunkIds.length === batchIds.length) {
+        // 所有诗词都有 chunk_id，使用优化批量加载
+        batchResults = await getPoemsByIds(idsWithChunkIds, chunkIds)
+      } else {
+        // 部分诗词没有 chunk_id，回退到逐个加载
+        console.warn(`[AuthorDetail] Some poems missing chunk_id, falling back to individual loading`)
+        const individualResults = await Promise.all(
+          batchIds.map(id => getPoemById(id))
+        )
+        batchResults = individualResults.filter((p): p is PoemDetail => p !== null)
+      }
+
+      // 保持原始顺序
+      for (const id of batchIds) {
+        const poem = batchResults.find(p => p.id === id)
+        if (poem) {
+          loadedPoems.push(poem)
+        }
+      }
+
+      // 更新进度
+      const progress = Math.round((Math.min(i + batchSize, totalPoems) / totalPoems) * 50) + 50
+      const description = `正在加载诗词作品 (${Math.min(i + batchSize, totalPoems)}/${totalPoems})...`
+
+      if (taskId) {
+        globalLoading.update(taskId, { description, progress })
       }
     }
+
     poems.value = loadedPoems
   } catch (e) {
     console.error('Error loading poems:', e)
@@ -91,7 +160,15 @@ const goBack = () => {
 }
 
 const goToPoem = (id: string) => {
-  router.push(`/poems/${id}`)
+  const chunkId = poemChunkMap.value.get(id)
+  if (chunkId !== undefined) {
+    router.push({
+      path: `/poems/${id}`,
+      query: { chunk_id: chunkId.toString() }
+    })
+  } else {
+    router.push(`/poems/${id}`)
+  }
 }
 
 const goToAuthors = () => {
@@ -132,25 +209,19 @@ const getTypeDistribution = () => {
 
 <template>
   <div class="author-detail-view">
-    <NPageHeader @back="goBack">
-      <template #title>
-        <span class="page-title">诗人详情</span>
-      </template>
+    <PageHeader
+      title="诗人详情"
+      subtitle="查看诗人详细信息及作品列表"
+      :icon="PersonOutline"
+    />
+
+    <NEmpty v-if="!loading && !author" description="未找到该诗人信息">
       <template #extra>
-        <NButton @click="goToAuthors">
-          全部诗人
-        </NButton>
+        <NButton @click="goToAuthors">返回诗人列表</NButton>
       </template>
-    </NPageHeader>
+    </NEmpty>
 
-    <NSpin :show="loading" size="large">
-      <NEmpty v-if="!loading && !author" description="未找到该作者">
-        <template #extra>
-          <NButton @click="goToAuthors">返回诗人列表</NButton>
-        </template>
-      </NEmpty>
-
-      <template v-else-if="author">
+    <template v-else-if="author">
         <NCard class="author-header-card">
           <div class="author-header">
             <div class="author-avatar">
@@ -178,34 +249,25 @@ const getTypeDistribution = () => {
 
         <NGrid :cols="3" :x-gap="16" :y-gap="16" class="stats-grid">
           <NGridItem>
-            <NCard class="stat-card">
-              <NStatistic label="诗词总数">
-                <template #prefix>
-                  <BookOutline />
-                </template>
-                <span class="stat-value">{{ author.poem_count }}</span>
-              </NStatistic>
-            </NCard>
+            <StatsCard
+              label="诗词总数"
+              :value="author.poem_count"
+              :prefix-icon="BookOutline"
+            />
           </NGridItem>
           <NGridItem>
-            <NCard class="stat-card">
-              <NStatistic label="诗词体裁">
-                <template #prefix>
-                  <TextOutline />
-                </template>
-                <span class="stat-value">{{ Object.keys(author.poem_type_counts).length }}</span>
-              </NStatistic>
-            </NCard>
+            <StatsCard
+              label="诗词体裁"
+              :value="Object.keys(author.poem_type_counts).length"
+              :prefix-icon="TextOutline"
+            />
           </NGridItem>
           <NGridItem>
-            <NCard class="stat-card">
-              <NStatistic label="相似诗人">
-                <template #prefix>
-                  <PersonOutline />
-                </template>
-                <span class="stat-value">{{ author.similar_authors.length }}</span>
-              </NStatistic>
-            </NCard>
+            <StatsCard
+              label="相似诗人"
+              :value="author.similar_authors.length"
+              :prefix-icon="PersonOutline"
+            />
           </NGridItem>
         </NGrid>
 
@@ -245,70 +307,67 @@ const getTypeDistribution = () => {
                   <span class="similarity-score">({{ (similar.similarity * 100).toFixed(0) }}%)</span>
                 </NButton>
               </NSpace>
-              <NEmpty v-else description="暂无相似诗人数据" />
+              <NEmpty v-else description="暂无相似诗人推荐" />
             </NCard>
           </NGridItem>
         </NGrid>
 
         <NCard title="作品列表" class="poems-card">
-          <NSpin :show="poemsLoading">
-            <NEmpty v-if="!poemsLoading && poems.length === 0" description="暂无诗词数据" />
-            <template v-else>
-              <NList hoverable clickable>
-                <NListItem
-                  v-for="poem in paginatedPoems"
-                  :key="poem.id"
-                  @click="goToPoem(poem.id)"
-                >
-                  <NThing>
-                    <template #header>
-                      <span class="poem-title">{{ poem.title || '无题' }}</span>
-                    </template>
-                    <template #description>
-                      <div class="poem-meta">
-                        <NTag
-                          v-if="poem.dynasty"
-                          :type="dynastyColors[poem.dynasty] as any"
-                          size="small"
-                        >
-                          {{ poem.dynasty }}
-                        </NTag>
-                        <NTag v-if="poem.genre" type="info" size="small">
-                          {{ poem.genre }}
-                        </NTag>
-                        <NTag v-if="poem.poem_type" type="success" size="small">
-                          {{ poem.poem_type }}
-                        </NTag>
-                      </div>
-                    </template>
-                    <template #header-extra>
-                      <ChevronForwardOutline class="arrow-icon" />
-                    </template>
-                  </NThing>
-                </NListItem>
-              </NList>
+          <NEmpty v-if="!poemsLoading && poems.length === 0" description="暂无诗词作品" />
+          <template v-else>
+            <NList hoverable clickable>
+              <NListItem
+                v-for="poem in paginatedPoems"
+                :key="poem.id"
+                @click="goToPoem(poem.id)"
+              >
+                <NThing>
+                  <template #header>
+                    <span class="poem-title">{{ poem.title || '无题' }}</span>
+                  </template>
+                  <template #description>
+                    <div class="poem-meta">
+                      <NTag
+                        v-if="poem.dynasty"
+                        :type="dynastyColors[poem.dynasty] as any"
+                        size="small"
+                      >
+                        {{ poem.dynasty }}
+                      </NTag>
+                      <NTag v-if="poem.genre" type="info" size="small">
+                        {{ poem.genre }}
+                      </NTag>
+                      <NTag v-if="poem.poem_type" type="success" size="small">
+                        {{ poem.poem_type }}
+                      </NTag>
+                    </div>
+                  </template>
+                  <template #header-extra>
+                    <ChevronForwardOutline class="arrow-icon" />
+                  </template>
+                </NThing>
+              </NListItem>
+            </NList>
 
-              <div v-if="totalPoemsPages > 1" class="pagination-wrapper">
-                <NPagination
-                  v-model:page="poemsPage"
-                  :page-count="totalPoemsPages"
-                  :page-size="poemsPageSize"
-                  show-size-picker
-                  :page-sizes="[10, 20, 50, 100]"
-                  @update:page-size="poemsPageSize = $event"
-                />
-              </div>
-            </template>
-          </NSpin>
+            <div v-if="totalPoemsPages > 1" class="pagination-wrapper">
+              <NPagination
+                v-model:page="poemsPage"
+                :page-count="totalPoemsPages"
+                :page-size="poemsPageSize"
+                show-size-picker
+                :page-sizes="[10, 20, 50, 100]"
+                @update:page-size="poemsPageSize = $event"
+              />
+            </div>
+          </template>
         </NCard>
       </template>
-    </NSpin>
   </div>
 </template>
 
 <style scoped>
 .author-detail-view {
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -365,16 +424,6 @@ const getTypeDistribution = () => {
 
 .stats-grid {
   margin-bottom: 24px;
-}
-
-.stat-card {
-  text-align: center;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: 600;
-  color: #8b2635;
 }
 
 .content-grid {

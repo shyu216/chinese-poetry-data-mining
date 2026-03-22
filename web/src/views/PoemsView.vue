@@ -8,7 +8,7 @@ import { POEMS_STORAGE } from '@/composables/useMetadataLoader'
 import { usePoemSearch } from '@/search'
 import type { PoemSummary, PoemFilter } from '@/composables/types'
 import {
-  NCard, NSpin, NEmpty, NSelect, NSpace, NTag,
+  NCard, NEmpty, NSelect, NSpace, NTag,
   NButton, NInput, NPagination, NGrid, NGridItem
 } from 'naive-ui'
 import {
@@ -23,8 +23,10 @@ import StatsCard from '@/components/StatsCard.vue'
 import DynastyBadge from '@/components/DynastyBadge.vue'
 import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
 import { SearchContainer } from '@/components/search'
+import { useLoading } from '@/composables/useLoading'
 
 const router = useRouter()
+const globalLoading = useLoading()
 const {
   metadata,
   totalPoems,
@@ -171,13 +173,18 @@ const countPoemsByCategory = (poems: PoemSummary[]) => {
 
 // 从 IndexedDB 加载缓存的 chunk 数据
 const loadCachedChunks = async (): Promise<number[]> => {
+  console.log('[PoemsView] 🔄 开始加载本地缓存...')
+  const startTime = performance.now()
+
   const meta = await getMetadata(POEMS_STORAGE)
   const loadedChunkIds = meta?.loadedChunkIds || []
 
   // 更新缓存的 chunk 数量
   cachedChunksCount.value = loadedChunkIds.length
+  console.log(`[PoemsView] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
 
   if (loadedChunkIds.length === 0) {
+    console.log('[PoemsView] ⚠️ 无缓存数据，将从服务器加载')
     return []
   }
 
@@ -187,14 +194,19 @@ const loadCachedChunks = async (): Promise<number[]> => {
   let totalSongshi = 0
   let totalSongci = 0
 
+  console.log(`[PoemsView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
   for (const chunkId of loadedChunkIds) {
+    const chunkStartTime = performance.now()
     const chunkData = await getChunkedCache<PoemSummary[]>(POEMS_STORAGE, chunkId)
+    const chunkDuration = Math.round(performance.now() - chunkStartTime)
+
     if (chunkData) {
       totalCount += chunkData.length
       const counts = countPoemsByCategory(chunkData)
       totalTangshi += counts.tangshi
       totalSongshi += counts.songshi
       totalSongci += counts.songci
+      console.log(`[PoemsView]   ├─ 分块 #${chunkId}: ${chunkData.length} 首诗词 (${chunkDuration}ms)`)
     }
   }
 
@@ -205,34 +217,91 @@ const loadCachedChunks = async (): Promise<number[]> => {
     songci: totalSongci
   }
 
+  const totalDuration = Math.round(performance.now() - startTime)
+  console.log(`[PoemsView] ✅ 缓存加载完成: ${totalCount} 首诗词 (唐诗:${totalTangshi}, 宋诗:${totalSongshi}, 宋词:${totalSongci}) - ${totalDuration}ms`)
+
   return loadedChunkIds
 }
 
 const loadData = async () => {
+  console.log('[PoemsView] 🚀 开始加载数据...')
+  const totalStartTime = performance.now()
+
+  // 阶段1：阻塞性加载 - 元数据（必须等待）
+  const initTaskId = globalLoading.startBlocking(
+    '准备诗词宝库',
+    '正在建立数据连接...'
+  )
+
   isInitializing.value = true
   try {
+    // 阶段1：加载元数据
+    globalLoading.update(initTaskId, { phase: 'meta' })
+    console.log('[PoemsView] 📋 阶段1: 加载元数据...')
+    const metaStartTime = performance.now()
     await loadMetadata()
     const totalChunksNum = totalChunks.value || 0
+    console.log(`[PoemsView] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksNum} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 首先从 IndexedDB 加载缓存的数据到内存
+    // 阶段2：检查缓存
+    globalLoading.update(initTaskId, {
+      phase: 'search',
+      description: '正在检查本地缓存...',
+      progress: 30
+    })
+    console.log('[PoemsView] 💾 阶段2: 检查本地缓存...')
+    const cacheStartTime = performance.now()
     const loadedChunkIds = await loadCachedChunks()
+    console.log(`[PoemsView] ✅ 缓存检查完成 - ${Math.round(performance.now() - cacheStartTime)}ms`)
 
-    // 立即查询并显示已缓存的数据
+    // 阶段3：UI 准备
+    globalLoading.update(initTaskId, {
+      phase: 'ui',
+      description: '正在调整布局...',
+      progress: 50
+    })
+    console.log('[PoemsView] 🎨 阶段3: 准备UI...')
+    const uiStartTime = performance.now()
+
+    // 立即显示已缓存的数据
     if (loadedChunkIds.length > 0) {
       await loadPoemsFromLoadedChunks()
     }
+    console.log(`[PoemsView] ✅ UI准备完成 - ${Math.round(performance.now() - uiStartTime)}ms`)
 
     // 只加载未加载的 chunk
     const allChunkIds = Array.from({ length: totalChunksNum }, (_, i) => i)
     const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
+    console.log(`[PoemsView] 📊 需要加载的分块: ${unloadedChunkIds.length} 个 (已缓存: ${loadedChunkIds.length} 个)`)
+
+    // 完成阻塞性加载
+    globalLoading.update(initTaskId, {
+      description: '准备就绪',
+      progress: 100
+    })
+    setTimeout(() => globalLoading.finish(initTaskId), 200)
 
     if (unloadedChunkIds.length === 0) {
+      console.log('[PoemsView] ✨ 所有数据已从缓存加载，无需网络请求')
+      isInitializing.value = false
       return
     }
 
+    // 阶段4：后台加载剩余数据（不阻塞用户交互）
+    console.log('[PoemsView] 🌐 阶段4: 开始后台加载网络数据...')
+    const bgStartTime = performance.now()
+    const bgTaskId = globalLoading.startBackground(
+      '补充诗词数据',
+      '正在汇聚千年文脉...'
+    )
+
+    let currentLoadedCount = loadedChunkIds.length
+    let networkDataCount = 0
+
     await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, loadChunkSummaries, {
-      chunkDelay: 150,
-      onChunkLoaded: (_, chunk) => {
+      concurrency: 5,
+      chunkDelay: 0,
+      onChunkLoaded: (chunkId, chunk) => {
         // 每加载一个 chunk，更新统计
         if (chunk) {
           const counts = countPoemsByCategory(chunk as PoemSummary[])
@@ -240,14 +309,39 @@ const loadData = async () => {
           loadedPoemStats.value.songshi += counts.songshi
           loadedPoemStats.value.songci += counts.songci
           loadedPoemStats.value.total += counts.total
+          networkDataCount += (chunk as PoemSummary[]).length
         }
         loadPoemsFromLoadedChunks()
+
+        currentLoadedCount++
+        const progress = Math.round((currentLoadedCount / totalChunksNum) * 100)
+
+        // 每加载10%更新一次提示
+        if (currentLoadedCount % Math.max(1, Math.floor(totalChunksNum / 10)) === 0) {
+          const phases = ['正在读取诗作档案...', '正在整理诗词分类...', '正在汇聚千年文脉...', '正在构建诗词图谱...']
+          const phase = phases[Math.floor((currentLoadedCount / totalChunksNum) * phases.length)] || phases[0]
+          globalLoading.update(bgTaskId, {
+            description: `${phase} (${currentLoadedCount}/${totalChunksNum})`,
+            progress,
+            current: currentLoadedCount,
+            total: totalChunksNum
+          })
+          console.log(`[PoemsView] 📥 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksNum} 分块, ${networkDataCount} 首诗词)`)
+        }
       },
       onComplete: () => {
+        const bgDuration = Math.round(performance.now() - bgStartTime)
+        console.log(`[PoemsView] ✅ 后台加载完成: ${networkDataCount} 首诗词 - ${bgDuration}ms`)
         loadPoemsFromLoadedChunks()
+        globalLoading.finish(bgTaskId)
       }
     })
+  } catch (error) {
+    globalLoading.update(initTaskId, { description: '加载失败，请刷新重试' })
+    console.error('[PoemsView] ❌ 诗词数据加载失败:', error)
   } finally {
+    const totalDuration = Math.round(performance.now() - totalStartTime)
+    console.log(`[PoemsView] 🏁 总加载时间: ${totalDuration}ms`)
     isInitializing.value = false
   }
 }
@@ -283,7 +377,15 @@ const handlePageSizeChange = (size: number) => {
 }
 
 const goToPoem = (id: string) => {
-  router.push(`/poems/${id}`)
+  const poem = poems.value.find(p => p.id === id)
+  if (poem?.chunk_id !== undefined) {
+    router.push({
+      path: `/poems/${id}`,
+      query: { chunk_id: poem.chunk_id.toString() }
+    })
+  } else {
+    router.push(`/poems/${id}`)
+  }
 }
 
 const clearFilters = () => {
@@ -388,24 +490,23 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
       </template>
     </SearchContainer>
 
-    <NSpin :show="isInitializing && poems.length === 0" size="large">
-      <NEmpty
-        v-if="!isInitializing && poems.length === 0"
-        :description="hasMoreChunks ? '加载更多数据可能会有结果' : '未找到符合条件的诗词'"
-      >
-        <template #extra>
-          <NSpace v-if="hasMoreChunks" justify="center">
-            <NButton @click="clearFilters">
-              清除筛选
-            </NButton>
-          </NSpace>
-          <NButton v-else @click="clearFilters">
+    <NEmpty
+      v-if="!isInitializing && poems.length === 0"
+      :description="hasMoreChunks ? '加载更多数据可能会有结果' : '未找到符合条件的诗词'"
+    >
+      <template #extra>
+        <NSpace v-if="hasMoreChunks" justify="center">
+          <NButton @click="clearFilters">
             清除筛选
           </NButton>
-        </template>
-      </NEmpty>
+        </NSpace>
+        <NButton v-else @click="clearFilters">
+          清除筛选
+        </NButton>
+      </template>
+    </NEmpty>
 
-      <div v-else class="poems-container">
+    <div v-else class="poems-container">
         <div class="poems-grid">
           <article
             v-for="poem in poems"
@@ -441,7 +542,6 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
           />
         </div>
       </div>
-    </NSpin>
   </div>
 </template>
 

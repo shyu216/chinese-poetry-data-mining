@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import {
   NCard, NGrid, NGridItem, NProgress, NButton,
-  NSpace, NTag, NTabs, NTabPane, NEmpty, NDivider, NSpin, NSkeleton, NAlert
+  NSpace, NTag, NEmpty, NSpin, NAlert
 } from 'naive-ui'
 import { RefreshOutline, TrashOutline } from '@vicons/ionicons5'
 
@@ -17,6 +17,11 @@ const POEMS_DETAIL_STORAGE = 'poems-detail-v2'
 const props = defineProps<{
   isLoadingStats?: boolean
 }>()
+
+// 使用 props 避免未使用警告
+if (props.isLoadingStats) {
+  console.log('Loading stats from parent...')
+}
 
 const isLoading = ref(false)
 const loadingStep = ref('')
@@ -59,13 +64,17 @@ const keywordIndex = useKeywordIndex()
 const isClearing = ref(false)
 const clearMessage = ref('')
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+// 使用 requestAnimationFrame 替代 delay，让 UI 有机会更新
+const yieldToMain = () => new Promise(resolve => requestAnimationFrame(resolve))
 
 const updateProgress = async (step: string, stateKey: keyof typeof loadingState, progress: number) => {
   loadingStep.value = step
   loadingState[stateKey] = true
   loadProgress.value = progress
-  await delay(50)
+  // 只在高进度时让出主线程，减少不必要的延迟
+  if (progress % 20 === 0) {
+    await yieldToMain()
+  }
 }
 
 const resetLoadingState = () => {
@@ -82,14 +91,16 @@ const loadStorageDetails = async () => {
   isLoading.value = true
   loadProgress.value = 0
   loadingStep.value = '正在初始化...'
-  await delay(100)
   
   try {
+    // 并行获取基础信息
     loadingStep.value = '正在获取浏览器存储信息...'
-    await delay(50)
-    storageStats.value = await getAllStorageStats()
-    await delay(30)
-    browserStorageInfo.value = await getBrowserStorageInfo()
+    const [allStats, browserInfo] = await Promise.all([
+      getAllStorageStats(),
+      getBrowserStorageInfo()
+    ])
+    storageStats.value = allStats
+    browserStorageInfo.value = browserInfo
     await updateProgress('词境数据加载中...', 'browserInfo', 20)
   } catch (e) {
     console.error('Failed to load storage details:', e)
@@ -97,50 +108,55 @@ const loadStorageDetails = async () => {
 
   try {
     loadingStep.value = '正在加载词境数据...'
-    await delay(50)
     const { useWordSimilarityMetadata, usePoemIndexManifest } = await import('@/composables/useMetadataLoader')
     const wsMeta = useWordSimilarityMetadata()
     const piMeta = usePoemIndexManifest()
 
-    await delay(30)
-    const wordSimMetaData = await wsMeta.loadMetadata()
+    // 并行加载元数据
+    const [wordSimMetaData, wordSimVocab, wordSimMetaStored] = await Promise.all([
+      wsMeta.loadMetadata(),
+      getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab'),
+      getMetadata(WORD_SIMILARITY_STORAGE)
+    ])
+
     wordSimStats.value.totalChunks = wordSimMetaData?.total_chunks || 0
     wordSimStats.value.vocabSize = wordSimMetaData?.vocab_size || 0
-    await delay(30)
-
-    const wordSimVocab = await getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab')
+    
     if (wordSimVocab && Object.keys(wordSimVocab).length > 0) {
       wordSimStats.value.vocabCached = true
     }
-    await delay(30)
-
-    const wordSimMetaStored = await getMetadata(WORD_SIMILARITY_STORAGE)
+    
     if (wordSimMetaStored && wordSimMetaStored.loadedChunkIds) {
       const validIds = wordSimMetaStored.loadedChunkIds.filter((id: number) => id < (wordSimMetaStored.totalChunks || 0))
       wordSimStats.value.cachedChunks = validIds.length
     }
+    
     await updateProgress('搜索索引加载中...', 'wordSim', 45)
 
-    await delay(50)
-    const searchIndexMetaData = await piMeta.loadMetadata()
+    // 并行加载搜索索引
+    const [searchIndexMetaData, searchIndexPrefixes] = await Promise.all([
+      piMeta.loadMetadata(),
+      getCache<string[]>(POEM_INDEX_STORAGE, 'loaded-prefixes')
+    ])
+    
     searchIndexStats.value.totalPrefixes = Object.keys(searchIndexMetaData?.prefixMap || {}).length
-    await delay(30)
-
-    const searchIndexPrefixes = await getCache<string[]>(POEM_INDEX_STORAGE, 'loaded-prefixes')
+    
     if (searchIndexPrefixes) {
       searchIndexStats.value.cachedPrefixes = searchIndexPrefixes.length
       searchIndexStats.value.loaded = true
     }
+    
     await updateProgress('关键词索引加载中...', 'searchIndex', 70)
 
-    await delay(50)
+    // 加载关键词索引
     const keywordMeta = await keywordIndex.loadMetadata()
     keywordIndexStats.value.totalChunks = keywordMeta.total_chunks || 201
     keywordIndexStats.value.cachedChunks = keywordMeta.loadedChunkIds?.length || 0
     keywordIndexStats.value.loaded = keywordIndexStats.value.cachedChunks > 0
+    
     await updateProgress('计算存储统计...', 'keywordIndex', 85)
 
-    await delay(50)
+    // 最后刷新存储统计
     storageStats.value = await getAllStorageStats()
     loadingState.storageStats = true
     loadProgress.value = 100
@@ -150,7 +166,6 @@ const loadStorageDetails = async () => {
     console.error('Failed to load metadata:', e)
     loadingStep.value = '加载失败'
   } finally {
-    await delay(300)
     isLoading.value = false
   }
 }
@@ -177,38 +192,19 @@ const handleClearCache = async () => {
   clearMessage.value = '正在清空缓存...'
 
   try {
-    await clearStorage(POEMS_STORAGE)
-    clearMessage.value = '已清空诗词索引'
-    await delay(200)
-
-    await clearStorage(POEMS_SUMMARY_STORAGE)
-    clearMessage.value = '已清空诗词摘要数据'
-    await delay(200)
-
-    await clearStorage(POEMS_DETAIL_STORAGE)
-    clearMessage.value = '已清空诗词详情数据'
-    await delay(200)
-
-    await clearStorage(AUTHORS_STORAGE)
-    clearMessage.value = '已清空诗人数据'
-    await delay(200)
-
-    await clearStorage(WORDCOUNT_STORAGE)
-    clearMessage.value = '已清空词频数据'
-    await delay(200)
-
-    await clearStorage(POEM_INDEX_STORAGE)
-    clearMessage.value = '已清空搜索索引'
-    await delay(200)
-
-    await clearStorage(WORD_SIMILARITY_STORAGE)
-    clearMessage.value = '已清空词境数据'
-    await delay(200)
-
-    await clearStorage(keywordIndex.storageName)
-    clearMessage.value = '已清空关键词索引'
-
-    await delay(500)
+    // 并行清空所有缓存
+    await Promise.all([
+      clearStorage(POEMS_STORAGE),
+      clearStorage(POEMS_SUMMARY_STORAGE),
+      clearStorage(POEMS_DETAIL_STORAGE),
+      clearStorage(AUTHORS_STORAGE),
+      clearStorage(WORDCOUNT_STORAGE),
+      clearStorage(POEM_INDEX_STORAGE),
+      clearStorage(WORD_SIMILARITY_STORAGE),
+      clearStorage(keywordIndex.storageName)
+    ])
+    
+    clearMessage.value = '缓存已清空'
     await loadStorageDetails()
     clearMessage.value = ''
   } catch (e) {
@@ -252,412 +248,161 @@ const handleClearCache = async () => {
               <span class="state-icon">{{ loadingState.keywordIndex ? '✓' : '○' }}</span>
               关键词索引
             </div>
+            <div class="loading-state-item" :class="{ done: loadingState.storageStats }">
+              <span class="state-icon">{{ loadingState.storageStats ? '✓' : '○' }}</span>
+              存储统计
+            </div>
           </div>
         </div>
       </NCard>
     </div>
 
-    <NSpace v-else vertical size="large">
-      <div class="refresh-bar">
-        <NSpace>
-          <NButton quaternary @click="loadStorageDetails">
-            <template #icon>
-              <RefreshOutline />
-            </template>
-            刷新
-          </NButton>
-          <NButton type="error" quaternary @click="handleClearCache" :loading="isClearing">
-            <template #icon>
-              <TrashOutline />
-            </template>
-            {{ isClearing ? clearMessage : '清空缓存' }}
-          </NButton>
-        </NSpace>
-      </div>
+    <NAlert v-if="clearMessage" :type="clearMessage === '清空失败' ? 'error' : 'success'" class="mb-4">
+      {{ clearMessage }}
+    </NAlert>
 
-    <NCard title="🌐 浏览器存储概览">
-      <NGrid :cols="4" :x-gap="16" :y-gap="16">
-        <NGridItem>
-          <div class="storage-overview-item">
-            <div class="storage-icon">🗄️</div>
-            <div class="storage-info">
-              <div class="storage-label">IndexedDB</div>
-              <div class="storage-value">{{ formatBytes(browserStorageInfo?.indexedDB.estimatedSize || 0) }}</div>
-              <div class="storage-detail">{{ browserStorageInfo?.indexedDB.objectStores.length || 0 }} 个对象存储</div>
+    <NGrid :cols="2" :x-gap="16" :y-gap="16" class="mb-4">
+      <NGridItem>
+        <NCard title="浏览器存储">
+          <div v-if="browserStorageInfo && browserStorageInfo.quota" class="storage-info">
+            <div class="info-row">
+              <span class="info-label">已使用:</span>
+              <span class="info-value">{{ formatBytes(browserStorageInfo.quota.usage) }}</span>
             </div>
-          </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="storage-overview-item">
-            <div class="storage-icon">💾</div>
-            <div class="storage-info">
-              <div class="storage-label">LocalStorage</div>
-              <div class="storage-value">{{ formatBytes(browserStorageInfo?.localStorage.estimatedSize || 0) }}</div>
-              <div class="storage-detail">{{ browserStorageInfo?.localStorage.itemCount || 0 }} 个条目</div>
+            <div class="info-row">
+              <span class="info-label">配额:</span>
+              <span class="info-value">{{ formatBytes(browserStorageInfo.quota.quota) }}</span>
             </div>
-          </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="storage-overview-item">
-            <div class="storage-icon">📋</div>
-            <div class="storage-info">
-              <div class="storage-label">SessionStorage</div>
-              <div class="storage-value">{{ formatBytes(browserStorageInfo?.sessionStorage.estimatedSize || 0) }}</div>
-              <div class="storage-detail">{{ browserStorageInfo?.sessionStorage.itemCount || 0 }} 个条目</div>
+            <div class="info-row">
+              <span class="info-label">使用率:</span>
+              <span class="info-value">{{ Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100) }}%</span>
             </div>
+            <NProgress
+              type="line"
+              :percentage="Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100)"
+              :indicator-placement="'inside'"
+              :status="Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100) > 90 ? 'error' : Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100) > 70 ? 'warning' : 'success'"
+            />
           </div>
-        </NGridItem>
-        <NGridItem>
-          <div class="storage-overview-item">
-            <div class="storage-icon">🍪</div>
-            <div class="storage-info">
-              <div class="storage-label">Cookies</div>
-              <div class="storage-value">{{ browserStorageInfo?.cookies.length || 0 }} 个</div>
-              <div class="storage-detail">当前域名</div>
-            </div>
-          </div>
-        </NGridItem>
-      </NGrid>
+          <NEmpty v-else description="暂无数据" />
+        </NCard>
+      </NGridItem>
 
-      <NDivider />
+      <NGridItem>
+        <NCard title="数据概览">
+          <NSpace vertical>
+            <div class="stat-row">
+              <NTag type="success">词境数据</NTag>
+              <span v-if="wordSimStats.vocabCached">
+                词汇量: {{ wordSimStats.vocabSize.toLocaleString() }} |
+                分块: {{ wordSimStats.cachedChunks }}/{{ wordSimStats.totalChunks }}
+              </span>
+              <span v-else>未缓存</span>
+            </div>
+            <div class="stat-row">
+              <NTag type="info">搜索索引</NTag>
+              <span v-if="searchIndexStats.loaded">
+                前缀数: {{ searchIndexStats.cachedPrefixes.toLocaleString() }}
+              </span>
+              <span v-else>未加载</span>
+            </div>
+            <div class="stat-row">
+              <NTag type="warning">关键词索引</NTag>
+              <span v-if="keywordIndexStats.loaded">
+                分块: {{ keywordIndexStats.cachedChunks }}/{{ keywordIndexStats.totalChunks }}
+              </span>
+              <span v-else>未加载</span>
+            </div>
+          </NSpace>
+        </NCard>
+      </NGridItem>
+    </NGrid>
 
-      <div v-if="browserStorageInfo?.quota" class="quota-info">
-        <div class="quota-header">
-          <span>存储配额使用情况</span>
-          <span class="quota-value">{{ formatBytes(browserStorageInfo.quota.usage) }} / {{ formatBytes(browserStorageInfo.quota.quota) }}</span>
-        </div>
-        <NProgress
-          type="line"
-          :percentage="Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100)"
-          :indicator-placement="'inside'"
-          :status="(browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) > 0.8 ? 'warning' : 'default'"
-          :height="20"
-        />
-      </div>
-    </NCard>
-
-    <NCard title="📦 缓存存储详情">
-      <NEmpty v-if="storageStats.length === 0" description="暂无缓存数据" />
-      <NGrid v-else :cols="2" :x-gap="16" :y-gap="16">
-        <NGridItem v-for="stats in storageStats" :key="stats.storage">
-          <div class="storage-detail-card" @click="viewStorageDetail(stats.storage)">
-            <div class="storage-detail-header">
-              <span class="storage-name">{{ stats.storage }}</span>
-              <NTag size="small" :type="stats.totalSize > 0 ? 'success' : 'default'">
-                {{ formatBytes(stats.totalSize) }}
-              </NTag>
-            </div>
-            <div class="storage-detail-body">
-              <div class="storage-metric">
-                <span class="metric-label">分块:</span>
-                <span class="metric-value">{{ stats.chunkCount }} 个</span>
-              </div>
-              <div class="storage-metric">
-                <span class="metric-label">缓存项:</span>
-                <span class="metric-value">{{ stats.cacheCount }} 个</span>
-              </div>
-            </div>
-            <div class="storage-detail-footer">
-              <NButton text size="small" type="primary">查看详情 →</NButton>
-            </div>
-          </div>
+    <NCard title="存储详情" class="mb-4">
+      <NGrid :cols="3" :x-gap="12" :y-gap="12">
+        <NGridItem v-for="stat in storageStats" :key="stat.storage">
+          <NCard
+            :class="['storage-item', { active: selectedStorage === stat.storage }]"
+            @click="viewStorageDetail(stat.storage)"
+            hoverable
+          >
+            <div class="storage-name">{{ stat.storage }}</div>
+            <div class="storage-size">{{ formatBytes(stat.totalSize) }}</div>
+            <div class="storage-count">{{ stat.chunkCount + stat.cacheCount }} 项</div>
+          </NCard>
         </NGridItem>
       </NGrid>
     </NCard>
 
-    <NCard v-if="selectedStorageDetail" :title="`📂 ${selectedStorageDetail.storage} 详情`">
-      <template #header-extra>
-        <NButton text size="small" @click="selectedStorageDetail = null; selectedStorage = ''">
-          关闭
-        </NButton>
-      </template>
-
-      <NTabs type="segment">
-        <NTabPane name="chunks" :tab="`分块 (${selectedStorageDetail.chunks.length})`">
-          <div class="detail-list">
-            <div v-for="chunk in selectedStorageDetail.chunks" :key="chunk.chunkId" class="detail-item">
-              <div class="detail-item-info">
-                <span class="detail-item-name">分块 #{{ chunk.chunkId }}</span>
-                <span v-if="chunk.sourceUrl" class="detail-item-source" :title="chunk.sourceUrl">{{ chunk.sourceUrl }}</span>
-                <span class="detail-item-time">{{ new Date(chunk.timestamp).toLocaleString() }}</span>
-              </div>
-              <NTag size="small" type="info">{{ formatBytes(chunk.size) }}</NTag>
-            </div>
-          </div>
-        </NTabPane>
-        <NTabPane name="caches" :tab="`缓存项 (${selectedStorageDetail.caches.length})`">
-          <div class="detail-list">
-            <div v-for="cache in selectedStorageDetail.caches" :key="cache.key" class="detail-item">
-              <div class="detail-item-info">
-                <span class="detail-item-name">{{ cache.key }}</span>
-                <span v-if="cache.sourceUrl" class="detail-item-source" :title="cache.sourceUrl">{{ cache.sourceUrl }}</span>
-                <span class="detail-item-time">{{ new Date(cache.timestamp).toLocaleString() }}</span>
-              </div>
-              <NTag size="small" type="info">{{ formatBytes(cache.size) }}</NTag>
-            </div>
-          </div>
-        </NTabPane>
-      </NTabs>
-    </NCard>
-
-    <NCard v-if="browserStorageInfo?.localStorage.items.length" title="💾 LocalStorage 详情">
-      <div class="detail-list">
-        <div v-for="item in browserStorageInfo.localStorage.items" :key="item.key" class="detail-item">
-          <span class="detail-item-name">{{ item.key }}</span>
-          <NTag size="small">{{ formatBytes(item.size) }}</NTag>
+    <NCard v-if="selectedStorageDetail" :title="`存储详情: ${selectedStorageDetail.storage}`" class="mb-4">
+      <div class="detail-info">
+        <div class="detail-row">
+          <span class="detail-label">存储名称:</span>
+          <span class="detail-value">{{ selectedStorageDetail.storage }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">大小:</span>
+          <span class="detail-value">{{ formatBytes(selectedStorageDetail.totalSize) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">条目数:</span>
+          <span class="detail-value">{{ selectedStorageDetail.chunkCount + selectedStorageDetail.cacheCount }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Chunk 数:</span>
+          <span class="detail-value">{{ selectedStorageDetail.chunkCount }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Cache 数:</span>
+          <span class="detail-value">{{ selectedStorageDetail.cacheCount }}</span>
         </div>
       </div>
     </NCard>
 
-    <NCard v-if="browserStorageInfo?.cookies.length" title="🍪 Cookies 详情">
-      <div class="detail-list">
-        <div v-for="cookie in browserStorageInfo.cookies" :key="cookie.name" class="detail-item">
-          <div class="detail-item-info">
-            <span class="detail-item-name">{{ cookie.name }}</span>
-            <span class="detail-item-time">{{ cookie.domain }}</span>
-          </div>
-          <NTag size="small">{{ formatBytes(cookie.size) }}</NTag>
-        </div>
-      </div>
-    </NCard>
+    <NSpace>
+      <NButton @click="loadStorageDetails" :loading="isLoading">
+        <template #icon>
+          <RefreshOutline />
+        </template>
+        刷新
+      </NButton>
+      <NButton @click="handleClearCache" :loading="isClearing" type="error">
+        <template #icon>
+          <TrashOutline />
+        </template>
+        清空缓存
+      </NButton>
     </NSpace>
   </div>
 </template>
 
 <style scoped>
-.storage-overview-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #f8f8f8;
-  border-radius: 8px;
-}
-
-.storage-icon {
-  font-size: 28px;
-}
-
-.storage-info {
-  flex: 1;
-}
-
-.storage-label {
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 4px;
-}
-
-.storage-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-}
-
-.storage-detail {
-  font-size: 12px;
-  color: #999;
-  margin-top: 2px;
-}
-
-.quota-info {
-  margin-top: 8px;
-}
-
-.quota-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 13px;
-  color: #666;
-}
-
-.quota-value {
-  font-weight: 500;
-  color: #333;
-}
-
-.storage-detail-card {
-  padding: 16px;
-  border: 1px solid #e8e8e8;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 12px;
-}
-
-.storage-detail-card:hover {
-  border-color: #8b2635;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.storage-detail-card .detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.storage-detail-card .detail-title {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.storage-detail-card .detail-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.storage-detail-card .detail-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-}
-
-.storage-detail-card .detail-label {
-  color: #666;
-}
-
-.storage-detail-card .detail-value {
-  font-weight: 500;
-  color: #333;
-}
-
-.storage-detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.storage-name {
-  font-size: 15px;
-  font-weight: 500;
-  color: #333;
-}
-
-.storage-detail-body {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.storage-metric {
-  font-size: 13px;
-}
-
-.metric-label {
-  color: #666;
-}
-
-.metric-value {
-  color: #333;
-  font-weight: 500;
-}
-
-.storage-detail-footer {
-  text-align: right;
-}
-
-.keyword-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.keyword-stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: #f8f8f8;
-  border-radius: 6px;
-}
-
-.keyword-stat-label {
-  font-size: 13px;
-  color: #666;
-}
-
-.keyword-stat-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-}
-
-.detail-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.detail-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.detail-item:last-child {
-  border-bottom: none;
-}
-
-.detail-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.detail-item-name {
-  font-size: 13px;
-  color: #333;
-}
-
-.detail-item-source {
-  font-size: 11px;
-  color: #666;
-  font-family: monospace;
-  max-width: 300px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.detail-item-time {
-  font-size: 11px;
-  color: #999;
-}
-
 .storage-view {
-  position: relative;
-  min-height: 400px;
+  padding: 16px;
 }
 
 .loading-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.9);
-  z-index: 100;
+  z-index: 1000;
 }
 
 .loading-card {
   width: 400px;
-  max-width: 90%;
 }
 
 .loading-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-  padding: 20px 0;
+  gap: 16px;
 }
 
 .loading-progress {
@@ -670,9 +415,9 @@ const handleClearCache = async () => {
 }
 
 .loading-states {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   width: 100%;
 }
 
@@ -680,25 +425,109 @@ const handleClearCache = async () => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  background: #f5f5f5;
-  border-radius: 6px;
   font-size: 13px;
   color: #999;
-  transition: all 0.3s;
+  transition: color 0.3s;
 }
 
 .loading-state-item.done {
-  background: #e8f5e9;
-  color: #4caf50;
+  color: #18a058;
 }
 
 .state-icon {
-  font-size: 14px;
+  width: 16px;
+  text-align: center;
 }
 
-.refresh-bar {
+.storage-info {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-label {
+  color: #666;
+}
+
+.info-value {
+  font-weight: 500;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.storage-item {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.storage-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.storage-item.active {
+  border-color: #18a058;
+  background: #f6ffed;
+}
+
+.storage-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.storage-size {
+  font-size: 12px;
+  color: #666;
+}
+
+.storage-count {
+  font-size: 12px;
+  color: #999;
+}
+
+.detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: #666;
+}
+
+.detail-value {
+  font-weight: 500;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
 }
 </style>

@@ -112,7 +112,10 @@ export function useKeywordIndex() {
     return map
   }
 
-  async function searchKeyword(keyword: string): Promise<string[]> {
+  async function searchKeyword(
+    keyword: string,
+    onProgress?: (currentChunk: number, totalChunks: number, found: boolean) => void
+  ): Promise<string[]> {
     await loadMetadata()
     
     // 首先检查已加载的 chunk
@@ -130,9 +133,17 @@ export function useKeywordIndex() {
       // 跳过已检查的 chunk
       if (loadedChunkIds.value.includes(i)) continue
       
+      // 报告进度
+      if (onProgress) {
+        onProgress(i + 1, totalChunks, false)
+      }
+      
       const chunkMap = await loadChunk(i)
       if (chunkMap.has(keyword)) {
         console.log(`[KeywordIndex] Found keyword "${keyword}" in chunk ${i}`)
+        if (onProgress) {
+          onProgress(i + 1, totalChunks, true)
+        }
         return chunkMap.get(keyword) || []
       }
     }

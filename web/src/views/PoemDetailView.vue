@@ -5,13 +5,17 @@ import { usePoemsV2 } from '@/composables/usePoemsV2'
 import type { PoemDetail } from '@/composables/types'
 import {
   NCard, NSpin, NEmpty, NTag, NButton, NSpace,
-  NDivider, NPageHeader, NGrid, NGridItem, NStatistic
+  NDivider, NGrid, NGridItem
 } from 'naive-ui'
 import {
-  ArrowBackOutline, BookOutline, PersonOutline,
+  BookOutline, PersonOutline,
   TimeOutline, TextOutline, CopyOutline, ChevronForwardOutline
 } from '@vicons/ionicons5'
+import PageHeader from '@/components/PageHeader.vue'
+import StatsCard from '@/components/StatsCard.vue'
+import { useLoading } from '@/composables/useLoading'
 
+const globalLoading = useLoading()
 const route = useRoute()
 const router = useRouter()
 const { getPoemById } = usePoemsV2()
@@ -21,21 +25,35 @@ const loading = ref(true)
 const error = ref<string | null>(null)
 
 const poemId = computed(() => route.params.id as string)
+const chunkId = computed(() => {
+  const cid = route.query.chunk_id
+  return cid ? parseInt(cid as string, 10) : undefined
+})
 
 onMounted(async () => {
   await loadPoemData()
 })
 
 const loadPoemData = async () => {
+  const taskId = globalLoading.startBlocking(
+    '载入诗词详情',
+    '正在加载诗词内容...',
+    5
+  )
+
   loading.value = true
   error.value = null
   try {
-    poem.value = await getPoemById(poemId.value)
+    // 如果 URL 中有 chunk_id 参数，使用它来加速加载
+    poem.value = await getPoemById(poemId.value, chunkId.value)
     if (!poem.value) {
       error.value = '未找到该诗词'
     }
+    globalLoading.update(taskId, { description: '加载完成', progress: 100 })
+    setTimeout(() => globalLoading.finish(taskId), 300)
   } catch (e) {
     error.value = '加载失败，请稍后重试'
+    globalLoading.update(taskId, { description: '加载失败' })
     console.error(e)
   } finally {
     loading.value = false
@@ -80,24 +98,11 @@ const getDynastyConfig = (dynasty: string) => {
 
 <template>
   <div class="poem-detail-view">
-    <NPageHeader @back="goBack">
-      <template #title>
-        <span class="page-title">诗词详情</span>
-      </template>
-      <template #extra>
-        <NSpace>
-          <NButton @click="goToPoems">
-            全部诗词
-          </NButton>
-          <NButton type="primary" @click="copyPoem">
-            <template #icon>
-              <CopyOutline />
-            </template>
-            复制
-          </NButton>
-        </NSpace>
-      </template>
-    </NPageHeader>
+    <PageHeader
+      title="诗词详情"
+      subtitle="品读经典诗词，感受千年文脉"
+      :icon="BookOutline"
+    />
 
     <NSpin :show="loading" size="large">
       <NEmpty v-if="error" :description="error">
@@ -132,44 +137,32 @@ const getDynastyConfig = (dynasty: string) => {
 
         <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
           <NGridItem>
-            <NCard class="stat-card">
-              <NStatistic label="朝代">
-                <template #prefix>
-                  <TimeOutline />
-                </template>
-                <span class="stat-value">{{ poem.dynasty || '未知' }}</span>
-              </NStatistic>
-            </NCard>
+            <StatsCard
+              label="朝代"
+              :value="poem.dynasty || '未知'"
+              :prefix-icon="TimeOutline"
+            />
           </NGridItem>
           <NGridItem>
-            <NCard class="stat-card">
-              <NStatistic label="体裁">
-                <template #prefix>
-                  <BookOutline />
-                </template>
-                <span class="stat-value">{{ poem.genre || '未知' }}</span>
-              </NStatistic>
-            </NCard>
+            <StatsCard
+              label="体裁"
+              :value="poem.genre || '未知'"
+              :prefix-icon="BookOutline"
+            />
           </NGridItem>
           <NGridItem>
-            <NCard class="stat-card">
-              <NStatistic label="类型">
-                <template #prefix>
-                  <TextOutline />
-                </template>
-                <span class="stat-value">{{ poem.poem_type || '未知' }}</span>
-              </NStatistic>
-            </NCard>
+            <StatsCard
+              label="类型"
+              :value="poem.poem_type || '未知'"
+              :prefix-icon="TextOutline"
+            />
           </NGridItem>
           <NGridItem>
-            <NCard class="stat-card">
-              <NStatistic label="句数">
-                <template #prefix>
-                  <TextOutline />
-                </template>
-                <span class="stat-value">{{ poem.sentences.length }}</span>
-              </NStatistic>
-            </NCard>
+            <StatsCard
+              label="句数"
+              :value="poem.sentences.length"
+              :prefix-icon="TextOutline"
+            />
           </NGridItem>
         </NGrid>
 
@@ -309,16 +302,6 @@ const getDynastyConfig = (dynasty: string) => {
 
 .stats-grid {
   margin-bottom: 24px;
-}
-
-.stat-card {
-  text-align: center;
-}
-
-.stat-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
 }
 
 .poem-content-card {

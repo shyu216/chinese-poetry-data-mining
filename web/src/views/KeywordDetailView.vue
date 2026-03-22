@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useKeywordIndex } from '@/composables/useKeywordIndex'
 import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { useSearchIndexV2 } from '@/composables/useSearchIndexV2'
 import { useWordcountV2 } from '@/composables/useWordcountV2'
 import type { PoemSummary } from '@/composables/types'
 import {
@@ -18,6 +19,7 @@ const route = useRoute()
 const router = useRouter()
 const keywordIndex = useKeywordIndex()
 const poemsV2 = usePoemsV2()
+const searchIndexV2 = useSearchIndexV2()
 const wordcountV2 = useWordcountV2()
 
 const keyword = computed(() => route.params.word as string)
@@ -57,15 +59,50 @@ const genreStats = computed(() => {
     .slice(0, 10)
 })
 
-// 批量加载诗词（带分页）
+// 批量加载诗词（带分页）- 使用 chunk_id 优化
 const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSummary[]> => {
+  console.log(`[KeywordDetail] loadPoemsBatch START: ${ids.length} poems, updateUI=${updateUI}`)
+  const batchStartTime = Date.now()
   const batchSize = 50 // 每批加载50首
   const results: PoemSummary[] = []
 
   for (let i = 0; i < ids.length; i += batchSize) {
     const batch = ids.slice(i, i + batchSize)
-    const batchPromises = batch.map(id => poemsV2.getPoemById(id))
-    const batchResults = await Promise.all(batchPromises)
+    console.log(`[KeywordDetail] Batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(ids.length/batchSize)}: loading ${batch.length} poems`)
+
+    // 1. 先从 poem_index 获取诗词摘要（包含 chunk_id）
+    const step1Start = Date.now()
+    const poemSummaries = await searchIndexV2.getPoemSummariesByIds(batch)
+    console.log(`[KeywordDetail]   -> Got ${poemSummaries.size} summaries from index in ${Date.now() - step1Start}ms`)
+
+    // 2. 提取 chunk_ids 用于批量加载详情
+    const idsWithChunkIds: string[] = []
+    const chunkIds: number[] = []
+
+    for (const [id, summary] of poemSummaries.entries()) {
+      if (summary.chunk_id !== undefined) {
+        idsWithChunkIds.push(id)
+        chunkIds.push(summary.chunk_id)
+      }
+    }
+    console.log(`[KeywordDetail]   -> ${idsWithChunkIds.length}/${batch.length} poems have chunk_id`)
+
+    // 3. 使用 chunk_id 批量加载诗词详情
+    let batchResults: (import('@/composables/types').PoemDetail | null)[] = []
+    const step3Start = Date.now()
+
+    if (idsWithChunkIds.length === batch.length) {
+      // 所有诗词都有 chunk_id，使用优化批量加载
+      console.log(`[KeywordDetail]   -> Using optimized batch loading with ${chunkIds.length} chunks`)
+      const poemsWithDetails = await poemsV2.getPoemsByIds(idsWithChunkIds, chunkIds)
+      // 保持原始顺序
+      batchResults = batch.map(id => poemsWithDetails.find(p => p.id === id) || null)
+    } else {
+      // 部分诗词没有 chunk_id，回退到逐个加载
+      console.warn(`[KeywordDetail] Some poems missing chunk_id (${idsWithChunkIds.length}/${batch.length}), falling back to individual loading`)
+      batchResults = await Promise.all(batch.map(id => poemsV2.getPoemById(id)))
+    }
+    console.log(`[KeywordDetail]   -> Loaded ${batchResults.filter(p => p !== null).length} poems in ${Date.now() - step3Start}ms`)
 
     for (const poem of batchResults) {
       if (poem) {
@@ -74,72 +111,87 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
           title: poem.title,
           author: poem.author,
           dynasty: poem.dynasty,
-          genre: poem.genre
+          genre: poem.genre,
+          chunk_id: poemSummaries.get(poem.id)?.chunk_id
         })
       }
     }
 
     // 只在初始加载时更新UI，避免后台加载时覆盖当前页
     if (updateUI && i === 0 && results.length > 0) {
+      console.log(`[KeywordDetail] Updating UI with first ${results.length} poems`)
       poems.value = results.slice(0, pageSize.value)
     }
   }
 
+  console.log(`[KeywordDetail] loadPoemsBatch DONE: ${results.length} poems in ${Date.now() - batchStartTime}ms`)
   return results
 }
 
 const loadData = async () => {
+  console.log(`[KeywordDetail] loadData START for keyword: "${keyword.value}"`)
+  const startTime = Date.now()
   loading.value = true
   loadingPoems.value = true
   poems.value = []
   page.value = 1
-  
+
   try {
     // 1. 获取关键词对应的诗词ID列表
+    console.log(`[KeywordDetail] Step 1: Getting keyword poem IDs...`)
+    const step1Start = Date.now()
     poemIds.value = await keywordIndex.getKeywordPoemIds(keyword.value)
-    console.log(`[KeywordDetail] Found ${poemIds.value.length} poems for keyword "${keyword.value}"`)
+    console.log(`[KeywordDetail] Step 1 DONE: Found ${poemIds.value.length} poems in ${Date.now() - step1Start}ms`)
+    console.log(`[KeywordDetail] Step 1 DONE: Found ${poemIds.value.length} poems in ${Date.now() - startTime}ms`)
     
     if (poemIds.value.length === 0) {
+      console.log(`[KeywordDetail] No poems found, returning early`)
       loading.value = false
       loadingPoems.value = false
       return
     }
     
-    // 2. 批量加载诗词（只加载第一页用于快速显示）
+    // 2. 批量加载诗词（只加载第一页用于快速显示）- 使用 chunk_id 优化
     const firstPageIds = poemIds.value.slice(0, pageSize.value)
-    const firstPagePromises = firstPageIds.map(id => poemsV2.getPoemById(id))
-    const firstPageResults = await Promise.all(firstPagePromises)
+    console.log(`[KeywordDetail] Step 2: Loading first page with ${firstPageIds.length} poems...`)
+    console.log(`[KeywordDetail] First page IDs:`, firstPageIds.slice(0, 5), '...')
+    
+    const step2Start = Date.now()
+    // 使用 loadPoemsBatch 替代逐个调用 getPoemById，以利用 chunk_id 优化
+    const firstPageResults = await loadPoemsBatch(firstPageIds, true)
+    console.log(`[KeywordDetail] Step 2 DONE: Loaded ${firstPageResults.length} poems in ${Date.now() - step2Start}ms`)
     
     poems.value = firstPageResults
-      .filter((poem): poem is NonNullable<typeof poem> => poem !== null)
-      .map(poem => ({
-        id: poem.id,
-        title: poem.title,
-        author: poem.author,
-        dynasty: poem.dynasty,
-        genre: poem.genre
-      }))
     
+    console.log(`[KeywordDetail] Setting loading=false, poems count: ${poems.value.length}`)
     loading.value = false // 先显示第一页
     
     // 3. 后台加载剩余诗词用于统计
     if (poemIds.value.length > pageSize.value) {
       const remainingIds = poemIds.value.slice(pageSize.value)
+      console.log(`[KeywordDetail] Step 3: Loading remaining ${remainingIds.length} poems in background...`)
       loadRemainingPoems(remainingIds)
     } else {
+      console.log(`[KeywordDetail] No remaining poems to load`)
       loadingPoems.value = false
     }
     
     // 4. 获取词频统计
+    console.log(`[KeywordDetail] Step 4: Loading word stats...`)
+    const step4Start = Date.now()
     const allWords = await wordcountV2.getTopWords(10000)
     const foundWord = allWords.find(w => w.word === keyword.value)
     if (foundWord) {
       wordRank.value = foundWord.rank
       wordCount.value = foundWord.count
+      console.log(`[KeywordDetail] Step 4 DONE: Found word stats - rank: ${foundWord.rank}, count: ${foundWord.count} in ${Date.now() - step4Start}ms`)
+    } else {
+      console.log(`[KeywordDetail] Step 4 DONE: No word stats found in ${Date.now() - step4Start}ms`)
     }
   } catch (e) {
-    console.error('Failed to load keyword data:', e)
+    console.error('[KeywordDetail] ERROR in loadData:', e)
   } finally {
+    console.log(`[KeywordDetail] loadData FINALLY, total time: ${Date.now() - startTime}ms`)
     loading.value = false
   }
 }
@@ -147,14 +199,16 @@ const loadData = async () => {
 // 后台加载剩余诗词
 const allPoems = ref<PoemSummary[]>([])
 const loadRemainingPoems = async (ids: string[]) => {
+  console.log(`[KeywordDetail] loadRemainingPoems START: ${ids.length} poems`)
+  const startTime = Date.now()
   try {
     // 后台加载，不更新UI，避免覆盖当前页
     const remaining = await loadPoemsBatch(ids, false)
     allPoems.value = [...poems.value, ...remaining]
     loadingPoems.value = false
-    console.log(`[KeywordDetail] Loaded all ${allPoems.value.length} poems`)
+    console.log(`[KeywordDetail] loadRemainingPoems DONE: ${allPoems.value.length} total poems in ${Date.now() - startTime}ms`)
   } catch (e) {
-    console.error('Failed to load remaining poems:', e)
+    console.error('[KeywordDetail] ERROR in loadRemainingPoems:', e)
     loadingPoems.value = false
   }
 }
@@ -171,20 +225,11 @@ const handlePageChange = async (newPage: number) => {
     return
   }
   
-  // 否则按需加载
+  // 否则按需加载 - 使用 chunk_id 优化
   const pageIds = poemIds.value.slice(start, end)
-  const pagePromises = pageIds.map(id => poemsV2.getPoemById(id))
-  const pageResults = await Promise.all(pagePromises)
+  const pageResults = await loadPoemsBatch(pageIds, true)
   
   poems.value = pageResults
-    .filter((poem): poem is NonNullable<typeof poem> => poem !== null)
-    .map(poem => ({
-      id: poem.id,
-      title: poem.title,
-      author: poem.author,
-      dynasty: poem.dynasty,
-      genre: poem.genre
-    }))
 }
 
 const handlePageSizeChange = (newSize: number) => {
@@ -198,7 +243,15 @@ const goBack = () => {
 }
 
 const goToPoem = (poemId: string) => {
-  router.push(`/poems/${poemId}`)
+  const poem = poems.value.find(p => p.id === poemId)
+  if (poem?.chunk_id !== undefined) {
+    router.push({
+      path: `/poems/${poemId}`,
+      query: { chunk_id: poem.chunk_id.toString() }
+    })
+  } else {
+    router.push(`/poems/${poemId}`)
+  }
 }
 
 const goToPoems = () => {
@@ -340,9 +393,6 @@ watch(keyword, () => {
         </NCard>
 
         <NCard title="包含该关键词的诗词" class="poems-card">
-          <div v-if="loadingPoems && allPoems.length === 0" class="loading-more">
-            <NSpin size="small" /> <span>正在加载诗词数据...</span>
-          </div>
           <div class="poems-list">
             <div
               v-for="poem in poems"
@@ -553,16 +603,6 @@ watch(keyword, () => {
   padding: 24px 16px;
   border-top: 1px solid #f0f0f0;
   margin-top: 16px;
-}
-
-.loading-more {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px;
-  color: #666;
-  font-size: 14px;
 }
 
 @media (max-width: 768px) {

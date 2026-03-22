@@ -15,6 +15,7 @@ import {
 } from '@vicons/ionicons5'
 
 import { usePoemsV2 } from '@/composables/usePoemsV2'
+import GlobalLoading from '@/components/GlobalLoading.vue'
 
 const collapsed = ref(false)
 const mobileMenuOpen = ref(false)
@@ -150,6 +151,9 @@ const themeOverrides = {
               <span class="version">v1.0</span>
             </div>
           </footer>
+
+          <!-- 全局加载组件 -->
+          <GlobalLoading />
         </div>
       </n-dialog-provider>
     </n-message-provider>

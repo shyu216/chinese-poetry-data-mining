@@ -4,7 +4,9 @@
     "chunks": 333,
     "indexFiles": 257,
     "prefixLength": 2,
-    "generatedAt": "2026-03-16T03:00:02.649Z"
+    "generatedAt": "2026-03-16T03:00:02.649Z",
+    "hasChunkIds": true,
+    "chunkMappingVersion": "1.0"
   },
   "prefixMap": {
     "10": "poems_10.json",

@@ -76,6 +76,49 @@ export function useSearchIndexV2() {
     return chunk?.get(id) || null
   }
 
+  /**
+   * 根据诗词ID获取诗词摘要信息（包含chunk_id）
+   * 这个函数优先使用 poem_index，它比 poems CSV chunk 更快
+   */
+  async function getPoemSummaryById(id: string): Promise<PoemSummary | null> {
+    return searchPoemById(id)
+  }
+
+  /**
+   * 批量获取诗词摘要信息，返回包含 chunk_id 的信息
+   * 用于优化诗词详情加载（可以直接知道去哪个chunk加载详情）
+   */
+  async function getPoemSummariesByIds(ids: string[]): Promise<Map<string, PoemSummary>> {
+    const result = new Map<string, PoemSummary>()
+    
+    // 按 prefix 分组，减少文件加载次数
+    const idsByPrefix = new Map<string, string[]>()
+    
+    for (const id of ids) {
+      const prefix = getPrefixFromId(id)
+      if (!idsByPrefix.has(prefix)) {
+        idsByPrefix.set(prefix, [])
+      }
+      idsByPrefix.get(prefix)!.push(id)
+    }
+    
+    // 并行加载所有需要的 prefix chunks
+    const loadPromises = Array.from(idsByPrefix.entries()).map(async ([prefix, prefixIds]) => {
+      const chunk = await loadPoemChunk(prefix)
+      if (chunk) {
+        for (const id of prefixIds) {
+          const poem = chunk.get(id)
+          if (poem) {
+            result.set(id, poem)
+          }
+        }
+      }
+    })
+    
+    await Promise.all(loadPromises)
+    return result
+  }
+
   async function searchByKeyword(
     keyword: string,
     options?: {
@@ -291,6 +334,8 @@ export function useSearchIndexV2() {
     loadMetadata,
     loadPoemChunk,
     searchPoemById,
+    getPoemSummaryById,
+    getPoemSummariesByIds,
     searchByKeyword,
     searchPoems,
     searchMultipleKeywords,
