@@ -3,18 +3,19 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   NCard, NEmpty, NInput, NSpace, NTag,
-  NButton, NPagination, NGrid, NGridItem
+  NButton, NPagination, NGrid, NGridItem, NTooltip
 } from 'naive-ui'
 import {
   TrophyOutline, PersonOutline, BookOutline,
   SearchOutline, MedalOutline, BarChartOutline,
-  ChevronForwardOutline
+  ChevronForwardOutline, ShuffleOutline, RefreshOutline
 } from '@vicons/ionicons5'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
 import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
 import { useAuthorSearch } from '@/search'
+import { useShuffle } from '@/composables/useShuffle'
 import type { AuthorStats } from '@/types/author'
 import { PageHeader, FilterSection } from '@/components/layout'
 import { StatsCard } from '@/components/display'
@@ -37,7 +38,12 @@ const {
   loadAuthorChunk
 } = useAuthorsV2()
 
-const { clusters, authors: clusterAuthors, loading: clusterLoading } = useAuthorClusters()
+const { 
+  loading: clusterLoading, 
+  loadClusters, 
+  sortedClusters, 
+  authorNodes 
+} = useAuthorClusters()
 
 const chunkLoader = useChunkLoader()
 
@@ -83,6 +89,11 @@ const filteredAuthors = computed(() => {
   )
 })
 
+// 随机排序功能
+const { isShuffled, shuffledItems: shuffledFilteredAuthors, toggleShuffle, shuffle } = useShuffle({
+  items: filteredAuthors
+})
+
 const searchResults = ref<AuthorStats[]>([])
 const searchTotal = ref(0)
 
@@ -113,7 +124,7 @@ const displayAuthors = computed(() => {
   if (query && authorSearchReady.value) {
     return searchResults.value
   }
-  return filteredAuthors.value
+  return shuffledFilteredAuthors.value
 })
 
 const displayTotal = computed(() => {
@@ -346,6 +357,7 @@ const onSelectCluster = (clusterId: number) => {
 
 onMounted(() => {
   loadData()
+  loadClusters() // 加载诗人流派数据
 })
 
 watch(searchQuery, () => {
@@ -357,7 +369,7 @@ watch(searchQuery, () => {
 <template>
   <div class="authors-view">
     <PageHeader
-      title="诗人排行榜"
+      title="墨客之息"
       :subtitle="`收录 ${dynamicStats.total} 位诗人，按诗词数量排序`"
       :icon="TrophyOutline"
     />
@@ -396,8 +408,8 @@ watch(searchQuery, () => {
     </NGrid>
     
     <AuthorClusterViz
-      :clusters="clusters"
-      :authors="clusterAuthors"
+      :clusters="sortedClusters"
+      :authors="authorNodes"
       :loading="clusterLoading"
       @select-author="onSelectClusterAuthor"
       @select-cluster="onSelectCluster"
@@ -429,7 +441,43 @@ watch(searchQuery, () => {
       :query-time="searchStats.queryTime"
       :source="searchStats.source as any"
       :loading="isSearching"
-    />
+    >
+      <template #filters>
+        <NSpace>
+          <NTooltip trigger="hover">
+            <template #trigger>
+              <NButton
+                :type="isShuffled ? 'primary' : 'default'"
+                :ghost="!isShuffled"
+                size="medium"
+                @click="toggleShuffle"
+                :disabled="searchQuery.trim().length > 0"
+              >
+                <template #icon>
+                  <ShuffleOutline />
+                </template>
+                {{ isShuffled ? '随机中' : '随机排序' }}
+              </NButton>
+            </template>
+            {{ isShuffled ? '点击恢复默认排序' : '点击随机打乱诗人顺序' }}
+          </NTooltip>
+          <NTooltip v-if="isShuffled" trigger="hover">
+            <template #trigger>
+              <NButton
+                size="medium"
+                @click="shuffle"
+              >
+                <template #icon>
+                  <RefreshOutline />
+                </template>
+                换一批
+              </NButton>
+            </template>
+            重新随机排序
+          </NTooltip>
+        </NSpace>
+      </template>
+    </SearchContainer>
 
     <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="暂无诗人数据" />
 

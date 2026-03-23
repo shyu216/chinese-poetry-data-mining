@@ -10,6 +10,8 @@ import { useLoading } from '@/composables/useLoading'
 
 import { SunmaoOrnament, BreathingFrame } from '@/components/ui/decorative'
 import { AnimatedStatCard } from '@/components/ui/animated'
+import RandomPoemCard from '@/components/content/RandomPoemCard.vue'
+import { loadingCopy, getRandomCopy, pageTitleCopy, poeticQuotes } from '@/constants/copywriting'
 
 const router = useRouter()
 const loading = useLoading()
@@ -20,23 +22,31 @@ const wordSimilarityV2 = useWordSimilarityV2()
 
 const animationStarted = ref(false)
 
+// 添加调试日志和组件引用
+const statCard1 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)
+const statCard2 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)
+const statCard3 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)
+
 const loadAllData = async () => {
   animationStarted.value = false
 
-  loading.startBlocking('文脉初启', '正在唤醒千年诗魂...')
+  loading.startBlocking(
+    getRandomCopy(loadingCopy.initializing),
+    getRandomCopy(loadingCopy.loading)
+  )
 
   try {
-    loading.updatePhase('metadata', '正在翻阅诗词典藏目录...')
+    loading.updatePhase('metadata', getRandomCopy(loadingCopy.loading))
     loading.updateProgress(0, 3)
     await poemsV2.loadMetadata()
 
-    loading.updateProgress(1, 3, '正在整理诗人名录档案...')
+    loading.updateProgress(1, 3, getRandomCopy(loadingCopy.loading))
     await authorsV2.loadMetadata()
 
-    loading.updateProgress(2, 3, '正在汇聚词频统计数据...')
+    loading.updateProgress(2, 3, getRandomCopy(loadingCopy.loading))
     await wordSimilarityV2.loadMetadata()
 
-    loading.updatePhase('complete', '文脉已通，请君品鉴...')
+    loading.updatePhase('complete', getRandomCopy(loadingCopy.complete))
     loading.updateProgress(3, 3)
 
     setTimeout(() => {
@@ -46,12 +56,30 @@ const loadAllData = async () => {
       }, 100)
     }, 500)
   } catch (error) {
-    loading.error('加载失败，请刷新重试')
+    loading.error(getRandomCopy(loadingCopy.error))
     console.error('数据加载失败:', error)
   }
 }
 
 onMounted(() => {
+  // 调试日志：检查布局尺寸
+  console.log('[HomeView] onMounted - checking layout dimensions')
+  const heroSection = document.querySelector('.hero-section')
+  const homeView = document.querySelector('.home-view')
+  const mainContent = document.querySelector('.main-content')
+  if (heroSection) {
+    const rect = heroSection.getBoundingClientRect()
+    console.log('[HomeView] hero-section dimensions:', { width: rect.width, height: rect.height })
+  }
+  if (homeView) {
+    const rect = homeView.getBoundingClientRect()
+    console.log('[HomeView] home-view dimensions:', { width: rect.width, height: rect.height })
+  }
+  if (mainContent) {
+    const rect = mainContent.getBoundingClientRect()
+    console.log('[HomeView] main-content dimensions:', { width: rect.width, height: rect.height })
+  }
+
   loadAllData()
 })
 
@@ -70,7 +98,18 @@ const animatedNumbers = ref({
 })
 
 watch(() => animationStarted.value, (started) => {
+  console.log('[HomeView] animationStarted changed:', started)
   if (started) {
+    console.log('[HomeView] Triggering stat card animations...')
+    console.log('[HomeView] statCard1 ref:', statCard1.value)
+    console.log('[HomeView] statCard2 ref:', statCard2.value)
+    console.log('[HomeView] statCard3 ref:', statCard3.value)
+
+    // 触发每个卡片的动画
+    statCard1.value?.startAnimation()
+    statCard2.value?.startAnimation()
+    statCard3.value?.startAnimation()
+
     setTimeout(() => animatedNumbers.value.authors = authorsV2.totalAuthors.value || 0, 800)
     setTimeout(() => animatedNumbers.value.poems = poemsV2.totalPoems.value || 0, 1000)
     setTimeout(() => animatedNumbers.value.vocab = wordSimilarityV2.vocabSize.value || 0, 1200)
@@ -86,12 +125,7 @@ watch(() => animationStarted.value, (started) => {
         <div class="bg-texture"></div>
       </div>
 
-      <SunmaoOrnament position="tl" :animation-delay="100" />
-      <SunmaoOrnament position="tr" :animation-delay="200" />
-      <SunmaoOrnament position="bl" :animation-delay="300" />
-      <SunmaoOrnament position="br" :animation-delay="400" />
 
-      <BreathingFrame :animation-delay="300" />
 
       <div class="hero-content">
         <div class="time-greeting">
@@ -103,7 +137,7 @@ watch(() => animationStarted.value, (started) => {
         <div class="title-block">
           <span
             class="title-zh"
-            v-for="(char, i) in ['文', '脉', '千', '秋']"
+            v-for="(char, i) in pageTitleCopy.home.title.split('')"
             :key="i"
             :style="{ animationDelay: `${0.3 + i * 0.12}s` }"
           >
@@ -112,13 +146,11 @@ watch(() => animationStarted.value, (started) => {
         </div>
 
         <h1 class="hero-title">
-          <span class="title-main">数字诗学图谱</span>
+          <span class="title-main">{{ pageTitleCopy.home.subtitle }}</span>
         </h1>
 
         <p class="hero-subtitle">
-          <span class="subtitle-line">三十三万首诗词</span>
-          <span class="subtitle-divider"></span>
-          <span class="subtitle-line">待君采撷</span>
+          <span class="subtitle-line">{{ pageTitleCopy.home.subtitle }}</span>
         </p>
       </div>
     </section>
@@ -126,6 +158,7 @@ watch(() => animationStarted.value, (started) => {
     <section class="stats-section">
       <div class="stats-grid">
         <AnimatedStatCard
+          ref="statCard1"
           label="位诗人"
           :value="animatedNumbers.authors"
           :prefix-icon="PeopleOutline"
@@ -134,6 +167,7 @@ watch(() => animationStarted.value, (started) => {
           :formatter="formatNumber"
         />
         <AnimatedStatCard
+          ref="statCard2"
           label="首诗词"
           :value="animatedNumbers.poems"
           :prefix-icon="BookOutline"
@@ -142,6 +176,7 @@ watch(() => animationStarted.value, (started) => {
           :formatter="formatNumber"
         />
         <AnimatedStatCard
+          ref="statCard3"
           label="个词条"
           :value="animatedNumbers.vocab"
           :prefix-icon="GitNetworkOutline"
@@ -150,6 +185,10 @@ watch(() => animationStarted.value, (started) => {
           :formatter="formatNumber"
         />
       </div>
+    </section>
+
+    <section class="random-poem-section" :style="{ animationDelay: '1.1s' }">
+      <RandomPoemCard />
     </section>
 
     <section class="intro-section">
@@ -174,20 +213,22 @@ watch(() => animationStarted.value, (started) => {
 .home-view {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 32px;
-  min-height: calc(100vh - 120px);
+  padding: 16px 32px 32px;
+  /* 修复：使用更精确的高度计算，避免页面超出 */
+  min-height: calc(100vh - 64px - 80px);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 24px;
+  justify-content: flex-start;
+  gap: 16px;
 }
 
 .hero-section {
   position: relative;
-  padding: 48px 40px 40px;
+  padding: 32px 40px 28px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  overflow: hidden;
+  /* 修复：改为 visible，让 SunmaoOrnament 可以显示在边缘 */
+  overflow: visible;
 }
 
 .hero-bg {
@@ -362,12 +403,32 @@ watch(() => animationStarted.value, (started) => {
 
 .stats-section {
   padding: 0;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.animate-in .stats-section {
+  animation: fadeInUp 0.6s ease forwards;
+  animation-delay: 0.6s;
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+.random-poem-section {
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.animate-in .random-poem-section {
+  animation: fadeInUp 0.6s ease forwards;
 }
 
 .intro-section {

@@ -39,8 +39,10 @@ const trendIcon = computed(() => {
 })
 
 const startAnimation = () => {
+  console.log('[AnimatedStatCard] startAnimation called, label:', props.label, 'current isVisible:', isVisible.value)
   setTimeout(() => {
     isVisible.value = true
+    console.log('[AnimatedStatCard] isVisible set to true, label:', props.label)
   }, props.animationDelay)
 }
 

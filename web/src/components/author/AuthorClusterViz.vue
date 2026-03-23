@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { NCard, NTabs, NTabPane, NSpin, NEmpty, NTag, NSpace, NButton, NTooltip } from 'naive-ui'
+import { useRouter } from 'vue-router'
+import { NCard, NTabs, NTabPane, NSpin, NEmpty, NTag, NSpace, NButton, NTooltip, NIcon, NStatistic, NGrid, NGi } from 'naive-ui'
+import { PeopleOutline, BookOutline, RibbonOutline, GitNetworkOutline } from '@vicons/ionicons5'
 import type { AuthorCluster, AuthorNode } from '@/types/cluster'
 
 interface Props {
@@ -17,6 +19,19 @@ const emit = defineEmits<{
   selectAuthor: [author: AuthorNode]
   selectCluster: [clusterId: number]
 }>()
+
+const router = useRouter()
+
+const goToClusterDetail = (clusterId: number) => {
+  router.push(`/authors/clusters/${clusterId}`)
+}
+
+const formatNumber = (num: number): string => {
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + '万'
+  }
+  return num.toLocaleString()
+}
 
 const activeTab = ref('2d')
 const selectedCluster = ref<number | null>(null)
@@ -260,34 +275,81 @@ const authorsByCluster = computed(() => {
           </NTabPane>
 
           <NTabPane name="list" tab="流派列表">
-            <div class="clusters-list">
+            <div class="clusters-grid">
               <div
                 v-for="cluster in clusters"
                 :key="cluster.id"
-                class="cluster-item"
+                class="cluster-card-wrapper"
                 :class="{ active: selectedCluster === cluster.id }"
-                :style="{ borderLeftColor: cluster.color }"
-                @click="emit('selectCluster', cluster.id)"
+                @click="goToClusterDetail(cluster.id)"
               >
-                <div class="cluster-info">
-                  <div class="cluster-name" :style="{ color: cluster.color }">
-                    {{ cluster.name }}
-                    <span class="cluster-size">({{ cluster.size }}人)</span>
+                <NCard class="cluster-card" hoverable>
+                  <div class="cluster-badge" :style="{ background: cluster.color }">
+                    <NIcon :size="16" color="#fff">
+                      <RibbonOutline />
+                    </NIcon>
                   </div>
-                  <div class="cluster-reps">
-                    代表: {{ cluster.representatives.slice(0, 3).join('、') }}
+
+                  <template #header>
+                    <div class="card-header">
+                      <h3 class="cluster-name">{{ cluster.name }}</h3>
+                      <div class="cluster-meta">
+                        <span class="meta-item">
+                          <NIcon :size="14"><PeopleOutline /></NIcon>
+                          {{ formatNumber(cluster.size) }}人
+                        </span>
+                        <span class="meta-item">
+                          <NIcon :size="14"><BookOutline /></NIcon>
+                          平均{{ cluster.avg_poems }}首
+                        </span>
+                      </div>
+                    </div>
+                  </template>
+
+                  <div class="authors-section">
+                    <div class="section-label">代表诗人</div>
+                    <div class="authors-list">
+                      <span 
+                        v-for="(author, i) in cluster.representatives.slice(0, 3)" 
+                        :key="i"
+                        class="author-item"
+                      >
+                        {{ author }}
+                      </span>
+                      <span v-if="cluster.representatives.length > 3" class="more-authors">
+                        +{{ cluster.representatives.length - 3 }}
+                      </span>
+                    </div>
                   </div>
-                  <div class="cluster-words">
-                    <NTag 
-                      v-for="word in cluster.top_words.slice(0, 5)" 
-                      :key="word.word"
-                      size="tiny"
-                      class="word-tag"
-                    >
-                      {{ word.word }}
-                    </NTag>
+
+                  <div class="words-section">
+                    <div class="section-label">特色词汇</div>
+                    <div class="words-cloud">
+                      <NTag
+                        v-for="(word, i) in cluster.top_words.slice(0, 6)"
+                        :key="i"
+                        size="small"
+                        :bordered="false"
+                        type="info"
+                      >
+                        {{ word.word }}
+                      </NTag>
+                    </div>
                   </div>
-                </div>
+
+                  <div class="types-section">
+                    <div class="section-label">主要诗体</div>
+                    <div class="types-list">
+                      <span
+                        v-for="(item, i) in cluster.poem_types.slice(0, 3)"
+                        :key="i"
+                        class="type-item"
+                      >
+                        {{ item.type }} ({{ formatNumber(item.count) }})
+                      </span>
+                    </div>
+                  </div>
+                </NCard>
               </div>
             </div>
           </NTabPane>
@@ -402,55 +464,120 @@ const authorsByCluster = computed(() => {
   color: #666;
 }
 
-.clusters-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 400px;
-  overflow-y: auto;
+.clusters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 8px 0;
 }
 
-.cluster-item {
-  padding: 12px 16px;
-  border-left: 4px solid;
-  background: var(--color-bg-elevated, #fafafa);
-  border-radius: 0 8px 8px 0;
+.cluster-card-wrapper {
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.3s ease;
 }
 
-.cluster-item:hover,
-.cluster-item.active {
-  background: var(--color-bg-paper, #fff);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.cluster-card-wrapper:hover {
+  transform: translateY(-4px);
+}
+
+.cluster-card-wrapper.active .cluster-card {
+  box-shadow: 0 4px 16px rgba(139, 38, 53, 0.15);
+  border-color: var(--color-seal, #8b2635);
+}
+
+.cluster-card {
+  position: relative;
+  height: 100%;
+}
+
+.cluster-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+}
+
+.card-header {
+  padding-right: 24px;
 }
 
 .cluster-name {
+  margin: 0 0 8px 0;
+  font-size: 18px;
   font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 4px;
+  color: var(--color-ink);
 }
 
-.cluster-size {
-  font-weight: normal;
-  font-size: 12px;
-  color: #666;
+.cluster-meta {
+  display: flex;
+  gap: 16px;
 }
 
-.cluster-reps {
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-ink-light);
+}
+
+.authors-section,
+.words-section,
+.types-section {
+  margin-top: 16px;
+}
+
+.section-label {
   font-size: 12px;
-  color: #666;
+  color: var(--color-ink-light);
   margin-bottom: 8px;
+  font-weight: 500;
 }
 
-.cluster-words {
+.authors-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px;
 }
 
-.word-tag {
-  font-size: 11px;
+.author-item {
+  font-size: 14px;
+  color: var(--color-ink);
+  padding: 4px 8px;
+  background: var(--color-bg-paper);
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+}
+
+.more-authors {
+  font-size: 12px;
+  color: var(--color-ink-light);
+  padding: 4px 8px;
+}
+
+.words-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.types-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.type-item {
+  font-size: 12px;
+  color: var(--color-ink-light);
+  padding: 2px 0;
 }
 
 .stats-grid {

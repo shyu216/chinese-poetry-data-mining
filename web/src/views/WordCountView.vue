@@ -298,18 +298,32 @@ const loadData = async () => {
     let currentLoadedCount = loadedChunkIds.length
     let networkDataCount = 0
 
+    // 使用批量收集，减少排序次数
+    const batchWords: WordCountItem[] = []
+    let lastSortTime = Date.now()
+
     await chunkLoader.loadChunks<WordCountItem[]>(unloadedChunkIds, wordcountV2.loadChunk, {
       concurrency: 5,
       chunkDelay: 0,
       onChunkLoaded: (_, words) => {
         const wordsArray = words as WordCountItem[]
-        loadedWords.value.push(...wordsArray)
-        loadedWords.value.sort((a, b) => a.rank - b.rank)
-        totalWords.value = loadedWords.value.length
+        batchWords.push(...wordsArray)
         networkDataCount += wordsArray.length
 
         currentLoadedCount++
         const progress = Math.round((currentLoadedCount / totalChunksCount) * 100)
+
+        // 每2秒或每10%更新一次UI，避免频繁排序
+        const now = Date.now()
+        const shouldUpdateUI = now - lastSortTime > 2000 ||
+          currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0
+
+        if (shouldUpdateUI) {
+          loadedWords.value = [...loadedWords.value, ...batchWords].sort((a, b) => a.rank - b.rank)
+          totalWords.value = loadedWords.value.length
+          batchWords.length = 0  // 清空批量缓冲区
+          lastSortTime = now
+        }
 
         // 每加载10%更新一次提示
         if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
@@ -320,6 +334,11 @@ const loadData = async () => {
         }
       },
       onComplete: () => {
+        // 确保剩余数据被添加
+        if (batchWords.length > 0) {
+          loadedWords.value = [...loadedWords.value, ...batchWords].sort((a, b) => a.rank - b.rank)
+          totalWords.value = loadedWords.value.length
+        }
         const bgDuration = Math.round(performance.now() - bgStartTime)
         console.log(`[WordCountView] ✅ 后台加载完成: ${networkDataCount} 个词汇 - ${bgDuration}ms`)
         hasMoreChunks.value = false
@@ -380,6 +399,8 @@ const loadWordSimCachedChunks = async (): Promise<number[]> => {
 
   const vocabReverseMap = wordSimV2.getVocabReverseMap()
   let loadedCount = 0
+  const batchWords: typeof loadedWordSimWords.value = []
+
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
     const cached = await getVerifiedChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
@@ -389,7 +410,7 @@ const loadWordSimCachedChunks = async (): Promise<number[]> => {
       const entries = new Map(cached.entries)
       for (const [wordId, entry] of entries) {
         const word = vocabReverseMap.get(wordId) || ''
-        loadedWordSimWords.value.push({
+        batchWords.push({
           word,
           wordId,
           frequency: entry.frequency,
@@ -403,6 +424,11 @@ const loadWordSimCachedChunks = async (): Promise<number[]> => {
       loadedCount += entries.size
       console.log(`[WordCountView]   ├─ [词境] 分块 #${chunkId}: ${entries.size} 个词 (${chunkDuration}ms)`)
     }
+  }
+
+  // 一次性批量添加所有缓存的词境数据
+  if (batchWords.length > 0) {
+    loadedWordSimWords.value.push(...batchWords)
   }
 
   const totalDuration = Math.round(performance.now() - startTime)
@@ -461,11 +487,14 @@ const loadWordSimData = async () => {
         const vocabReverseMap = wordSimV2.getVocabReverseMap()
         const entries = chunk.entries as Map<number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }>
 
+        // 批量处理，避免频繁触发响应式更新
+        const newWords: typeof loadedWordSimWords.value = []
+        const existingWordIds = new Set(loadedWordSimWords.value.map(w => w.wordId))
+
         for (const [wordId, entry] of entries) {
-          const existingWord = loadedWordSimWords.value.find(w => w.wordId === wordId)
-          if (!existingWord) {
+          if (!existingWordIds.has(wordId)) {
             const word = vocabReverseMap.get(wordId) || ''
-            loadedWordSimWords.value.push({
+            newWords.push({
               word,
               wordId,
               frequency: entry.frequency,
@@ -475,23 +504,12 @@ const loadWordSimData = async () => {
                 similarity: sw.similarity
               }))
             })
-          } else {
-            const word = vocabReverseMap.get(wordId) || existingWord.word
-            loadedWordSimWords.value = loadedWordSimWords.value.map(w =>
-              w.wordId === wordId
-                ? {
-                    ...w,
-                    word,
-                    frequency: entry.frequency,
-                    loaded: true,
-                    similarWords: entry.similarWords.slice(0, 5).map(sw => ({
-                      word: vocabReverseMap.get(sw.wordId) || '',
-                      similarity: sw.similarity
-                    }))
-                  }
-                : w
-            )
           }
+        }
+
+        // 一次性批量添加，减少响应式更新次数
+        if (newWords.length > 0) {
+          loadedWordSimWords.value.push(...newWords)
         }
       },
       onComplete: () => {
@@ -593,7 +611,7 @@ watch(lengthFilter, () => {
 <template>
   <div class="wordcount-view">
     <PageHeader
-      title="词频排行榜"
+      title="辞藻绘影"
       :subtitle="`收录 ${globalTotalWords.toLocaleString()} 个高频词汇，按使用频率排序`"
       :icon="TextOutline"
     />

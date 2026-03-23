@@ -15,6 +15,16 @@ const router = createRouter({
       component: () => import('@/views/AuthorsView.vue')
     },
     {
+      path: '/authors/clusters',
+      name: 'author-clusters',
+      redirect: '/authors'
+    },
+    {
+      path: '/authors/clusters/:id',
+      name: 'cluster-detail',
+      component: () => import('@/views/ClusterDetailView.vue')
+    },
+    {
       path: '/authors/:name',
       name: 'author-detail',
       component: () => import('@/views/AuthorDetailView.vue')

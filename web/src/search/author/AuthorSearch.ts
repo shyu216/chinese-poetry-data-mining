@@ -9,7 +9,12 @@
  */
 
 import { LRUCache } from '../LRUCache'
+import * as flatbuffers from 'flatbuffers'
 import type { AuthorStats } from '@/composables/types'
+import { AuthorChunkFile } from '@/generated/author-chunk/author-chunk-file'
+import { Author } from '@/generated/author-chunk/author'
+import { WordFreq } from '@/generated/author-chunk/word-freq'
+import { SimilarAuthor } from '@/generated/author-chunk/similar-author'
 
 export interface AuthorSearchResult {
   items: AuthorStats[]
@@ -23,7 +28,7 @@ export interface AuthorSearchOptions {
   offset?: number
 }
 
-// 简化版作者数据（从 FlatBuffers 解析后的结构）
+// 简化版作者数据
 interface AuthorData {
   author: string
   poem_count: number
@@ -31,6 +36,7 @@ interface AuthorData {
   poem_type_counts: Record<string, number>
   word_frequency: Record<string, number>
   similar_authors: Array<{ author: string; similarity: number }>
+  dynasty?: string
 }
 
 class AuthorSearch {
@@ -53,7 +59,8 @@ class AuthorSearch {
   // 统计
   private stats = {
     totalAuthors: 0,
-    loadedChunks: 0
+    loadedChunks: 0,
+    totalChunks: 0
   }
 
   private constructor() {}
@@ -81,13 +88,13 @@ class AuthorSearch {
       console.log('[AuthorSearch] 开始初始化...')
       const startTime = performance.now()
       
-      // 加载作者元数据
-      await this.loadAuthorMetadata()
+      // 加载作者元数据并加载前几个chunk
+      await this.loadAuthorData()
       
       this.isInitialized = true
       const duration = Math.round(performance.now() - startTime)
       console.log(`[AuthorSearch] 初始化完成，耗时 ${duration}ms`)
-      console.log(`[AuthorSearch] 索引统计: ${this.stats.totalAuthors} 作者`)
+      console.log(`[AuthorSearch] 索引统计: ${this.authors.size} 作者, ${this.dynastyIndex.size} 朝代`)
     } catch (error) {
       console.error('[AuthorSearch] 初始化失败:', error)
       throw error
@@ -98,8 +105,9 @@ class AuthorSearch {
 
   // ============ 索引加载 ============
 
-  private async loadAuthorMetadata(): Promise<void> {
+  private async loadAuthorData(): Promise<void> {
     try {
+      // 加载作者元数据
       const response = await fetch(`${import.meta.env.BASE_URL}data/author_v2/authors-meta.json`)
       if (!response.ok) {
         console.warn('[AuthorSearch] 无法加载作者元数据')
@@ -107,31 +115,122 @@ class AuthorSearch {
       }
       
       const meta = await response.json()
-      this.stats.totalAuthors = meta.total_authors || 0
+      this.stats.totalAuthors = meta.totalAuthors || 0
+      this.stats.totalChunks = meta.total || 0
       
-      // 只加载热门作者（诗词数量最多的前100个）
-      const hotAuthors = meta.authors?.slice(0, 100) || []
+      // 只加载前10个chunk（约前1000个热门作者）
+      const chunksToLoad = Math.min(10, this.stats.totalChunks)
+      const loadPromises = []
+      for (let i = 0; i < chunksToLoad; i++) {
+        loadPromises.push(this.loadAuthorChunk(i))
+      }
+      await Promise.all(loadPromises)
       
-      for (const author of hotAuthors) {
-        this.authors.set(author.name, {
-          author: author.name,
-          poem_count: author.poem_count || 0,
-          poem_ids: [],
-          poem_type_counts: {},
-          word_frequency: {},
-          similar_authors: []
-        })
-        
-        // 构建朝代索引
-        if (author.dynasty) {
-          const existing = this.dynastyIndex.get(author.dynasty) || []
-          if (!existing.includes(author.name)) {
-            this.dynastyIndex.set(author.dynasty, [...existing, author.name])
-          }
+    } catch (error) {
+      console.warn('[AuthorSearch] 加载作者数据失败:', error)
+    }
+  }
+
+  private async loadAuthorChunk(chunkIndex: number): Promise<void> {
+    try {
+      const chunkId = chunkIndex.toString().padStart(4, '0')
+      const filePath = `author_v2/author_chunk_${chunkId}.fbs`
+      
+      const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+      if (!response.ok) {
+        console.warn(`[AuthorSearch] 无法加载作者chunk ${chunkIndex}`)
+        return
+      }
+
+      const buffer = new Uint8Array(await response.arrayBuffer())
+      const bb = new flatbuffers.ByteBuffer(buffer)
+      const chunkFile = AuthorChunkFile.getRootAsAuthorChunkFile(bb)
+      
+      const len = chunkFile.authorsLength()
+      for (let i = 0; i < len; i++) {
+        const author = chunkFile.authors(i)
+        if (author) {
+          this.addAuthorToIndex(author)
         }
       }
+      
+      this.stats.loadedChunks++
     } catch (error) {
-      console.warn('[AuthorSearch] 加载作者元数据失败:', error)
+      console.warn(`[AuthorSearch] 加载作者chunk ${chunkIndex} 失败:`, error)
+    }
+  }
+
+  private addAuthorToIndex(author: Author): void {
+    const authorName = author.author() || ''
+    if (!authorName) return
+
+    // 提取词频数据
+    const wordFrequency: Record<string, number> = {}
+    const wordFreqLen = author.wordFrequencyLength()
+    for (let i = 0; i < wordFreqLen && i < 10; i++) {  // 只取前10个高频词
+      const wf = author.wordFrequency(i)
+      if (wf) {
+        const word = wf.word()
+        if (word) {
+          wordFrequency[word] = wf.count()
+        }
+      }
+    }
+
+    // 提取相似作者
+    const similarAuthors: Array<{ author: string; similarity: number }> = []
+    const similarLen = author.similarAuthorsLength()
+    for (let i = 0; i < similarLen && i < 5; i++) {  // 只取前5个相似作者
+      const sa = author.similarAuthors(i)
+      if (sa) {
+        const name = sa.author()
+        if (name) {
+          similarAuthors.push({ author: name, similarity: sa.similarity() })
+        }
+      }
+    }
+
+    // 提取诗词类型统计
+    const poemTypeCounts: Record<string, number> = {}
+    const typeCountsLen = author.poemTypeCountsLength()
+    for (let i = 0; i < typeCountsLen; i++) {
+      const tc = author.poemTypeCounts(i)
+      if (tc) {
+        const typeName = tc.word()
+        if (typeName) {
+          poemTypeCounts[typeName] = tc.count()
+        }
+      }
+    }
+
+    // 推断朝代（根据诗词类型或作者名特征）
+    let dynasty: string | undefined
+    if (poemTypeCounts['唐诗'] || poemTypeCounts['唐']) {
+      dynasty = '唐'
+    } else if (poemTypeCounts['宋词'] || poemTypeCounts['宋']) {
+      dynasty = '宋'
+    } else if (poemTypeCounts['元曲'] || poemTypeCounts['元']) {
+      dynasty = '元'
+    }
+
+    const authorData: AuthorData = {
+      author: authorName,
+      poem_count: author.poemCount(),
+      poem_ids: [],
+      poem_type_counts: poemTypeCounts,
+      word_frequency: wordFrequency,
+      similar_authors: similarAuthors,
+      dynasty
+    }
+
+    this.authors.set(authorName, authorData)
+
+    // 构建朝代索引
+    if (dynasty) {
+      const existing = this.dynastyIndex.get(dynasty) || []
+      if (!existing.includes(authorName)) {
+        this.dynastyIndex.set(dynasty, [...existing, authorName])
+      }
     }
   }
 

@@ -38,7 +38,8 @@ let manifestPromise: Promise<HashManifest> | null = null
  */
 async function getManifest(): Promise<HashManifest> {
   if (!manifestPromise) {
-    manifestPromise = fetch(`${import.meta.env.BASE_URL}/data/hash-manifest.json`)
+    const baseUrl = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL.slice(0, -1) : import.meta.env.BASE_URL
+    manifestPromise = fetch(`${baseUrl}/data/hash-manifest.json`)
       .then(res => {
         if (!res.ok) throw new Error('Manifest not found')
         return res.json()

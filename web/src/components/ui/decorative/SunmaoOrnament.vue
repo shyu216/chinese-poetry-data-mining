@@ -1,9 +1,15 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+
 interface Props {
   position: 'tl' | 'tr' | 'bl' | 'br'
   size?: number
   animationDelay?: number
 }
+
+onMounted(() => {
+  console.log('[SunmaoOrnament] mounted, position:', props.position)
+})
 
 const props = withDefaults(defineProps<Props>(), {
   size: 64,
@@ -17,6 +23,55 @@ const positionClasses = {
   br: 'sunmao-br'
 }
 
+// 获取连接点坐标（所有元素的基准点）
+const getJointXY = () => {
+  switch (props.position) {
+    case 'tl':
+      return { x: 36, y: 36 }
+    case 'tr':
+      return { x: 56, y: 36 }
+    case 'bl':
+      return { x: 36, y: 56 }
+    case 'br':
+      return { x: 56, y: 56 }
+  }
+}
+
+// 水平梁：从连接点向左右延伸，稍微偏移形成交错
+const getBeamH = () => {
+  const joint = getJointXY()
+  // 水平梁稍微向上偏移，形成交错效果
+  const offsetY = -2
+  switch (props.position) {
+    case 'tl':
+    case 'bl':
+      // 向左延伸：从左边到连接点右侧
+      return { x: 0, y: joint.y + offsetY, width: joint.x + 8 }
+    case 'tr':
+    case 'br':
+      // 向右延伸：从连接点左侧到右边
+      return { x: joint.x, y: joint.y + offsetY, width: 100 - joint.x }
+  }
+}
+
+// 垂直梁：从连接点向上下延伸，稍微偏移形成交错
+const getBeamV = () => {
+  const joint = getJointXY()
+  // 垂直梁稍微向右偏移，形成交错效果
+  const offsetX = 2
+  switch (props.position) {
+    case 'tl':
+    case 'tr':
+      // 向上延伸：从上边到连接点底部
+      return { x: joint.x + offsetX, y: 0, width: 8, height: joint.y + 8 }
+    case 'bl':
+    case 'br':
+      // 向下延伸：从连接点顶部到下边
+      return { x: joint.x + offsetX, y: joint.y, width: 8, height: 100 - joint.y }
+  }
+}
+
+// 水平梁动画：从外侧滑入
 const getBeamHTransform = () => {
   switch (props.position) {
     case 'tl':
@@ -28,6 +83,7 @@ const getBeamHTransform = () => {
   }
 }
 
+// 垂直梁动画：从外侧滑入
 const getBeamVTransform = () => {
   switch (props.position) {
     case 'tl':
@@ -39,44 +95,9 @@ const getBeamVTransform = () => {
   }
 }
 
-const getBeamHX = () => {
-  switch (props.position) {
-    case 'tl':
-    case 'bl':
-      return { x: 0, width: 56 }
-    case 'tr':
-    case 'br':
-      return { x: 44, width: 56 }
-  }
-}
-
-const getBeamVY = () => {
-  switch (props.position) {
-    case 'tl':
-    case 'tr':
-      return { y: 0, height: 56 }
-    case 'bl':
-    case 'br':
-      return { y: 44, height: 56 }
-  }
-}
-
-const getJointXY = () => {
-  switch (props.position) {
-    case 'tl':
-      return { x: 32, y: 32 }
-    case 'tr':
-      return { x: 60, y: 32 }
-    case 'bl':
-      return { x: 32, y: 60 }
-    case 'br':
-      return { x: 60, y: 60 }
-  }
-}
-
-const beamH = getBeamHX()
-const beamV = getBeamVY()
 const joint = getJointXY()
+const beamH = getBeamH()
+const beamV = getBeamV()
 </script>
 
 <template>
@@ -90,20 +111,23 @@ const joint = getJointXY()
     }"
   >
     <svg viewBox="0 0 100 100" class="sunmao-svg" preserveAspectRatio="xMidYMid meet">
+      <!-- 水平梁 -->
       <rect
         class="sunmao-beam-h"
         :x="beamH.x"
-        y="32"
+        :y="beamH.y"
         :width="beamH.width"
         height="8"
       />
+      <!-- 垂直梁 -->
       <rect
         class="sunmao-beam-v"
-        x="32"
+        :x="beamV.x"
         :y="beamV.y"
-        width="8"
+        :width="beamV.width"
         :height="beamV.height"
       />
+      <!-- 连接点 -->
       <rect
         class="sunmao-joint"
         :x="joint.x"
@@ -111,6 +135,7 @@ const joint = getJointXY()
         width="8"
         height="8"
       />
+      <!-- 榫卯细节 -->
       <rect class="sunmao-tenon" :x="joint.x - 2" :y="joint.y + 2" width="2" height="4" />
       <rect class="sunmao-tenon" :x="joint.x + 8" :y="joint.y + 2" width="2" height="4" />
       <rect class="sunmao-tenon" :x="joint.x + 2" :y="joint.y - 2" width="4" height="2" />

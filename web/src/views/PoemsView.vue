@@ -5,16 +5,18 @@ import { usePoemsV2, POEMS_SUMMARY_STORAGE } from '@/composables/usePoemsV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
 import { usePoemSearch } from '@/search'
+import { useShuffle } from '@/composables/useShuffle'
 import type { PoemSummary } from '@/composables/types'
 import {
   NEmpty, NSelect,
-  NButton, NPagination, NGrid, NGridItem
+  NButton, NPagination, NGrid, NGridItem, NSpace, NTooltip
 } from 'naive-ui'
 import {
   BookOutline,
   ChevronForwardOutline,
   LibraryOutline, FlameOutline,
-  SchoolOutline, MusicalNotesOutline
+  SchoolOutline, MusicalNotesOutline,
+  ShuffleOutline, RefreshOutline
 } from '@vicons/ionicons5'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import StatsCard from '@/components/display/StatsCard.vue'
@@ -122,13 +124,18 @@ const filteredPoems = computed(() => {
   return result
 })
 
-// 显示逻辑：搜索模式显示搜索结果，否则显示过滤后的列表
+// 随机排序功能
+const { isShuffled, shuffledItems: shuffledFilteredPoems, toggleShuffle, shuffle } = useShuffle({
+  items: filteredPoems
+})
+
+// 显示逻辑：搜索模式显示搜索结果，否则显示过滤后的列表（支持随机排序）
 const displayPoems = computed(() => {
   const query = searchQuery.value.trim()
   if (query && poemSearchReady.value) {
     return searchResults.value
   }
-  return filteredPoems.value
+  return shuffledFilteredPoems.value
 })
 
 const displayTotal = computed(() => {
@@ -364,7 +371,7 @@ watch(searchQuery, () => {
   <div class="poems-view">
     <PageHeader
       title="翰墨集珍"
-      :subtitle="`收录 ${totalPoems.toLocaleString()} 首诗词，按朝代、体裁筛选`"
+      :subtitle="`收录 ${dynamicStats.total.toLocaleString()} 首诗词，按朝代、体裁筛选`"
       :icon="BookOutline"
     />
 
@@ -445,6 +452,39 @@ watch(searchQuery, () => {
           size="medium"
           clearable
         />
+        <NSpace>
+          <NTooltip trigger="hover">
+            <template #trigger>
+              <NButton
+                :type="isShuffled ? 'primary' : 'default'"
+                :ghost="!isShuffled"
+                size="medium"
+                @click="toggleShuffle"
+                :disabled="searchQuery.trim().length > 0"
+              >
+                <template #icon>
+                  <ShuffleOutline />
+                </template>
+                {{ isShuffled ? '随机中' : '随机排序' }}
+              </NButton>
+            </template>
+            {{ isShuffled ? '点击恢复默认排序' : '点击随机打乱诗词顺序' }}
+          </NTooltip>
+          <NTooltip v-if="isShuffled" trigger="hover">
+            <template #trigger>
+              <NButton
+                size="medium"
+                @click="shuffle"
+              >
+                <template #icon>
+                  <RefreshOutline />
+                </template>
+                换一批
+              </NButton>
+            </template>
+            重新随机排序
+          </NTooltip>
+        </NSpace>
       </template>
     </SearchContainer>
 

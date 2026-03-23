@@ -169,8 +169,13 @@ const getDynastyConfig = (dynasty: string) => {
 
         <PoemContent
           :sentences="poem.sentences"
+          :title="poem.title"
+          :author="poem.author"
+          :dynasty="poem.dynasty"
+          :genre="poem.genre"
           mode="text"
           :show-meters="true"
+          :show-controls="true"
         />
 
         <NCard v-if="poem.words.length > 0" title="关键词" class="words-card">

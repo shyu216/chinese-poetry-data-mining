@@ -1,0 +1,29 @@
+[PoemSearch] 开始初始化...
+PoemsView.vue:231 [PoemsView] 🚀 开始加载数据...
+PoemsView.vue:240 [PoemsView] 📋 阶段1: 加载元数据...
+PoemsView.vue:244 [PoemsView] ✅ 元数据加载完成: 332712 首诗词, 333 个分块 - 1ms
+PoemsView.vue:248 [PoemsView] ⚡ 阶段2: 快速加载首批数据...
+PoemsView.vue:174 [PoemsView] 🔄 开始加载本地缓存 (快速模式)...
+PoemsView.vue:180 [PoemsView] 📦 发现 333 个缓存分块
+PoemsView.vue:190 [PoemsView] ⚡ 快速模式：优先加载分块 #2
+PoemsView.vue:197 [PoemsView] ✅ 快速加载完成: 1000 首诗词 - 178ms
+PoemsView.vue:251 [PoemsView] ✅ 首批数据加载完成 - 196ms
+PoemsView.vue:260 [PoemsView] 🎨 界面已可交互，开始后台加载剩余数据...
+PoemsView.vue:272 [PoemsView] 💾 后台加载剩余 332 个缓存分块...
+PoemSearch.ts:93 [PoemSearch] 初始化完成，耗时 12709ms
+PoemSearch.ts:94 [PoemSearch] 索引统计: 13000 关键词, 26035 诗词缓存
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 3/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 6/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 9/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 12/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 15/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 18/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 21/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 24/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 27/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 30/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 33/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 36/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 39/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 42/332 分块
+PoemsView.vue:282 [PoemsView] 📥 缓存加载进度: 45/

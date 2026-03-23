@@ -3,6 +3,7 @@
  * 
  * 提供三个层次的组件：
  * - SearchInput: 基础搜索输入框
+ * - SearchInputEnhanced: 增强版搜索输入（支持建议、历史、高亮）
  * - SearchStats: 搜索统计信息
  * - SearchContainer: 完整搜索容器（整合输入和统计）
  * 
@@ -12,6 +13,15 @@
  * <SearchInput
  *   v-model="searchQuery"
  *   placeholder="搜索诗词..."
+ *   @search="handleSearch"
+ * />
+ * 
+ * <!-- 增强版搜索 -->
+ * <SearchInputEnhanced
+ *   v-model="searchQuery"
+ *   placeholder="寻一句诗，觅一位故人..."
+ *   :suggestions="poemSuggestions"
+ *   :hot-searches="['李白', '杜甫', '静夜思']"
  *   @search="handleSearch"
  * />
  * 
@@ -34,5 +44,6 @@
  */
 
 export { default as SearchInput } from './SearchInput.vue'
+export { default as SearchInputEnhanced } from './SearchInputEnhanced.vue'
 export { default as SearchStats } from './SearchStats.vue'
 export { default as SearchContainer } from './SearchContainer.vue'

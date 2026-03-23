@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+import type { RouteLocationNormalized } from 'vue-router'
 import {
-  SearchOutline as SearchIcon,
-  BookOutline as BookIcon,
-  PeopleOutline as PeopleIcon,
-  BarChartOutline as StatsIcon,
-  CloudOutline as CloudIcon,
+  LibraryOutline as HomeIcon,
+  BookOutline as PoemsIcon,
+  PeopleOutline as AuthorsIcon,
+  BarChartOutline as WordCountIcon,
   ServerOutline as DataIcon,
-  GitNetworkOutline as NetworkIcon,
   MenuOutline,
   CloseOutline
 } from '@vicons/ionicons5'
@@ -19,8 +18,10 @@ import { UnifiedLoading } from '@/components/feedback'
 const collapsed = ref(false)
 const mobileMenuOpen = ref(false)
 const isMobile = ref(false)
+const isTransitioning = ref(false)
 
 const poemsV2 = usePoemsV2()
+const route = useRoute()
 
 const formatNumber = (num: number | undefined | null): string => {
   if (num === undefined || num === null) return '--'
@@ -48,11 +49,34 @@ onUnmounted(() => {
 })
 
 const menuOptions = [
-  { label: '诗词宝库', key: 'poems', path: '/poems', icon: BookIcon },
-  { label: '高产文人', key: 'authors', path: '/authors', icon: PeopleIcon },
-  { label: '词频统计', key: 'word-count', path: '/word-count', icon: StatsIcon },
-  { label: '数据管理', key: 'data', path: '/data', icon: DataIcon },
+  { label: '启卷', key: 'home', path: '/', icon: HomeIcon },
+  { label: '诗海', key: 'poems', path: '/poems', icon: PoemsIcon },
+  { label: '墨客', key: 'authors', path: '/authors', icon: AuthorsIcon },
+  { label: '词韵', key: 'word-count', path: '/word-count', icon: WordCountIcon },
+  { label: '库藏', key: 'data', path: '/data', icon: DataIcon },
 ]
+
+// 页面过渡动画配置
+const getTransitionName = (route: RouteLocationNormalized) => {
+  // 详情页使用水墨扩散效果
+  if (route.path.includes('/poem/') || route.path.includes('/author/')) {
+    return 'page-ink-spread'
+  }
+  // 列表页使用上滑效果
+  if (route.path.includes('/poems') || route.path.includes('/authors')) {
+    return 'page-slide-up'
+  }
+  // 默认淡入淡出
+  return 'page-fade'
+}
+
+const onBeforeLeave = () => {
+  isTransitioning.value = true
+}
+
+const onAfterEnter = () => {
+  isTransitioning.value = false
+}
 
 
 
@@ -132,9 +156,14 @@ const themeOverrides = {
           <div v-if="isMobile && mobileMenuOpen" class="mobile-overlay" @click="mobileMenuOpen = false"></div>
 
           <main class="main-content">
-            <RouterView v-slot="{ Component }">
-              <transition name="fade" mode="out-in">
-                <component :is="Component" />
+            <RouterView v-slot="{ Component, route }">
+              <transition 
+                :name="getTransitionName(route)" 
+                mode="out-in"
+                @before-leave="onBeforeLeave"
+                @after-enter="onAfterEnter"
+              >
+                <component :is="Component" :key="route.path" />
               </transition>
             </RouterView>
           </main>
@@ -425,6 +454,56 @@ body {
   font-weight: 600;
 }
 
+/* ========== 页面过渡动画 ========== */
+
+/* 淡入淡出 */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+}
+
+/* 上滑入 */
+.page-slide-up-enter-active,
+.page-slide-up-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* 水墨扩散 */
+.page-ink-spread-enter-active {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-ink-spread-leave-active {
+  transition: all 0.3s ease;
+}
+
+.page-ink-spread-enter-from {
+  opacity: 0;
+  filter: blur(10px);
+  transform: scale(0.98);
+}
+
+.page-ink-spread-leave-to {
+  opacity: 0;
+  filter: blur(5px);
+}
+
+/* 旧版兼容 */
 .fade-enter-active, .fade-leave-active {
   transition: opacity 0.2s ease;
 }
