@@ -1,6 +1,6 @@
 /**
  * SearchManager - 统一搜索管理器
- * 
+ *
  * 功能：
  * 1. 关键词倒排索引 - O(1) 查找包含关键词的诗词
  * 2. 作者索引 - 快速查找诗人
@@ -11,6 +11,7 @@
 
 import { LRUCache } from './LRUCache'
 import type { PoemSummary, AuthorStats, WordCountItem } from '@/composables/types'
+import { getVerifiedChunk } from '@/composables/useVerifiedCache'
 
 // 搜索结果类型
 export interface SearchResult<T> {
@@ -126,17 +127,28 @@ class SearchManager {
   private async loadKeywordChunk(chunkIndex: number): Promise<void> {
     try {
       const chunkId = chunkIndex.toString().padStart(4, '0')
-      const response = await fetch(`${import.meta.env.BASE_URL}data/keyword_index/keyword_${chunkId}.json`)
-      
-      if (!response.ok) {
-        console.warn(`[SearchManager] 无法加载 keyword chunk ${chunkIndex}`)
+      const filePath = `keyword_index/keyword_${chunkId}.json`
+
+      const result = await getVerifiedChunk<Record<string, string[]>>(
+        'search-manager',
+        chunkIndex,
+        filePath,
+        async () => {
+          const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+          if (!response.ok) {
+            throw new Error(`Failed to load keyword chunk ${chunkIndex}`)
+          }
+          return response.json()
+        }
+      )
+
+      if (!result.data) {
+        console.warn(`[SearchManager] 无法加载 keyword chunk ${chunkIndex}: ${result.error || 'Unknown error'}`)
         return
       }
-      
-      const data: Record<string, string[]> = await response.json()
-      
+
       // 构建倒排索引
-      for (const [keyword, poemIds] of Object.entries(data)) {
+      for (const [keyword, poemIds] of Object.entries(result.data)) {
         if (!this.keywordIndex.has(keyword)) {
           this.keywordIndex.set(keyword, new Set())
           this.totalKeywords++
@@ -144,7 +156,7 @@ class SearchManager {
         const set = this.keywordIndex.get(keyword)!
         poemIds.forEach(id => set.add(id))
       }
-      
+
       this.loadedChunks++
     } catch (error) {
       console.warn(`[SearchManager] 加载 keyword chunk ${chunkIndex} 失败:`, error)
@@ -171,25 +183,40 @@ class SearchManager {
 
   private async loadPoemChunk(filename: string): Promise<void> {
     try {
-      const response = await fetch(`${import.meta.env.BASE_URL}data/poem_index/${filename}`)
-      if (!response.ok) return
-      
-      const data: Record<string, PoemSummary> = await response.json()
-      
-      for (const [id, poem] of Object.entries(data)) {
+      const filePath = `poem_index/${filename}`
+
+      const result = await getVerifiedChunk<Record<string, PoemSummary>>(
+        'search-manager',
+        filename.replace('.json', ''),
+        filePath,
+        async () => {
+          const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+          if (!response.ok) {
+            throw new Error(`Failed to load poem chunk ${filename}`)
+          }
+          return response.json()
+        }
+      )
+
+      if (!result.data) {
+        console.warn(`[SearchManager] 无法加载 poem chunk ${filename}: ${result.error || 'Unknown error'}`)
+        return
+      }
+
+      for (const [id, poem] of Object.entries(result.data)) {
         this.poems.set(id, poem)
-        
+
         // 构建辅助索引
         if (!this.authorIndex.has(poem.author)) {
           this.authorIndex.set(poem.author, new Set())
         }
         this.authorIndex.get(poem.author)!.add(id)
-        
+
         if (!this.dynastyIndex.has(poem.dynasty)) {
           this.dynastyIndex.set(poem.dynasty, new Set())
         }
         this.dynastyIndex.get(poem.dynasty)!.add(id)
-        
+
         if (!this.genreIndex.has(poem.genre)) {
           this.genreIndex.set(poem.genre, new Set())
         }
@@ -248,23 +275,55 @@ class SearchManager {
     // 3. 执行搜索
     let poemIds: Set<string> = new Set()
     let source: SearchResult<PoemSummary>['source'] = 'memory'
+    const hasQuery = query.trim().length > 0
+    const hasFilters = filters?.dynasty || filters?.genre || filters?.author
     
-    // 3.1 关键词匹配 (O(1))
-    if (this.keywordIndex.has(query)) {
-      poemIds = new Set(this.keywordIndex.get(query)!)
-    }
-    
-    // 3.2 标题/作者模糊匹配
-    if (poemIds.size === 0) {
-      for (const [id, poem] of this.poems) {
-        if (poem.title.includes(query) || poem.author.includes(query)) {
-          poemIds.add(id)
-        }
+    if (hasQuery) {
+      // 3.1 关键词匹配 (O(1))
+      if (this.keywordIndex.has(query)) {
+        poemIds = new Set(this.keywordIndex.get(query)!)
       }
+      
+      // 3.2 标题/作者模糊匹配
+      if (poemIds.size === 0) {
+        for (const [id, poem] of this.poems) {
+          if (poem.title.includes(query) || poem.author.includes(query)) {
+            poemIds.add(id)
+          }
+        }
+        source = 'memory'
+      }
+    } else if (hasFilters) {
+      // 3.3 无关键词但有过滤器时，从过滤器对应的索引开始
+      // 优先使用范围最小的索引作为基础集合
+      const indexSizes: Array<{ type: string; ids: Set<string>; size: number }> = []
+      
+      if (filters?.author) {
+        const ids = this.authorIndex.get(filters.author) || new Set()
+        indexSizes.push({ type: 'author', ids, size: ids.size })
+      }
+      if (filters?.dynasty) {
+        const ids = this.dynastyIndex.get(filters.dynasty) || new Set()
+        indexSizes.push({ type: 'dynasty', ids, size: ids.size })
+      }
+      if (filters?.genre) {
+        const ids = this.genreIndex.get(filters.genre) || new Set()
+        indexSizes.push({ type: 'genre', ids, size: ids.size })
+      }
+      
+      // 使用最小的索引作为基础，减少后续过滤运算量
+      indexSizes.sort((a, b) => a.size - b.size)
+      if (indexSizes.length > 0) {
+        poemIds = indexSizes[0]!.ids
+      }
+      source = 'memory'
+    } else {
+      // 3.4 既无关键词也无过滤器，返回所有诗词
+      poemIds = new Set(this.poems.keys())
       source = 'memory'
     }
     
-    // 3.3 应用过滤器
+    // 3.5 应用过滤器（当有过滤器时，与查询结果取交集）
     let filteredIds = Array.from(poemIds)
     if (filters?.dynasty) {
       const dynastyIds = this.dynastyIndex.get(filters.dynasty) || new Set()

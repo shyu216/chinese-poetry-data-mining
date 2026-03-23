@@ -8,7 +8,9 @@
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "type-check": "vue-tsc --build",
+    "generate-hash-manifest": "node scripts/generate-hash-manifest.js",
+    "build:with-hash": "npm run generate-hash-manifest && npm run build"
   },
   "dependencies": {
     "@vicons/ionicons5": "^0.13.0",

@@ -7,6 +7,7 @@ import type {
   PoemIndexManifest
 } from './types'
 import { getCache, setCache, getChunkedCache, setChunkedCache } from './useCacheV2'
+import { getVerifiedCache } from './useVerifiedCache'
 
 export type MetadataType = 'poems' | 'authors' | 'wordcount' | 'wordSimilarity' | 'poemIndex'
 
@@ -76,23 +77,33 @@ export function useMetadataLoader<T = unknown>(type: MetadataType) {
     error.value = null
 
     try {
+      // 使用 hash 验证缓存加载 metadata
+      const result = await getVerifiedCache<T>(
+        config.storageName,
+        'metadata',
+        config.url,
+        async () => {
+          const response = await fetch(`${import.meta.env.BASE_URL}${config.url}`)
+          if (!response.ok) {
+            throw new Error(`Failed to load ${type} metadata: ${response.status}`)
+          }
+          return response.json()
+        }
+      )
+
+      if (result.data) {
+        metadataCache.value = { ...metadataCache.value, [type]: result.data }
+        return result.data
+      }
+
+      // 如果 hash 验证失败，尝试普通缓存
       const cached = await getCache<T>(config.storageName, 'metadata')
       if (cached && !forceRefresh) {
         metadataCache.value = { ...metadataCache.value, [type]: cached }
         return cached
       }
 
-      const response = await fetch(`${import.meta.env.BASE_URL}${config.url}`)
-      if (!response.ok) {
-        throw new Error(`Failed to load ${type} metadata: ${response.status}`)
-      }
-
-      const data: T = await response.json()
-
-      await setCache(config.storageName, 'metadata', data)
-      metadataCache.value = { ...metadataCache.value, [type]: data }
-
-      return data
+      throw new Error(result.error || `Failed to load ${type} metadata`)
     } catch (e) {
       const errorMessage = e instanceof Error ? e.message : 'Unknown error'
 

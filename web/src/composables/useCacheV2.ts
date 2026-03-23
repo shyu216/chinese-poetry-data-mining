@@ -7,6 +7,8 @@ interface CacheItem<T = unknown> {
   timestamp: number
   expireAt?: number
   sourceUrl?: string
+  hash?: string
+  hashAlgorithm?: string
 }
 
 interface ChunkItem<T = unknown> {
@@ -16,6 +18,8 @@ interface ChunkItem<T = unknown> {
   data: T
   timestamp: number
   sourceUrl?: string
+  hash?: string
+  hashAlgorithm?: string
 }
 
 interface MetadataItem {
@@ -23,6 +27,12 @@ interface MetadataItem {
   loadedChunkIds: number[]
   totalChunks?: number
   timestamp: number
+  /** 存储版本号，用于强制刷新缓存 */
+  version?: number
+  /** 依赖项哈希，用于验证依赖数据一致性 */
+  dependencyHash?: string
+  /** 存储特定的验证数据 */
+  validationData?: Record<string, unknown>
 }
 
 interface UnifiedCacheSchema extends DBSchema {
@@ -80,6 +90,8 @@ export interface CacheOptions {
   expire?: number
   storage?: string
   sourceUrl?: string
+  hash?: string
+  hashAlgorithm?: string
 }
 
 export async function getCache<T>(storage: string, key: string): Promise<T | null> {
@@ -107,7 +119,9 @@ export async function setCache<T>(storage: string, key: string, data: T, options
     data,
     timestamp: Date.now(),
     expireAt: options?.expire ? Date.now() + options.expire : undefined,
-    sourceUrl: options?.sourceUrl
+    sourceUrl: options?.sourceUrl,
+    hash: options?.hash,
+    hashAlgorithm: options?.hashAlgorithm
   })
 }
 
@@ -151,8 +165,40 @@ export async function getChunkedCache<T>(storage: string, chunkId: number | stri
   return item.data as T
 }
 
+// 带 hash 验证的缓存项结构（与 useVerifiedCache.ts 保持一致）
+interface VerifiedCacheItem<T> {
+  data: T
+  fileHash: string
+  manifestVersion: string
+  cachedAt: number
+}
+
+/**
+ * 获取带验证的分块缓存（支持 VerifiedCacheItem 包装结构）
+ * 用于读取 useVerifiedCache 存储的数据
+ */
+export async function getVerifiedChunkedCache<T>(storage: string, chunkId: number | string): Promise<T | null> {
+  const db = await getDB()
+  const chunkKey = makeChunkKey(storage, chunkId)
+  const item = await db.get('chunks', chunkKey)
+
+  if (!item) return null
+
+  const data = item.data as T | VerifiedCacheItem<T>
+
+  // 检查是否是 VerifiedCacheItem 包装结构
+  if (data && typeof data === 'object' && 'data' in data && 'fileHash' in data && 'cachedAt' in data) {
+    return (data as VerifiedCacheItem<T>).data
+  }
+
+  // 普通数据结构，直接返回
+  return data as T
+}
+
 export interface ChunkCacheOptions {
   sourceUrl?: string
+  hash?: string
+  hashAlgorithm?: string
 }
 
 export async function setChunkedCache<T>(storage: string, chunkId: number | string, data: T, options?: ChunkCacheOptions): Promise<void> {
@@ -165,7 +211,9 @@ export async function setChunkedCache<T>(storage: string, chunkId: number | stri
     chunkId,
     data,
     timestamp: Date.now(),
-    sourceUrl: options?.sourceUrl
+    sourceUrl: options?.sourceUrl,
+    hash: options?.hash,
+    hashAlgorithm: options?.hashAlgorithm
   })
 }
 
@@ -182,6 +230,109 @@ export async function setMetadata(storage: string, data: Omit<MetadataItem, 'sto
     ...data,
     timestamp: Date.now()
   })
+}
+
+/**
+ * 存储验证配置
+ */
+export interface StorageValidationConfig {
+  /** 存储名称 */
+  storage: string
+  /** 当前存储版本号 */
+  currentVersion: number
+  /** 依赖项验证函数，返回依赖项的哈希值 */
+  getDependencyHash?: () => Promise<string | null>
+  /** 依赖项数据获取函数 */
+  getDependencyData?: () => Promise<Record<string, unknown> | null>
+  /** 验证失败时的回调 */
+  onValidationFailed?: (reason: string) => void
+}
+
+/**
+ * 验证存储的缓存是否有效
+ * 检查版本号和依赖项一致性
+ */
+export async function validateStorage(
+  config: StorageValidationConfig
+): Promise<{ valid: boolean; reason?: string; metadata?: MetadataItem | null }> {
+  const meta = await getMetadata(config.storage)
+
+  if (!meta) {
+    return { valid: false, reason: '无元数据', metadata: null }
+  }
+
+  // 检查版本号
+  if (meta.version !== config.currentVersion) {
+    const reason = `版本不匹配: 缓存=${meta.version ?? '无'}, 当前=${config.currentVersion}`
+    config.onValidationFailed?.(reason)
+    return { valid: false, reason, metadata: meta }
+  }
+
+  // 检查依赖项哈希
+  if (config.getDependencyHash) {
+    const currentHash = await config.getDependencyHash()
+    if (currentHash && meta.dependencyHash !== currentHash) {
+      const reason = `依赖项哈希不匹配: 缓存=${meta.dependencyHash ?? '无'}, 当前=${currentHash}`
+      config.onValidationFailed?.(reason)
+      return { valid: false, reason, metadata: meta }
+    }
+  }
+
+  // 检查依赖项数据
+  if (config.getDependencyData) {
+    const currentData = await config.getDependencyData()
+    if (currentData && meta.validationData) {
+      const cacheDataStr = JSON.stringify(meta.validationData)
+      const currentDataStr = JSON.stringify(currentData)
+      if (cacheDataStr !== currentDataStr) {
+        const reason = '依赖项数据不匹配'
+        config.onValidationFailed?.(reason)
+        return { valid: false, reason, metadata: meta }
+      }
+    }
+  }
+
+  return { valid: true, metadata: meta }
+}
+
+/**
+ * 验证并清理无效的存储缓存
+ * 如果验证失败，自动清除该存储的所有缓存
+ */
+export async function validateAndCleanStorage(
+  config: StorageValidationConfig & { autoClean?: boolean }
+): Promise<{ valid: boolean; cleaned?: boolean; metadata?: MetadataItem | null }> {
+  const result = await validateStorage(config)
+
+  if (!result.valid && config.autoClean !== false) {
+    console.warn(`[CacheV2] 存储 "${config.storage}" 验证失败: ${result.reason}，正在清除缓存...`)
+    await clearStorage(config.storage)
+    return { valid: false, cleaned: true, metadata: null }
+  }
+
+  return { valid: result.valid, cleaned: false, metadata: result.metadata }
+}
+
+/**
+ * 获取带验证的元数据
+ * 如果验证失败，返回 null
+ */
+export async function getValidatedMetadata(
+  storage: string,
+  currentVersion: number,
+  options?: {
+    getDependencyHash?: () => Promise<string | null>
+    autoClean?: boolean
+  }
+): Promise<MetadataItem | null> {
+  const result = await validateAndCleanStorage({
+    storage,
+    currentVersion,
+    getDependencyHash: options?.getDependencyHash,
+    autoClean: options?.autoClean
+  })
+
+  return result.valid ? result.metadata ?? null : null
 }
 
 export async function getAllChunkIds(storage: string): Promise<number[]> {

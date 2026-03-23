@@ -10,13 +10,14 @@ import {
   NCard, NSpin, NEmpty, NTag, NButton, NSpace,
   NPageHeader, NGrid, NGridItem, NStatistic, NBackTop, NPagination
 } from 'naive-ui'
-import {
-  ArrowBackOutline, SearchOutline, BookOutline,
+import { ArrowBackOutline, SearchOutline, BookOutline,
   TextOutline, TrendingUpOutline, ListOutline
 } from '@vicons/ionicons5'
+import { useLoading } from '@/composables/useLoading'
 
 const route = useRoute()
 const router = useRouter()
+const loading = useLoading()
 const keywordIndex = useKeywordIndex()
 const poemsV2 = usePoemsV2()
 const searchIndexV2 = useSearchIndexV2()
@@ -25,7 +26,7 @@ const wordcountV2 = useWordcountV2()
 const keyword = computed(() => route.params.word as string)
 const poemIds = ref<string[]>([])
 const poems = ref<PoemSummary[]>([])
-const loading = ref(true)
+const isLoading = ref(true)
 const wordRank = ref<number | null>(null)
 const wordCount = ref<number | null>(null)
 
@@ -131,68 +132,75 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
 const loadData = async () => {
   console.log(`[KeywordDetail] loadData START for keyword: "${keyword.value}"`)
   const startTime = Date.now()
-  loading.value = true
+
+  // 步骤 1: 初始化 - 开始 blocking loading
+  loading.startBlocking('词境探幽', `正在探寻"${keyword.value}"的诗意世界...`)
+  isLoading.value = true
   loadingPoems.value = true
   poems.value = []
   page.value = 1
 
   try {
-    // 1. 获取关键词对应的诗词ID列表
+    // 步骤 2: 检索相关诗词（必须完成，因为需要知道总数）
+    loading.updatePhase('search', '正在检索相关诗词...')
+    loading.updateProgress(0, 2)
     console.log(`[KeywordDetail] Step 1: Getting keyword poem IDs...`)
     const step1Start = Date.now()
     poemIds.value = await keywordIndex.getKeywordPoemIds(keyword.value)
     console.log(`[KeywordDetail] Step 1 DONE: Found ${poemIds.value.length} poems in ${Date.now() - step1Start}ms`)
-    console.log(`[KeywordDetail] Step 1 DONE: Found ${poemIds.value.length} poems in ${Date.now() - startTime}ms`)
-    
+
     if (poemIds.value.length === 0) {
       console.log(`[KeywordDetail] No poems found, returning early`)
-      loading.value = false
+      loading.updatePhase('complete', '未找到相关诗词')
+      loading.finish()
+      isLoading.value = false
       loadingPoems.value = false
       return
     }
-    
-    // 2. 批量加载诗词（只加载第一页用于快速显示）- 使用 chunk_id 优化
+
+    // 步骤 3: 快速加载第一页诗词（渐进式加载核心）
+    loading.updateProgress(1, 2, `正在加载首批 ${Math.min(pageSize.value, poemIds.value.length)} 首诗词...`)
     const firstPageIds = poemIds.value.slice(0, pageSize.value)
     console.log(`[KeywordDetail] Step 2: Loading first page with ${firstPageIds.length} poems...`)
-    console.log(`[KeywordDetail] First page IDs:`, firstPageIds.slice(0, 5), '...')
-    
+
     const step2Start = Date.now()
-    // 使用 loadPoemsBatch 替代逐个调用 getPoemById，以利用 chunk_id 优化
     const firstPageResults = await loadPoemsBatch(firstPageIds, true)
     console.log(`[KeywordDetail] Step 2 DONE: Loaded ${firstPageResults.length} poems in ${Date.now() - step2Start}ms`)
-    
+
     poems.value = firstPageResults
-    
-    console.log(`[KeywordDetail] Setting loading=false, poems count: ${poems.value.length}`)
-    loading.value = false // 先显示第一页
-    
-    // 3. 后台加载剩余诗词用于统计
+
+    // 步骤 4: 立即解除阻塞，展示界面！
+    loading.updateProgress(2, 2, '准备就绪...')
+    loading.updatePhase('complete', '词境已现')
+    setTimeout(() => loading.finish(), 200)
+    isLoading.value = false
+    console.log(`[KeywordDetail] 🎉 界面已可交互，开始后台加载剩余数据...`)
+
+    // 步骤 5: 后台加载剩余诗词 + 统计数据
     if (poemIds.value.length > pageSize.value) {
       const remainingIds = poemIds.value.slice(pageSize.value)
       console.log(`[KeywordDetail] Step 3: Loading remaining ${remainingIds.length} poems in background...`)
+      loading.startNonBlocking('补充诗词数据', `正在加载剩余 ${remainingIds.length} 首诗词...`)
       loadRemainingPoems(remainingIds)
     } else {
       console.log(`[KeywordDetail] No remaining poems to load`)
       loadingPoems.value = false
     }
-    
-    // 4. 获取词频统计
-    console.log(`[KeywordDetail] Step 4: Loading word stats...`)
-    const step4Start = Date.now()
-    const allWords = await wordcountV2.getTopWords(10000)
-    const foundWord = allWords.find(w => w.word === keyword.value)
-    if (foundWord) {
-      wordRank.value = foundWord.rank
-      wordCount.value = foundWord.count
-      console.log(`[KeywordDetail] Step 4 DONE: Found word stats - rank: ${foundWord.rank}, count: ${foundWord.count} in ${Date.now() - step4Start}ms`)
-    } else {
-      console.log(`[KeywordDetail] Step 4 DONE: No word stats found in ${Date.now() - step4Start}ms`)
-    }
+
+    // 后台获取词频统计
+    wordcountV2.getTopWords(10000).then(allWords => {
+      const foundWord = allWords.find(w => w.word === keyword.value)
+      if (foundWord) {
+        wordRank.value = foundWord.rank
+        wordCount.value = foundWord.count
+      }
+    })
   } catch (e) {
     console.error('[KeywordDetail] ERROR in loadData:', e)
+    loading.error('加载失败')
+    isLoading.value = false
   } finally {
     console.log(`[KeywordDetail] loadData FINALLY, total time: ${Date.now() - startTime}ms`)
-    loading.value = false
   }
 }
 
@@ -206,10 +214,12 @@ const loadRemainingPoems = async (ids: string[]) => {
     const remaining = await loadPoemsBatch(ids, false)
     allPoems.value = [...poems.value, ...remaining]
     loadingPoems.value = false
+    loading.finish()
     console.log(`[KeywordDetail] loadRemainingPoems DONE: ${allPoems.value.length} total poems in ${Date.now() - startTime}ms`)
   } catch (e) {
     console.error('[KeywordDetail] ERROR in loadRemainingPoems:', e)
     loadingPoems.value = false
+    loading.finish()
   }
 }
 
@@ -356,8 +366,8 @@ watch(keyword, () => {
       </NGridItem>
     </NGrid>
 
-    <NSpin :show="loading" size="large">
-      <NEmpty v-if="!loading && poems.length === 0" :description="`未找到包含「${keyword}」的诗词`">
+    <NSpin :show="isLoading" size="large">
+      <NEmpty v-if="!isLoading && poems.length === 0" :description="`未找到包含「${keyword}」的诗词`">
         <template #extra>
           <NButton @click="goToPoems">返回诗词列表</NButton>
         </template>

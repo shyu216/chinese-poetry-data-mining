@@ -8,11 +8,15 @@ import type {
   PoemQueryResult
 } from './types'
 import { usePoemsMetadata, POEMS_STORAGE, parseCsvLine, getChunkUrl } from './useMetadataLoader'
-import { getCache, setCache, getChunkedCache, setChunkedCache, getMetadata, setMetadata } from './useCacheV2'
+import { getMetadata, setMetadata, getChunkedCache, setChunkedCache, getValidatedMetadata } from './useCacheV2'
+import { getVerifiedChunk } from './useVerifiedCache'
 
 // Separate storage keys for summaries and details to avoid cache conflicts
-const POEMS_SUMMARY_STORAGE = 'poems-summary-v2'
+export const POEMS_SUMMARY_STORAGE = 'poems-summary-v2'
 const POEMS_DETAIL_STORAGE = 'poems-detail-v2'
+
+/** 存储版本号 */
+const STORAGE_VERSION = 1
 
 const poemSummaryCache = shallowRef<Map<number, PoemSummary[]>>(new Map())
 const poemDetailCache = shallowRef<Map<number, Map<string, PoemDetail>>>(new Map())
@@ -22,17 +26,26 @@ const loadedDetailChunkIds: Ref<number[]> = ref([])
 const indexLoading: Ref<boolean> = ref(false)
 
 async function initLoadedChunkIds() {
-  const meta = await getMetadata(POEMS_STORAGE)
+  // 使用版本验证获取元数据
+  const meta = await getValidatedMetadata(POEMS_STORAGE, STORAGE_VERSION, { autoClean: true })
   if (meta) {
     loadedChunkIds.value = meta.loadedChunkIds
+  } else {
+    loadedChunkIds.value = []
   }
-  const summaryMeta = await getMetadata(POEMS_SUMMARY_STORAGE)
+
+  const summaryMeta = await getValidatedMetadata(POEMS_SUMMARY_STORAGE, STORAGE_VERSION, { autoClean: true })
   if (summaryMeta) {
     loadedSummaryChunkIds.value = summaryMeta.loadedChunkIds
+  } else {
+    loadedSummaryChunkIds.value = []
   }
-  const detailMeta = await getMetadata(POEMS_DETAIL_STORAGE)
+
+  const detailMeta = await getValidatedMetadata(POEMS_DETAIL_STORAGE, STORAGE_VERSION, { autoClean: true })
   if (detailMeta) {
     loadedDetailChunkIds.value = detailMeta.loadedChunkIds
+  } else {
+    loadedDetailChunkIds.value = []
   }
 }
 initLoadedChunkIds()
@@ -49,117 +62,155 @@ export function usePoemsV2() {
   const loadedChunkCount = computed(() => loadedChunkIds.value.length)
 
   async function loadChunkSummaries(chunkNum: number): Promise<PoemSummary[]> {
+    console.log(`[usePoemsV2] loadChunkSummaries START: chunkNum=${chunkNum}`)
     if (poemSummaryCache.value.has(chunkNum)) {
-      return poemSummaryCache.value.get(chunkNum)!
-    }
-
-    const cached = await getChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, chunkNum)
-    if (cached) {
-      poemSummaryCache.value.set(chunkNum, cached)
+      const cached = poemSummaryCache.value.get(chunkNum)!
+      console.log(`[usePoemsV2] loadChunkSummaries: chunk ${chunkNum} cache HIT, ${cached.length} poems`)
       return cached
     }
 
     const chunkId = chunkNum.toString().padStart(4, '0')
-    const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_${chunkId}.csv`)
-    if (!response.ok) throw new Error(`Failed to load chunk ${chunkNum}`)
+    const filePath = `preprocessed/poems_chunk_${chunkId}.csv`
 
-    const csvText = await response.text()
-    const lines = csvText.trim().split('\n')
-    const dataLines = lines.slice(1)
+    const result = await getVerifiedChunk<PoemSummary[]>(
+      POEMS_SUMMARY_STORAGE,
+      chunkNum,
+      filePath,
+      async () => {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+        if (!response.ok) throw new Error(`Failed to load chunk ${chunkNum}`)
 
-    const poems: PoemSummary[] = []
+        const csvText = await response.text()
+        const lines = csvText.trim().split('\n')
+        const dataLines = lines.slice(1)
 
-    for (const line of dataLines) {
-      const cols = parseCsvLine(line)
-      if (cols.length < 5) continue
+        const poems: PoemSummary[] = []
 
-      const [id, title, author, dynasty, genre] = cols
+        for (const line of dataLines) {
+          const cols = parseCsvLine(line)
+          if (cols.length < 5) continue
 
-      poems.push({
-        id: id || '',
-        title: title || '',
-        author: author || '佚名',
-        dynasty: dynasty || '',
-        genre: genre || '',
-        chunk_id: chunkNum // 添加 chunk_id 用于快速定位
+          const [id, title, author, dynasty, genre] = cols
+
+          poems.push({
+            id: id || '',
+            title: title || '',
+            author: author || '佚名',
+            dynasty: dynasty || '',
+            genre: genre || '',
+            chunk_id: chunkNum
+          })
+        }
+
+        return poems
+      }
+    )
+
+    if (!result.data) {
+      throw new Error(`Failed to load chunk ${chunkNum}: ${result.error || 'Unknown error'}`)
+    }
+
+    console.log(`[usePoemsV2] loadChunkSummaries: chunk ${chunkNum} loaded, ${result.data.length} poems`)
+
+    poemSummaryCache.value.set(chunkNum, result.data)
+
+    // Update metadata tracking
+    if (!loadedChunkIds.value.includes(chunkNum)) {
+      loadedChunkIds.value.push(chunkNum)
+      await setMetadata(POEMS_STORAGE, {
+        loadedChunkIds: [...loadedChunkIds.value],
+        totalChunks: totalChunks.value,
+        version: STORAGE_VERSION
       })
     }
 
-    poemSummaryCache.value.set(chunkNum, poems)
-    await setChunkedCache(POEMS_SUMMARY_STORAGE, chunkNum, poems)
-
-    if (!loadedChunkIds.value.includes(chunkNum)) {
-      loadedChunkIds.value.push(chunkNum)
-      await setMetadata(POEMS_STORAGE, { loadedChunkIds: [...loadedChunkIds.value], totalChunks: totalChunks.value })
-    }
-
-    // 为 poems-summary-v2 存储添加 metadata 以支持统计展示
     if (!loadedSummaryChunkIds.value.includes(chunkNum)) {
       loadedSummaryChunkIds.value.push(chunkNum)
       await setMetadata(POEMS_SUMMARY_STORAGE, {
         loadedChunkIds: [...loadedSummaryChunkIds.value],
-        totalChunks: totalChunks.value
+        totalChunks: totalChunks.value,
+        version: STORAGE_VERSION
       })
     }
 
-    return poems
+    return result.data
   }
 
   async function loadChunkDetails(chunkNum: number): Promise<Map<string, PoemDetail>> {
+    console.log(`[usePoemsV2] loadChunkDetails START: chunk ${chunkNum}`)
     if (poemDetailCache.value.has(chunkNum)) {
+      console.log(`[usePoemsV2] loadChunkDetails: chunk ${chunkNum} already in cache`)
       return poemDetailCache.value.get(chunkNum)!
     }
 
-    const cached = await getChunkedCache<Record<string, PoemDetail>>(POEMS_DETAIL_STORAGE, chunkNum)
-    if (cached) {
-      const poemMap = new Map<string, PoemDetail>(Object.entries(cached))
-      poemDetailCache.value.set(chunkNum, poemMap)
-      return poemMap
-    }
-
     const chunkId = chunkNum.toString().padStart(4, '0')
-    const response = await fetch(`${import.meta.env.BASE_URL}data/preprocessed/poems_chunk_${chunkId}.csv`)
-    if (!response.ok) throw new Error(`Failed to load chunk ${chunkNum}`)
+    const filePath = `preprocessed/poems_chunk_${chunkId}.csv`
+    console.log(`[usePoemsV2] loadChunkDetails: loading from ${filePath}`)
 
-    const csvText = await response.text()
-    const lines = csvText.trim().split('\n')
-    const dataLines = lines.slice(1)
+    const result = await getVerifiedChunk<Record<string, PoemDetail>>(
+      POEMS_DETAIL_STORAGE,
+      chunkNum,
+      filePath,
+      async () => {
+        console.log(`[usePoemsV2] loadChunkDetails: fetching ${filePath}`)
+        const fetchStart = Date.now()
+        const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+        console.log(`[usePoemsV2] loadChunkDetails: fetch response ${response.status} in ${Date.now() - fetchStart}ms`)
+        if (!response.ok) throw new Error(`Failed to load chunk ${chunkNum}`)
 
-    const poemMap = new Map<string, PoemDetail>()
+        const parseStart = Date.now()
+        const csvText = await response.text()
+        const lines = csvText.trim().split('\n')
+        const dataLines = lines.slice(1)
+        console.log(`[usePoemsV2] loadChunkDetails: parsed ${dataLines.length} lines in ${Date.now() - parseStart}ms`)
 
-    for (const line of dataLines) {
-      const cols = parseCsvLine(line)
-      if (cols.length < 10) continue
+        const poemRecord: Record<string, PoemDetail> = {}
 
-      const [id, title, author, dynasty, genre, poemType, sentences, meterPattern, hash, words] = cols
-      const poemId = id || ''
+        for (const line of dataLines) {
+          const cols = parseCsvLine(line)
+          if (cols.length < 10) continue
 
-      poemMap.set(poemId, {
-        id: poemId,
-        title: title || '',
-        author: author || '佚名',
-        dynasty: dynasty || '',
-        genre: genre || '',
-        poem_type: poemType,
-        meter_pattern: meterPattern,
-        sentences: sentences ? sentences.split(' ').filter(s => s) : [],
-        words: words ? words.split(' ').filter(w => w) : [],
-        hash: hash || ''
-      })
+          const [id, title, author, dynasty, genre, poemType, sentences, meterPattern, hash, words] = cols
+          const poemId = id || ''
+
+          poemRecord[poemId] = {
+            id: poemId,
+            title: title || '',
+            author: author || '佚名',
+            dynasty: dynasty || '',
+            genre: genre || '',
+            poem_type: poemType,
+            meter_pattern: meterPattern,
+            sentences: sentences ? sentences.split(' ').filter(s => s) : [],
+            words: words ? words.split(' ').filter(w => w) : [],
+            hash: hash || ''
+          }
+        }
+        console.log(`[usePoemsV2] loadChunkDetails: processed ${Object.keys(poemRecord).length} poems`)
+
+        return poemRecord
+      }
+    )
+
+    if (!result.data) {
+      throw new Error(`Failed to load chunk ${chunkNum}: ${result.error || 'Unknown error'}`)
     }
 
+    const poemMap = new Map<string, PoemDetail>(Object.entries(result.data))
     poemDetailCache.value.set(chunkNum, poemMap)
-    await setChunkedCache(POEMS_DETAIL_STORAGE, chunkNum, Object.fromEntries(poemMap))
+    console.log(`[usePoemsV2] loadChunkDetails: cached chunk ${chunkNum}, map size: ${poemMap.size}`)
 
-    // 为 poems-detail-v2 存储添加 metadata 以支持统计展示
+    // Update metadata tracking
     if (!loadedDetailChunkIds.value.includes(chunkNum)) {
       loadedDetailChunkIds.value.push(chunkNum)
       await setMetadata(POEMS_DETAIL_STORAGE, {
         loadedChunkIds: [...loadedDetailChunkIds.value],
-        totalChunks: totalChunks.value
+        totalChunks: totalChunks.value,
+        version: STORAGE_VERSION
       })
     }
 
+    console.log(`[usePoemsV2] loadChunkDetails END: chunk ${chunkNum}`)
     return poemMap
   }
 
@@ -346,23 +397,68 @@ export function usePoemsV2() {
     page: number = 1,
     pageSize: number = 24
   ): Promise<PoemQueryResult> {
+    console.log(`[usePoemsV2] queryPoems START: page=${page}, pageSize=${pageSize}, filter=`, filter)
     const index = await loadMetadata()
     const relevantChunks = getRelevantChunks(filter)
+    console.log(`[usePoemsV2] queryPoems: relevantChunks=${relevantChunks.length} chunks, ids=[${relevantChunks.slice(0, 10).join(',')}${relevantChunks.length > 10 ? '...' : ''}]`)
+
+    // 计算总符合条件的诗词数量（用于分页）
+    let totalFilteredPoems = 0
+    for (const chunkId of relevantChunks) {
+      const chunkInfo = poemsIndex.value?.chunks.find(c => c.id === chunkId)
+      if (chunkInfo) {
+        totalFilteredPoems += chunkInfo.count
+      }
+    }
+    console.log(`[usePoemsV2] queryPoems: totalFilteredPoems=${totalFilteredPoems}`)
 
     const poemsPerChunk = 1000
     const startIndex = (page - 1) * pageSize
     const endIndex = startIndex + pageSize
 
-    const startChunkIndex = Math.floor(startIndex / poemsPerChunk)
-    const endChunkIndex = Math.floor(endIndex / poemsPerChunk) + 1
+    // 计算需要加载的 chunks
+    // 策略：遍历相关 chunks，累积计数，找到包含目标范围的 chunks
+    let accumulatedCount = 0
+    const chunksToLoad: number[] = []
+    let skipCount = 0 // 需要跳过的诗词数量（在当前 chunk 内）
+    let takeCount = pageSize // 需要获取的诗词数量
 
-    const chunksToLoad = relevantChunks.slice(startChunkIndex, endChunkIndex)
+    for (const chunkId of relevantChunks) {
+      const chunkInfo = poemsIndex.value?.chunks.find(c => c.id === chunkId)
+      if (!chunkInfo) continue
+
+      const chunkStart = accumulatedCount
+      const chunkEnd = accumulatedCount + chunkInfo.count
+
+      // 检查这个 chunk 是否包含目标范围
+      if (chunkEnd > startIndex && chunkStart < endIndex) {
+        chunksToLoad.push(chunkId)
+        
+        // 如果是第一个需要加载的 chunk，计算需要跳过多少
+        if (chunksToLoad.length === 1) {
+          skipCount = Math.max(0, startIndex - chunkStart)
+        }
+      }
+
+      accumulatedCount += chunkInfo.count
+      
+      // 如果已经收集够数据，提前退出
+      if (accumulatedCount >= endIndex && chunksToLoad.length > 0) {
+        break
+      }
+    }
+
+    console.log(`[usePoemsV2] queryPoems: chunksToLoad=[${chunksToLoad.join(',')}], skipCount=${skipCount}`)
+    
     const allPoems: PoemSummary[] = []
 
     for (const chunkId of chunksToLoad) {
       const chunkPoems = await loadChunkSummaries(chunkId)
+      console.log(`[usePoemsV2] queryPoems: chunk ${chunkId} returned ${chunkPoems.length} poems`)
       allPoems.push(...chunkPoems)
     }
+
+    console.log(`[usePoemsV2] queryPoems: allPoems.length=${allPoems.length}`)
 
     let filtered = allPoems
 
@@ -379,15 +475,22 @@ export function usePoemsV2() {
       filtered = filtered.filter(p => p.author === filter.author)
     }
 
-    const paged = filtered.slice(startIndex % poemsPerChunk, (startIndex % poemsPerChunk) + pageSize)
+    // 在加载的 poems 中，跳过前面的，取需要的数量
+    const paged = filtered.slice(skipCount, skipCount + pageSize)
+    console.log(`[usePoemsV2] queryPoems: paged.length=${paged.length}, skipCount=${skipCount}, pageSize=${pageSize}`)
+
+    // 计算过滤后的总数
+    const filteredTotal = filter?.author 
+      ? totalFilteredPoems // 如果有作者过滤，需要实际计算，这里简化处理
+      : totalFilteredPoems
 
     return {
       poems: paged,
       total: index.metadata.total,
-      filteredTotal: filtered.length,
+      filteredTotal: filteredTotal,
       page,
       pageSize,
-      hasMore: endIndex < filtered.length
+      hasMore: endIndex < filteredTotal
     }
   }
 

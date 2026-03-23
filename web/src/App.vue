@@ -10,12 +10,11 @@ import {
   ServerOutline as DataIcon,
   GitNetworkOutline as NetworkIcon,
   MenuOutline,
-  CloseOutline,
-  BugOutline as TestIcon
+  CloseOutline
 } from '@vicons/ionicons5'
 
 import { usePoemsV2 } from '@/composables/usePoemsV2'
-import GlobalLoading from '@/components/GlobalLoading.vue'
+import { UnifiedLoading } from '@/components/feedback'
 
 const collapsed = ref(false)
 const mobileMenuOpen = ref(false)
@@ -53,8 +52,6 @@ const menuOptions = [
   { label: '高产文人', key: 'authors', path: '/authors', icon: PeopleIcon },
   { label: '词频统计', key: 'word-count', path: '/word-count', icon: StatsIcon },
   { label: '数据管理', key: 'data', path: '/data', icon: DataIcon },
-  { label: '读取测试', key: 'test', path: '/test', icon: TestIcon },
-  { label: '组件演示', key: 'components-demo', path: '/components-demo', icon: TestIcon },
 ]
 
 
@@ -152,8 +149,8 @@ const themeOverrides = {
             </div>
           </footer>
 
-          <!-- 全局加载组件 -->
-          <GlobalLoading />
+          <!-- 统一加载组件 -->
+          <UnifiedLoading />
         </div>
       </n-dialog-provider>
     </n-message-provider>

@@ -128,9 +128,9 @@ const loadStats = async () => {
     wordSimStats.value.cachedChunks = validIds.length
   }
 
-  const keywordMeta = await keywordIndex.loadMetadata()
-  keywordIndexStats.value.totalChunks = keywordMeta.total_chunks || 201
-  keywordIndexStats.value.cachedChunks = keywordMeta.loadedChunkIds?.length || 0
+  // 使用 computed 属性获取 keyword index 统计
+  keywordIndexStats.value.totalChunks = keywordIndex.totalChunks.value
+  keywordIndexStats.value.cachedChunks = keywordIndex.loadedChunkIds.value.length
   keywordIndexStats.value.loaded = keywordIndexStats.value.cachedChunks > 0
 
   console.log('[DataOverview] wordSimStats:', {

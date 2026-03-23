@@ -14,18 +14,16 @@ import { useWordSimilarityV2 } from '@/composables/useWordSimilarityV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { useWordcountMetadata, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
 import { useWordSimilarityMetadata, WORD_SIMILARITY_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata, getCache, getChunkedCache } from '@/composables/useCacheV2'
+import { getMetadata, getCache, getVerifiedChunkedCache } from '@/composables/useCacheV2'
 import { useWordSearch } from '@/search'
 import type { WordCountItem } from '@/composables/types'
-import PageHeader from '@/components/PageHeader.vue'
-import FilterSection from '@/components/FilterSection.vue'
-import StatsCard from '@/components/StatsCard.vue'
-import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
-import WordCloud from '@/components/WordCloud.vue'
+import { PageHeader, FilterSection } from '@/components/layout'
+import { StatsCard, WordCloud } from '@/components/display'
+import { ChunkLoaderStatus } from '@/components/feedback'
 import { SearchContainer } from '@/components/search'
 import { useLoading } from '@/composables/useLoading'
 
-const globalLoading = useLoading()
+const loading = useLoading()
 const wordcountV2 = useWordcountV2()
 const wordSimV2 = useWordSimilarityV2()
 const router = useRouter()
@@ -171,10 +169,10 @@ const topCount = computed(() => {
 const avgWordLength = computed(() => {
   if (loadedWords.value.length === 0) return '-'
   const totalWeightedLength = loadedWords.value.reduce(
-    (sum, w) => sum + w.word.length * w.count, 0
+    (sum, w) => sum + (w.word?.length || 0) * (w.count || 0), 0
   )
   const totalCount = loadedWords.value.reduce(
-    (sum, w) => sum + w.count, 0
+    (sum, w) => sum + (w.count || 0), 0
   )
   return totalCount > 0 ? (totalWeightedLength / totalCount).toFixed(2) : '0'
 })
@@ -210,11 +208,18 @@ const loadCachedChunks = async (): Promise<number[]> => {
   console.log(`[WordCountView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
-    const chunkData = await getChunkedCache<WordCountItem[]>(WORDCOUNT_STORAGE, chunkId)
+    const chunkData = await getVerifiedChunkedCache<WordCountItem[]>(WORDCOUNT_STORAGE, chunkId)
     const chunkDuration = Math.round(performance.now() - chunkStartTime)
 
-    if (chunkData) {
-      cachedWords.push(...chunkData)
+    if (chunkData && Array.isArray(chunkData)) {
+      // 转换数组格式 [word, count, rank] 为对象格式 {word, count, rank}
+      const convertedData = chunkData.map((item: any) => {
+        if (Array.isArray(item)) {
+          return { word: item[0], count: item[1], rank: item[2] }
+        }
+        return item as WordCountItem
+      })
+      cachedWords.push(...convertedData)
       console.log(`[WordCountView]   ├─ 分块 #${chunkId}: ${chunkData.length} 个词汇 (${chunkDuration}ms)`)
     }
   }
@@ -222,6 +227,12 @@ const loadCachedChunks = async (): Promise<number[]> => {
   if (cachedWords.length > 0) {
     loadedWords.value = cachedWords.sort((a, b) => a.rank - b.rank)
     totalWords.value = cachedWords.length
+    
+    // Debug: 检查缓存数据
+    console.log('[loadCachedChunks] 加载完成:', {
+      total: cachedWords.length,
+      sample: cachedWords.slice(0, 3)
+    })
   }
 
   const totalDuration = Math.round(performance.now() - startTime)
@@ -234,16 +245,14 @@ const loadData = async () => {
   console.log('[WordCountView] 🚀 开始加载数据...')
   const totalStartTime = performance.now()
 
-  // 阶段1：阻塞性加载 - 元数据（必须等待）
-  const initTaskId = globalLoading.startBlocking(
-    '准备词频统计',
-    '正在建立数据连接...'
-  )
-
+  // 步骤 1: 初始化 - 开始 blocking loading
+  loading.startBlocking('词频统计', '正在开启词频宝库...')
   isInitializing.value = true
+
   try {
-    // 阶段1：加载元数据
-    globalLoading.update(initTaskId, { phase: 'meta' })
+    // 步骤 2: 加载元数据
+    loading.updatePhase('metadata', '正在读取词频索引...')
+    loading.updateProgress(0, 4)
     console.log('[WordCountView] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
     await wordcountMeta.loadMetadata()
@@ -251,23 +260,15 @@ const loadData = async () => {
     totalChunks.value = totalChunksCount
     console.log(`[WordCountView] ✅ 元数据加载完成: ${globalTotalWords.value} 个词汇, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 阶段2：检查缓存
-    globalLoading.update(initTaskId, {
-      phase: 'search',
-      description: '正在检查本地缓存...',
-      progress: 30
-    })
+    // 步骤 3: 检查缓存
+    loading.updateProgress(1, 4, '正在检查本地缓存...')
     console.log('[WordCountView] 💾 阶段2: 检查本地缓存...')
     const cacheStartTime = performance.now()
     const loadedChunkIds = await loadCachedChunks()
     console.log(`[WordCountView] ✅ 缓存检查完成 - ${Math.round(performance.now() - cacheStartTime)}ms`)
 
-    // 阶段3：UI 准备
-    globalLoading.update(initTaskId, {
-      phase: 'ui',
-      description: '正在调整布局...',
-      progress: 50
-    })
+    // 步骤 4: UI 准备
+    loading.updateProgress(2, 4, '正在准备词频展示...')
     console.log('[WordCountView] 🎨 阶段3: 准备UI...')
     const uiStartTime = performance.now()
 
@@ -277,11 +278,10 @@ const loadData = async () => {
     console.log(`[WordCountView] ✅ UI准备完成 - ${Math.round(performance.now() - uiStartTime)}ms`)
 
     // 完成阻塞性加载
-    globalLoading.update(initTaskId, {
-      description: '准备就绪',
-      progress: 100
-    })
-    setTimeout(() => globalLoading.finish(initTaskId), 200)
+    loading.updateProgress(3, 4, '准备就绪...')
+    loading.updatePhase('complete', '词频宝库已开，请君查阅')
+    loading.updateProgress(4, 4)
+    setTimeout(() => loading.finish(), 300)
 
     if (unloadedChunkIds.length === 0) {
       console.log('[WordCountView] ✨ 所有数据已从缓存加载，无需网络请求')
@@ -290,13 +290,10 @@ const loadData = async () => {
       return
     }
 
-    // 阶段4：后台加载剩余数据（不阻塞用户交互）
+    // 步骤 5: 后台加载剩余数据（non-blocking）
     console.log('[WordCountView] 🌐 阶段4: 开始后台加载网络数据...')
     const bgStartTime = performance.now()
-    const bgTaskId = globalLoading.startBackground(
-      '补充词频数据',
-      '正在汇聚千年文脉...'
-    )
+    loading.startNonBlocking('补充词频数据', '正在汇聚千年文脉...')
 
     let currentLoadedCount = loadedChunkIds.length
     let networkDataCount = 0
@@ -318,12 +315,7 @@ const loadData = async () => {
         if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
           const phases = ['正在读取词频档案...', '正在整理词汇数据...', '正在汇聚千年文脉...', '正在构建词频图谱...']
           const phase = phases[Math.floor((currentLoadedCount / totalChunksCount) * phases.length)] || phases[0]
-          globalLoading.update(bgTaskId, {
-            description: `${phase} (${currentLoadedCount}/${totalChunksCount})`,
-            progress,
-            current: currentLoadedCount,
-            total: totalChunksCount
-          })
+          loading.updateProgress(currentLoadedCount, totalChunksCount, `${phase} (${currentLoadedCount}/${totalChunksCount})`)
           console.log(`[WordCountView] 📥 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词汇)`)
         }
       },
@@ -331,11 +323,11 @@ const loadData = async () => {
         const bgDuration = Math.round(performance.now() - bgStartTime)
         console.log(`[WordCountView] ✅ 后台加载完成: ${networkDataCount} 个词汇 - ${bgDuration}ms`)
         hasMoreChunks.value = false
-        globalLoading.finish(bgTaskId)
+        loading.finish()
       }
     })
   } catch (error) {
-    globalLoading.update(initTaskId, { description: '加载失败，请刷新重试' })
+    loading.error('加载失败，请刷新重试')
     console.error('[WordCountView] ❌ 词频数据加载失败:', error)
   } finally {
     const totalDuration = Math.round(performance.now() - totalStartTime)
@@ -390,7 +382,7 @@ const loadWordSimCachedChunks = async (): Promise<number[]> => {
   let loadedCount = 0
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
-    const cached = await getChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
+    const cached = await getVerifiedChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
     const chunkDuration = Math.round(performance.now() - chunkStartTime)
 
     if (cached) {
@@ -452,11 +444,20 @@ const loadWordSimData = async () => {
     console.log('[WordCountView] 🌐 [词境] 开始后台加载网络数据...')
     const bgStartTime = performance.now()
     let networkDataCount = 0
+    let currentLoadedCount = loadedChunkIds.length
 
     await wordSimChunkLoader.loadChunks(unloadedChunkIds, wordSimV2.loadChunk, {
       chunkDelay: 100,
       onChunkLoaded: (_, chunk: any) => {
         networkDataCount++
+        currentLoadedCount++
+        const progress = Math.round((currentLoadedCount / totalChunksCount) * 100)
+
+        // 每加载10%更新一次日志
+        if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
+          console.log(`[WordCountView] 📥 [词境] 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词境)`)
+        }
+
         const vocabReverseMap = wordSimV2.getVocabReverseMap()
         const entries = chunk.entries as Map<number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }>
 
@@ -695,8 +696,16 @@ watch(lengthFilter, () => {
       </template>
     </SearchContainer>
 
+    <!-- 加载中状态 -->
     <NEmpty
-      v-if="!isInitializing && loadedWords.length === 0"
+      v-if="isInitializing || (loadedWords.length === 0 && hasMoreToLoad && !searchQuery.trim() && !lengthFilter)"
+      description="正在加载词频数据..."
+    >
+    </NEmpty>
+
+    <!-- 无搜索结果状态 -->
+    <NEmpty
+      v-else-if="displayWords.length === 0"
       :description="hasMoreToLoad ? '加载更多数据可能会有结果' : '暂无词频数据'"
     >
       <template #extra>
@@ -709,7 +718,7 @@ watch(lengthFilter, () => {
       </template>
     </NEmpty>
 
-    <div v-else class="wordcount-container">
+    <div v-else-if="displayWords.length > 0" class="wordcount-container">
         <div class="words-grid">
           <div
             v-for="word in paginatedWords"
@@ -724,7 +733,7 @@ watch(lengthFilter, () => {
               <h3 class="word-text">{{ word.word }}</h3>
               <div class="word-stats">
                 <NTag type="primary" size="small">
-                  {{ word.count.toLocaleString() }} 次
+                  {{ (word.count ?? 0).toLocaleString() }} 次
                 </NTag>
               </div>
               <!-- 词境信息 -->

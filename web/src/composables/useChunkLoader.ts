@@ -1,4 +1,6 @@
-import { ref, computed, onUnmounted } from 'vue'
+import { ref, computed, onUnmounted, onMounted } from 'vue'
+
+const STORAGE_KEY = 'chunkLoader:autoLoad'
 
 export interface ChunkLoaderOptions {
   chunkDelay?: number
@@ -24,6 +26,38 @@ export function useChunkLoader() {
   const totalCount = ref(0)
   const currentChunkId = ref(0)
   const abortController = ref<AbortController | null>(null)
+  
+  // 自动加载状态（从 localStorage 读取，默认 true）
+  const autoLoadEnabled = ref(true)
+  
+  // 从 localStorage 读取自动加载设置
+  const loadAutoLoadSetting = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored !== null) {
+        autoLoadEnabled.value = stored === 'true'
+        console.log('[useChunkLoader] AutoLoad setting loaded:', autoLoadEnabled.value)
+      }
+    } catch (e) {
+      console.warn('[useChunkLoader] Failed to load autoLoad setting:', e)
+    }
+  }
+  
+  // 保存自动加载设置到 localStorage
+  const saveAutoLoadSetting = (value: boolean) => {
+    try {
+      localStorage.setItem(STORAGE_KEY, String(value))
+      autoLoadEnabled.value = value
+      console.log('[useChunkLoader] AutoLoad setting saved:', autoLoadEnabled.value)
+    } catch (e) {
+      console.warn('[useChunkLoader] Failed to save autoLoad setting:', e)
+    }
+  }
+  
+  // 组件挂载时读取设置
+  onMounted(() => {
+    loadAutoLoadSetting()
+  })
 
   const progress = computed(() => {
     if (totalCount.value === 0) return 0
@@ -44,6 +78,7 @@ export function useChunkLoader() {
 
   /**
    * 并行加载 chunks，使用队列控制并发
+   * 如果 autoLoadEnabled 为 false，则初始状态为暂停，等待用户手动开始
    */
   async function loadChunks<T>(
     chunkIds: number[],
@@ -59,11 +94,18 @@ export function useChunkLoader() {
       onError 
     } = options
 
+    // 如果自动加载被禁用，初始状态设为暂停
+    const shouldStartPaused = !autoLoadEnabled.value
+    
     isLoading.value = true
-    isPaused.value = false
+    isPaused.value = shouldStartPaused  // 根据 autoLoadEnabled 决定是否暂停
     loadedCount.value = 0
     totalCount.value = chunkIds.length
     abortController.value = new AbortController()
+    
+    if (shouldStartPaused) {
+      console.log('[useChunkLoader] Auto-load disabled, waiting for user to resume...')
+    }
 
     const results: (T | null)[] = new Array(chunkIds.length).fill(null)
     let completedCount = 0
@@ -179,6 +221,32 @@ export function useChunkLoader() {
     currentChunkId.value = 0
   }
 
+  /**
+   * 启用自动加载（保存到 localStorage）
+   */
+  function enableAutoLoad(): void {
+    saveAutoLoadSetting(true)
+    console.log('[useChunkLoader] Auto-load enabled')
+  }
+
+  /**
+   * 禁用自动加载（保存到 localStorage）
+   */
+  function disableAutoLoad(): void {
+    saveAutoLoadSetting(false)
+    console.log('[useChunkLoader] Auto-load disabled')
+  }
+
+  /**
+   * 切换自动加载状态
+   */
+  function toggleAutoLoad(): boolean {
+    const newValue = !autoLoadEnabled.value
+    saveAutoLoadSetting(newValue)
+    console.log(`[useChunkLoader] Auto-load ${newValue ? 'enabled' : 'disabled'}`)
+    return newValue
+  }
+
   onUnmounted(() => {
     stop()
   })
@@ -191,11 +259,15 @@ export function useChunkLoader() {
     totalCount,
     currentChunkId,
     state,
+    autoLoadEnabled,  // 暴露自动加载状态
     loadChunks,
     loadChunksFast,
     pause,
     resume,
     stop,
-    reset
+    reset,
+    enableAutoLoad,   // 启用自动加载
+    disableAutoLoad,  // 禁用自动加载
+    toggleAutoLoad    // 切换自动加载状态
   }
 }

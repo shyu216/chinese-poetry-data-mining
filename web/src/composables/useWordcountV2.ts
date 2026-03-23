@@ -1,15 +1,21 @@
 import { ref, computed, type Ref } from 'vue'
 import type { WordCountItem, WordCountMeta, WordCountQueryResult } from './types'
 import { useWordcountMetadata, WORDCOUNT_STORAGE } from './useMetadataLoader'
-import { getChunkedCache, setChunkedCache, getMetadata, setMetadata } from './useCacheV2'
+import { getMetadata, setMetadata, getValidatedMetadata } from './useCacheV2'
+import { getVerifiedChunk } from './useVerifiedCache'
+
+/** 存储版本号 */
+const STORAGE_VERSION = 1
 
 const wordCountCache = new Map<number, WordCountItem[]>()
 const loadedChunkIds: Ref<number[]> = ref([])
 
 async function initLoadedWordCountChunkIds() {
-  const meta = await getMetadata(WORDCOUNT_STORAGE)
+  const meta = await getValidatedMetadata(WORDCOUNT_STORAGE, STORAGE_VERSION, { autoClean: true })
   if (meta) {
     loadedChunkIds.value = meta.loadedChunkIds
+  } else {
+    loadedChunkIds.value = []
   }
 }
 initLoadedWordCountChunkIds()
@@ -25,32 +31,38 @@ export function useWordcountV2() {
       return wordCountCache.get(chunkIndex)!
     }
 
-    const cached = await getChunkedCache<WordCountItem[]>(WORDCOUNT_STORAGE, chunkIndex)
-    if (cached) {
-      wordCountCache.set(chunkIndex, cached)
-      return cached
+    const chunkId = chunkIndex.toString().padStart(4, '0')
+    const filePath = `wordcount_v2/chunk_${chunkId}.json`
+
+    const result = await getVerifiedChunk<[string, number, number][]>(
+      WORDCOUNT_STORAGE,
+      chunkIndex,
+      filePath,
+      async () => {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+        if (!response.ok) throw new Error(`Failed to load wordcount chunk ${chunkIndex}`)
+        return response.json()
+      }
+    )
+
+    if (!result.data) {
+      throw new Error(`Failed to load wordcount chunk ${chunkIndex}: ${result.error || 'Unknown error'}`)
     }
 
-    const chunkId = chunkIndex.toString().padStart(4, '0')
-    const response = await fetch(`${import.meta.env.BASE_URL}data/wordcount_v2/chunk_${chunkId}.json`)
-    if (!response.ok) throw new Error(`Failed to load wordcount chunk ${chunkIndex}`)
-
-    const rawData: [string, number, number][] = await response.json()
-
-    const items: WordCountItem[] = rawData.map(([word, count, rank]) => ({
+    const items: WordCountItem[] = result.data.map(([word, count, rank]) => ({
       word,
       count,
       rank
     }))
 
     wordCountCache.set(chunkIndex, items)
-    await setChunkedCache(WORDCOUNT_STORAGE, chunkIndex, items)
 
     if (!loadedChunkIds.value.includes(chunkIndex)) {
       loadedChunkIds.value.push(chunkIndex)
-      await setMetadata(WORDCOUNT_STORAGE, { 
-        loadedChunkIds: [...loadedChunkIds.value], 
-        totalChunks: totalChunks.value 
+      await setMetadata(WORDCOUNT_STORAGE, {
+        loadedChunkIds: [...loadedChunkIds.value],
+        totalChunks: totalChunks.value,
+        version: STORAGE_VERSION
       })
     }
 

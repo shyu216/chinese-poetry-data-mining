@@ -1,5 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import type { AuthorCluster, AuthorNode, ClusterMetadata, ClusterFeatures } from '@/types/cluster'
+import { getVerifiedCache } from './useVerifiedCache'
 
 const metadata = ref<ClusterMetadata | null>(null)
 const authors = ref<AuthorNode[]>([])
@@ -36,27 +37,56 @@ const authorsByCluster = computed(() => {
 export function useAuthorClusters() {
   const loadClusters = async () => {
     if (metadata.value) return // 已加载
-    
+
     loading.value = true
     error.value = null
-    
+
     try {
-      // 加载元数据
-      const metaRes = await fetch(`${import.meta.env.BASE_URL}/data/author_clusters/clusters_metadata.json`)
-      if (!metaRes.ok) throw new Error('Failed to load cluster metadata')
-      metadata.value = await metaRes.json()
-      
-      // 加载诗人数据
-      const authorsRes = await fetch(`${import.meta.env.BASE_URL}/data/author_clusters/clusters_data.json`)
-      if (!authorsRes.ok) throw new Error('Failed to load cluster data')
-      authors.value = await authorsRes.json()
-      
-      // 加载详细特征
-      const featuresRes = await fetch(`${import.meta.env.BASE_URL}/data/author_clusters/cluster_features.json`)
-      if (featuresRes.ok) {
-        features.value = await featuresRes.json()
+      // 使用 hash 验证缓存加载聚类数据
+      const [metaResult, authorsResult, featuresResult] = await Promise.all([
+        getVerifiedCache<ClusterMetadata>(
+          'author-clusters',
+          'metadata',
+          'author_clusters/clusters_metadata.json',
+          async () => {
+            const res = await fetch(`${import.meta.env.BASE_URL}/data/author_clusters/clusters_metadata.json`)
+            if (!res.ok) throw new Error('Failed to load cluster metadata')
+            return res.json()
+          }
+        ),
+        getVerifiedCache<AuthorNode[]>(
+          'author-clusters',
+          'authors',
+          'author_clusters/clusters_data.json',
+          async () => {
+            const res = await fetch(`${import.meta.env.BASE_URL}/data/author_clusters/clusters_data.json`)
+            if (!res.ok) throw new Error('Failed to load cluster data')
+            return res.json()
+          }
+        ),
+        getVerifiedCache<ClusterFeatures>(
+          'author-clusters',
+          'features',
+          'author_clusters/cluster_features.json',
+          async () => {
+            const res = await fetch(`${import.meta.env.BASE_URL}/data/author_clusters/cluster_features.json`)
+            // 这个文件是可选的，失败时返回 null
+            if (!res.ok) return null
+            return res.json()
+          }
+        )
+      ])
+
+      if (metaResult.data) {
+        metadata.value = metaResult.data
       }
-      
+      if (authorsResult.data) {
+        authors.value = authorsResult.data
+      }
+      if (featuresResult.data) {
+        features.value = featuresResult.data
+      }
+
       console.log(`[AuthorClusters] Loaded ${authors.value.length} authors in ${clusters.value.length} clusters`)
     } catch (e) {
       error.value = e instanceof Error ? e.message : 'Unknown error'

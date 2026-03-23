@@ -1,32 +1,30 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { usePoemsV2, POEMS_SUMMARY_STORAGE } from '@/composables/usePoemsV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
-import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
-import { POEMS_STORAGE } from '@/composables/useMetadataLoader'
+import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
 import { usePoemSearch } from '@/search'
-import type { PoemSummary, PoemFilter } from '@/composables/types'
+import type { PoemSummary } from '@/composables/types'
 import {
-  NCard, NEmpty, NSelect, NSpace, NTag,
-  NButton, NInput, NPagination, NGrid, NGridItem
+  NEmpty, NSelect,
+  NButton, NPagination, NGrid, NGridItem
 } from 'naive-ui'
 import {
-  BookOutline, FilterOutline, SearchOutline,
-  ChevronForwardOutline, TimeOutline, PersonOutline,
-  DownloadOutline, LibraryOutline, FlameOutline,
+  BookOutline,
+  ChevronForwardOutline,
+  LibraryOutline, FlameOutline,
   SchoolOutline, MusicalNotesOutline
 } from '@vicons/ionicons5'
-import PageHeader from '@/components/PageHeader.vue'
-import FilterSection from '@/components/FilterSection.vue'
-import StatsCard from '@/components/StatsCard.vue'
-import DynastyBadge from '@/components/DynastyBadge.vue'
-import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
+import PageHeader from '@/components/layout/PageHeader.vue'
+import StatsCard from '@/components/display/StatsCard.vue'
+import DynastyBadge from '@/components/ui/badge/DynastyBadge.vue'
+import ChunkLoaderStatus from '@/components/feedback/ChunkLoaderStatus.vue'
 import { SearchContainer } from '@/components/search'
 import { useLoading } from '@/composables/useLoading'
 
 const router = useRouter()
-const globalLoading = useLoading()
+const loading = useLoading()
 const {
   metadata,
   totalPoems,
@@ -34,62 +32,42 @@ const {
   dynasties,
   genres,
   poemCounts,
-  indexLoading,
   loadMetadata,
-  loadChunkSummaries,
-  queryPoems
+  loadChunkSummaries
 } = usePoemsV2()
 
 const chunkLoader = useChunkLoader()
 
-// 新的诗词搜索模块
+// 搜索模块
 const { search: searchPoems, isReady: poemSearchReady } = usePoemSearch()
 const isSearching = ref(false)
 const searchStats = ref({ queryTime: 0, source: '' })
 
-const poems = ref<PoemSummary[]>([])
-const totalCount = ref(0)
-const page = ref(1)
-const pageSize = ref(24)
+// 状态
 const searchQuery = ref('')
+const currentPage = ref(1)
+const pageSize = ref(24)
+const loadedPoems = ref<PoemSummary[]>([])
+const hasMoreChunks = ref(true)
 const isInitializing = ref(true)
-const cachedChunksCount = ref(0) // 从 IndexedDB 缓存的 chunk 数量
+const cachedChunksCount = ref(0)
 
+// 过滤器
 const dynastyFilter = ref<string | null>(null)
 const genreFilter = ref<string | null>(null)
 
-const globalTotal = computed(() => totalPoems.value || 0)
-const totalChunksCount = computed(() => totalChunks.value || 0)
+// 统计数据
+const dynamicStats = computed(() => {
+  const list = loadedPoems.value
+  const total = list.length
+  const tangshi = list.filter(p => p.dynasty === '唐' && p.genre === '诗').length
+  const songshi = list.filter(p => p.dynasty === '宋' && p.genre === '诗').length
+  const songci = list.filter(p => p.dynasty === '宋' && p.genre === '词').length
 
-// 实时统计已加载的诗词数量（按朝代和体裁）
-const loadedPoemStats = ref({
-  total: 0,
-  tangshi: 0,
-  songshi: 0,
-  songci: 0
+  return { total, tangshi, songshi, songci }
 })
 
-// 计算实时数量：如果已全部加载则显示总数，否则显示已加载数
-const displayTotal = computed(() => {
-  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
-  return isFullyLoaded ? globalTotal.value : loadedPoemStats.value.total
-})
-
-const displayTangshi = computed(() => {
-  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
-  return isFullyLoaded ? poemCounts.value.tangshi : loadedPoemStats.value.tangshi
-})
-
-const displaySongshi = computed(() => {
-  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
-  return isFullyLoaded ? poemCounts.value.songshi : loadedPoemStats.value.songshi
-})
-
-const displaySongci = computed(() => {
-  const isFullyLoaded = loadedChunksCount.value >= totalChunksCount.value && totalChunksCount.value > 0
-  return isFullyLoaded ? poemCounts.value.songci : loadedPoemStats.value.songci
-})
-
+// 过滤器选项
 const dynastyOptions = computed(() => [
   { label: '全部朝代', value: '' },
   ...dynasties.value.map(d => ({ label: d, value: d }))
@@ -100,87 +78,98 @@ const genreOptions = computed(() => [
   ...genres.value.map(g => ({ label: g, value: g }))
 ])
 
-// 总的已加载数量 = 缓存的 + 本次加载的
-const loadedChunksCount = computed(() => cachedChunksCount.value + chunkLoader.loadedCount.value)
-// 还有更多的条件是：总的已加载 < 总数
-const hasMoreChunks = computed(() => loadedChunksCount.value < totalChunksCount.value)
+// 搜索相关
+const searchResults = ref<PoemSummary[]>([])
+const searchTotal = ref(0)
 
+const performSearch = async () => {
+  const query = searchQuery.value.trim()
+  if (!query || !poemSearchReady.value) {
+    searchResults.value = []
+    searchTotal.value = 0
+    return
+  }
+
+  isSearching.value = true
+  try {
+    const result = await searchPoems(query, {
+      limit: pageSize.value,
+      offset: (currentPage.value - 1) * pageSize.value,
+      filters: {
+        dynasty: dynastyFilter.value || undefined,
+        genre: genreFilter.value || undefined
+      }
+    })
+    searchResults.value = result.items
+    searchTotal.value = result.total
+    searchStats.value = { queryTime: result.queryTime, source: result.source }
+  } finally {
+    isSearching.value = false
+  }
+}
+
+// 列表过滤（非搜索模式下）
+const filteredPoems = computed(() => {
+  let result = loadedPoems.value
+
+  if (dynastyFilter.value) {
+    result = result.filter(p => p.dynasty === dynastyFilter.value)
+  }
+  if (genreFilter.value) {
+    result = result.filter(p => p.genre === genreFilter.value)
+  }
+
+  return result
+})
+
+// 显示逻辑：搜索模式显示搜索结果，否则显示过滤后的列表
+const displayPoems = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && poemSearchReady.value) {
+    return searchResults.value
+  }
+  return filteredPoems.value
+})
+
+const displayTotal = computed(() => {
+  const query = searchQuery.value.trim()
+  if (query && poemSearchReady.value) {
+    return searchTotal.value
+  }
+  return filteredPoems.value.length
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(displayTotal.value / pageSize.value)
+})
+
+const paginatedPoems = computed(() => {
+  // 搜索模式下，搜索结果已经分页
+  const query = searchQuery.value.trim()
+  if (query && poemSearchReady.value) {
+    return displayPoems.value
+  }
+  // 列表模式下，内存分页
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return displayPoems.value.slice(start, end)
+})
+
+// 加载提示
 const loadingHint = computed(() => {
-  const count = displayTotal.value
+  const count = loadedPoems.value.length
   if (count === 0) return '🚀 正在连接...'
   return `📚 已加载 ${count.toLocaleString()} 首诗词...`
 })
 
-const loadPoemsFromLoadedChunks = async () => {
-  const query = searchQuery.value.trim()
-  
-  // 如果有搜索关键词，使用新的 PoemSearch
-  if (query && poemSearchReady.value) {
-    isSearching.value = true
-    try {
-      const result = await searchPoems(query, {
-        limit: pageSize.value,
-        offset: (page.value - 1) * pageSize.value,
-        filters: {
-          dynasty: dynastyFilter.value || undefined,
-          genre: genreFilter.value || undefined
-        }
-      })
-      poems.value = result.items
-      totalCount.value = result.total
-      searchStats.value = { queryTime: result.queryTime, source: result.source }
-    } finally {
-      isSearching.value = false
-    }
-    return
-  }
-  
-  // 否则使用原有的筛选逻辑
-  const filter: PoemFilter = {}
-
-  if (dynastyFilter.value) {
-    filter.dynasty = dynastyFilter.value
-  }
-  if (genreFilter.value) {
-    filter.genre = genreFilter.value
-  }
-
-  const result = await queryPoems(filter, page.value, pageSize.value)
-  poems.value = result.poems
-  totalCount.value = result.filteredTotal
-}
-
-// 统计诗词数量（按朝代和体裁）
-const countPoemsByCategory = (poems: PoemSummary[]) => {
-  let tangshi = 0
-  let songshi = 0
-  let songci = 0
-  let total = 0
-
-  for (const poem of poems) {
-    total++
-    if (poem.dynasty === '唐' && poem.genre === '诗') {
-      tangshi++
-    } else if (poem.dynasty === '宋' && poem.genre === '诗') {
-      songshi++
-    } else if (poem.dynasty === '宋' && poem.genre === '词') {
-      songci++
-    }
-  }
-
-  return { tangshi, songshi, songci, total }
-}
-
-// 从 IndexedDB 加载缓存的 chunk 数据
-const loadCachedChunks = async (): Promise<number[]> => {
-  console.log('[PoemsView] 🔄 开始加载本地缓存...')
+// 从缓存加载
+const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
+  console.log(`[PoemsView] 🔄 开始加载本地缓存${quickMode ? ' (快速模式)' : ''}...`)
   const startTime = performance.now()
 
-  const meta = await getMetadata(POEMS_STORAGE)
+  const meta = await getMetadata(POEMS_SUMMARY_STORAGE)
   const loadedChunkIds = meta?.loadedChunkIds || []
 
-  // 更新缓存的 chunk 数量
-  cachedChunksCount.value = loadedChunkIds.length
   console.log(`[PoemsView] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
 
   if (loadedChunkIds.length === 0) {
@@ -188,222 +177,194 @@ const loadCachedChunks = async (): Promise<number[]> => {
     return []
   }
 
-  // 从 IndexedDB 读取每个 chunk 的数据并统计
-  let totalCount = 0
-  let totalTangshi = 0
-  let totalSongshi = 0
-  let totalSongci = 0
+  // 快速模式：只读取第一个分块
+  if (quickMode) {
+    const firstChunkId = loadedChunkIds[0]!
+    console.log(`[PoemsView] ⚡ 快速模式：优先加载分块 #${firstChunkId}`)
 
+    const chunkData = await getVerifiedChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, firstChunkId)
+
+    if (chunkData && Array.isArray(chunkData) && chunkData.length > 0) {
+      loadedPoems.value = chunkData
+      cachedChunksCount.value = 1
+      console.log(`[PoemsView] ✅ 快速加载完成: ${chunkData.length} 首诗词 - ${Math.round(performance.now() - startTime)}ms`)
+    }
+
+    return [firstChunkId]
+  }
+
+  // 完整模式：读取所有缓存分块
+  cachedChunksCount.value = loadedChunkIds.length
+  const cachedPoems: PoemSummary[] = []
   console.log(`[PoemsView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
+
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
-    const chunkData = await getChunkedCache<PoemSummary[]>(POEMS_STORAGE, chunkId)
+    const chunkData = await getVerifiedChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, chunkId)
     const chunkDuration = Math.round(performance.now() - chunkStartTime)
 
-    if (chunkData) {
-      totalCount += chunkData.length
-      const counts = countPoemsByCategory(chunkData)
-      totalTangshi += counts.tangshi
-      totalSongshi += counts.songshi
-      totalSongci += counts.songci
+    if (chunkData && Array.isArray(chunkData)) {
+      cachedPoems.push(...chunkData)
       console.log(`[PoemsView]   ├─ 分块 #${chunkId}: ${chunkData.length} 首诗词 (${chunkDuration}ms)`)
     }
   }
 
-  loadedPoemStats.value = {
-    total: totalCount,
-    tangshi: totalTangshi,
-    songshi: totalSongshi,
-    songci: totalSongci
+  if (cachedPoems.length > 0) {
+    loadedPoems.value = cachedPoems
   }
 
   const totalDuration = Math.round(performance.now() - startTime)
-  console.log(`[PoemsView] ✅ 缓存加载完成: ${totalCount} 首诗词 (唐诗:${totalTangshi}, 宋诗:${totalSongshi}, 宋词:${totalSongci}) - ${totalDuration}ms`)
+  console.log(`[PoemsView] ✅ 缓存加载完成: ${cachedPoems.length} 首诗词 - ${totalDuration}ms`)
 
   return loadedChunkIds
 }
 
+// 主加载函数
 const loadData = async () => {
   console.log('[PoemsView] 🚀 开始加载数据...')
   const totalStartTime = performance.now()
 
-  // 阶段1：阻塞性加载 - 元数据（必须等待）
-  const initTaskId = globalLoading.startBlocking(
-    '准备诗词宝库',
-    '正在建立数据连接...'
-  )
-
+  loading.startBlocking('翰墨集珍', '正在开启诗词宝库...')
   isInitializing.value = true
+
   try {
-    // 阶段1：加载元数据
-    globalLoading.update(initTaskId, { phase: 'meta' })
+    // 阶段1: 加载元数据
+    loading.updatePhase('metadata', '正在读取诗词索引...')
     console.log('[PoemsView] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
     await loadMetadata()
-    const totalChunksNum = totalChunks.value || 0
-    console.log(`[PoemsView] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksNum} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
+    const totalChunksCount = totalChunks.value || 0
+    console.log(`[PoemsView] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 阶段2：检查缓存
-    globalLoading.update(initTaskId, {
-      phase: 'search',
-      description: '正在检查本地缓存...',
-      progress: 30
-    })
-    console.log('[PoemsView] 💾 阶段2: 检查本地缓存...')
-    const cacheStartTime = performance.now()
-    const loadedChunkIds = await loadCachedChunks()
-    console.log(`[PoemsView] ✅ 缓存检查完成 - ${Math.round(performance.now() - cacheStartTime)}ms`)
+    // 阶段2: 快速加载第一个缓存分块
+    loading.updateProgress(1, 3, '正在加载首批诗词...')
+    console.log('[PoemsView] ⚡ 阶段2: 快速加载首批数据...')
+    const quickStartTime = performance.now()
+    const firstChunkIds = await loadCachedChunks(true)
+    console.log(`[PoemsView] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
 
-    // 阶段3：UI 准备
-    globalLoading.update(initTaskId, {
-      phase: 'ui',
-      description: '正在调整布局...',
-      progress: 50
-    })
-    console.log('[PoemsView] 🎨 阶段3: 准备UI...')
-    const uiStartTime = performance.now()
+    // 阶段3: 立即解除阻塞，展示界面
+    loading.updateProgress(2, 3, '准备就绪...')
+    loading.updatePhase('complete', '诗词宝库已开，请君品鉴')
+    loading.updateProgress(3, 3)
+    setTimeout(() => loading.finish(), 200)
+    isInitializing.value = false
 
-    // 立即显示已缓存的数据
-    if (loadedChunkIds.length > 0) {
-      await loadPoemsFromLoadedChunks()
+    console.log('[PoemsView] 🎨 界面已可交互，开始后台加载剩余数据...')
+
+    // 阶段4: 后台加载剩余数据
+    const remainingStartTime = performance.now()
+    loading.startNonBlocking('补充诗词数据', '正在汇聚千年文脉...')
+
+    // 加载剩余缓存分块
+    const meta = await getMetadata(POEMS_SUMMARY_STORAGE)
+    const allCachedChunkIds = meta?.loadedChunkIds || []
+    const remainingCachedIds = allCachedChunkIds.filter(id => !firstChunkIds.includes(id))
+
+    if (remainingCachedIds.length > 0) {
+      console.log(`[PoemsView] 💾 后台加载剩余 ${remainingCachedIds.length} 个缓存分块...`)
+      let loadedCachedCount = 0
+      for (const chunkId of remainingCachedIds) {
+        const chunkData = await getVerifiedChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, chunkId)
+        if (chunkData && Array.isArray(chunkData)) {
+          loadedPoems.value.push(...chunkData)
+          cachedChunksCount.value++
+          loadedCachedCount++
+          // 每3个分块输出一次日志
+          if (loadedCachedCount % 3 === 0) {
+            console.log(`[PoemsView] 📥 缓存加载进度: ${loadedCachedCount}/${remainingCachedIds.length} 分块`)
+          }
+        }
+      }
+      console.log(`[PoemsView] ✅ 剩余缓存加载完成，当前共 ${loadedPoems.value.length} 首诗词`)
     }
-    console.log(`[PoemsView] ✅ UI准备完成 - ${Math.round(performance.now() - uiStartTime)}ms`)
 
-    // 只加载未加载的 chunk
-    const allChunkIds = Array.from({ length: totalChunksNum }, (_, i) => i)
-    const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
-    console.log(`[PoemsView] 📊 需要加载的分块: ${unloadedChunkIds.length} 个 (已缓存: ${loadedChunkIds.length} 个)`)
-
-    // 完成阻塞性加载
-    globalLoading.update(initTaskId, {
-      description: '准备就绪',
-      progress: 100
-    })
-    setTimeout(() => globalLoading.finish(initTaskId), 200)
+    // 加载网络分块
+    const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
+    const unloadedChunkIds = allChunkIds.filter(id => !allCachedChunkIds.includes(id))
 
     if (unloadedChunkIds.length === 0) {
-      console.log('[PoemsView] ✨ 所有数据已从缓存加载，无需网络请求')
-      isInitializing.value = false
-      return
+      console.log('[PoemsView] ✨ 所有数据已加载完成')
+      hasMoreChunks.value = false
+      loading.finish()
+    } else {
+      console.log(`[PoemsView] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
+      let loadedCount = allCachedChunkIds.length
+      let networkDataCount = 0
+
+      await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, loadChunkSummaries, {
+        concurrency: 5,
+        chunkDelay: 0,
+        onChunkLoaded: (chunkId, poems) => {
+          const poemsArray = poems as PoemSummary[]
+          loadedPoems.value.push(...poemsArray)
+          networkDataCount += poemsArray.length
+
+          loadedCount++
+          const progress = Math.round((loadedCount / totalChunksCount) * 100)
+
+          if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
+            const phases = ['正在读取诗作档案...', '正在整理诗词分类...', '正在汇聚千年文脉...', '正在构建诗词图谱...']
+            const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
+            loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
+            console.log(`[PoemsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
+          }
+        },
+        onComplete: () => {
+          const bgDuration = Math.round(performance.now() - remainingStartTime)
+          console.log(`[PoemsView] ✅ 后台加载完成: 共 ${loadedPoems.value.length} 首诗词 - ${bgDuration}ms`)
+          hasMoreChunks.value = false
+          loading.finish()
+        }
+      })
     }
-
-    // 阶段4：后台加载剩余数据（不阻塞用户交互）
-    console.log('[PoemsView] 🌐 阶段4: 开始后台加载网络数据...')
-    const bgStartTime = performance.now()
-    const bgTaskId = globalLoading.startBackground(
-      '补充诗词数据',
-      '正在汇聚千年文脉...'
-    )
-
-    let currentLoadedCount = loadedChunkIds.length
-    let networkDataCount = 0
-
-    await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, loadChunkSummaries, {
-      concurrency: 5,
-      chunkDelay: 0,
-      onChunkLoaded: (chunkId, chunk) => {
-        // 每加载一个 chunk，更新统计
-        if (chunk) {
-          const counts = countPoemsByCategory(chunk as PoemSummary[])
-          loadedPoemStats.value.tangshi += counts.tangshi
-          loadedPoemStats.value.songshi += counts.songshi
-          loadedPoemStats.value.songci += counts.songci
-          loadedPoemStats.value.total += counts.total
-          networkDataCount += (chunk as PoemSummary[]).length
-        }
-        loadPoemsFromLoadedChunks()
-
-        currentLoadedCount++
-        const progress = Math.round((currentLoadedCount / totalChunksNum) * 100)
-
-        // 每加载10%更新一次提示
-        if (currentLoadedCount % Math.max(1, Math.floor(totalChunksNum / 10)) === 0) {
-          const phases = ['正在读取诗作档案...', '正在整理诗词分类...', '正在汇聚千年文脉...', '正在构建诗词图谱...']
-          const phase = phases[Math.floor((currentLoadedCount / totalChunksNum) * phases.length)] || phases[0]
-          globalLoading.update(bgTaskId, {
-            description: `${phase} (${currentLoadedCount}/${totalChunksNum})`,
-            progress,
-            current: currentLoadedCount,
-            total: totalChunksNum
-          })
-          console.log(`[PoemsView] 📥 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksNum} 分块, ${networkDataCount} 首诗词)`)
-        }
-      },
-      onComplete: () => {
-        const bgDuration = Math.round(performance.now() - bgStartTime)
-        console.log(`[PoemsView] ✅ 后台加载完成: ${networkDataCount} 首诗词 - ${bgDuration}ms`)
-        loadPoemsFromLoadedChunks()
-        globalLoading.finish(bgTaskId)
-      }
-    })
   } catch (error) {
-    globalLoading.update(initTaskId, { description: '加载失败，请刷新重试' })
+    loading.error('加载失败，请刷新重试')
     console.error('[PoemsView] ❌ 诗词数据加载失败:', error)
+    isInitializing.value = false
   } finally {
     const totalDuration = Math.round(performance.now() - totalStartTime)
     console.log(`[PoemsView] 🏁 总加载时间: ${totalDuration}ms`)
-    isInitializing.value = false
   }
 }
 
-onMounted(async () => {
-  try {
-    await loadData()
-  } catch (e) {
-    console.error(e)
-    isInitializing.value = false
-  }
-})
-
-watch([dynastyFilter, genreFilter], () => {
-  page.value = 1
-  loadPoemsFromLoadedChunks()
-})
-
-const handleSearch = () => {
-  page.value = 1
-  loadPoemsFromLoadedChunks()
-}
-
-const handlePageChange = async (p: number) => {
-  page.value = p
-  await loadPoemsFromLoadedChunks()
-}
-
-const handlePageSizeChange = (size: number) => {
-  pageSize.value = size
-  page.value = 1
-  loadPoemsFromLoadedChunks()
-}
-
-const goToPoem = (id: string) => {
-  const poem = poems.value.find(p => p.id === id)
-  if (poem?.chunk_id !== undefined) {
+// 导航
+const goToPoemDetail = (poem: PoemSummary) => {
+  if (poem.chunk_id !== undefined) {
     router.push({
-      path: `/poems/${id}`,
+      path: `/poems/${poem.id}`,
       query: { chunk_id: poem.chunk_id.toString() }
     })
   } else {
-    router.push(`/poems/${id}`)
+    router.push(`/poems/${poem.id}`)
   }
 }
 
+// 清除过滤器
 const clearFilters = () => {
   dynastyFilter.value = null
   genreFilter.value = null
   searchQuery.value = ''
-  page.value = 1
-  loadPoemsFromLoadedChunks()
+  currentPage.value = 1
 }
 
-const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.value && poems.value.length === 0))
+// 生命周期
+onMounted(() => {
+  loadData()
+})
+
+// 监听搜索词变化
+watch(searchQuery, () => {
+  currentPage.value = 1
+  performSearch()
+})
 </script>
 
 <template>
   <div class="poems-view">
     <PageHeader
       title="翰墨集珍"
-      subtitle="浏览三十三万首诗词，按朝代、体裁筛选"
+      :subtitle="`收录 ${totalPoems.toLocaleString()} 首诗词，按朝代、体裁筛选`"
       :icon="BookOutline"
     />
 
@@ -411,28 +372,28 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
       <NGridItem>
         <StatsCard
           label="总收录诗词"
-          :value="`${globalTotal.toLocaleString()}`"
+          :value="dynamicStats.total.toLocaleString()"
           :prefix-icon="LibraryOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
           label="唐诗数量"
-          :value="`${(poemCounts.tangshi || 0).toLocaleString()}`"
+          :value="dynamicStats.tangshi.toLocaleString()"
           :prefix-icon="FlameOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
           label="宋诗数量"
-          :value="`${(poemCounts.songshi || 0).toLocaleString()}`"
+          :value="dynamicStats.songshi.toLocaleString()"
           :prefix-icon="SchoolOutline"
         />
       </NGridItem>
       <NGridItem>
         <StatsCard
           label="宋词数量"
-          :value="`${(poemCounts.songci || 0).toLocaleString()}`"
+          :value="dynamicStats.songci.toLocaleString()"
           :prefix-icon="MusicalNotesOutline"
         />
       </NGridItem>
@@ -442,39 +403,36 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
       v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
       :is-loading="chunkLoader.isLoading.value"
       :is-paused="chunkLoader.isPaused.value"
-      :progress="Math.round((loadedChunksCount / (totalChunksCount || 1)) * 100)"
-      :loaded-count="loadedChunksCount"
-      :total-count="totalChunksCount"
+      :progress="Math.round(((cachedChunksCount + chunkLoader.loadedCount.value) / (totalChunks || 1)) * 100)"
+      :loaded-count="cachedChunksCount + chunkLoader.loadedCount.value"
+      :total-count="totalChunks || 0"
       title="加载诗词数据"
       :hint="loadingHint"
       :stats="[
-        { label: '已加载诗词', value: displayTotal.toLocaleString() + ' 首' },
-        { label: '已加载唐诗', value: displayTangshi.toLocaleString() + ' 首' },
-        { label: '已加载宋诗', value: displaySongshi.toLocaleString() + ' 首' },
-        { label: '已加载宋词', value: displaySongci.toLocaleString() + ' 首' },
+        { label: '已加载诗词', value: dynamicStats.total.toLocaleString() + ' 首' },
+        { label: '当前唐诗', value: dynamicStats.tangshi.toLocaleString() + ' 首' },
+        { label: '当前宋诗', value: dynamicStats.songshi.toLocaleString() + ' 首' },
+        { label: '当前宋词', value: dynamicStats.songci.toLocaleString() + ' 首' },
       ]"
-
-
-
       @pause="chunkLoader.pause"
       @resume="chunkLoader.resume"
     />
 
     <SearchContainer
       v-model="searchQuery"
-      placeholder="搜索标题或作者..."
-      :total="totalCount"
+      placeholder="搜索诗词、作者..."
+      :total="displayTotal"
       :query-time="searchStats.queryTime"
       :source="searchStats.source as any"
       :loading="isSearching"
-      @search="handleSearch"
+      @search="performSearch"
       @clear="clearFilters"
     >
       <template #filters>
         <NSelect
           v-model:value="dynastyFilter"
           :options="dynastyOptions"
-          placeholder="朝代"
+          placeholder="选择朝代"
           style="width: 130px"
           size="medium"
           clearable
@@ -482,7 +440,7 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
         <NSelect
           v-model:value="genreFilter"
           :options="genreOptions"
-          placeholder="体裁"
+          placeholder="选择体裁"
           style="width: 130px"
           size="medium"
           clearable
@@ -490,58 +448,61 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
       </template>
     </SearchContainer>
 
+    <!-- 加载中状态 -->
     <NEmpty
-      v-if="!isInitializing && poems.length === 0"
-      :description="hasMoreChunks ? '加载更多数据可能会有结果' : '未找到符合条件的诗词'"
+      v-if="isInitializing || (loadedPoems.length === 0 && hasMoreChunks && !searchQuery.trim() && !dynastyFilter && !genreFilter)"
+      description="正在加载诗词数据..."
+    />
+
+    <!-- 无搜索结果状态 -->
+    <NEmpty
+      v-else-if="displayPoems.length === 0"
+      :description="hasMoreChunks ? '加载更多数据可能会有结果' : '暂无诗词数据'"
     >
       <template #extra>
-        <NSpace v-if="hasMoreChunks" justify="center">
-          <NButton @click="clearFilters">
-            清除筛选
-          </NButton>
-        </NSpace>
+        <NButton v-if="hasMoreChunks" @click="clearFilters">
+          清除筛选
+        </NButton>
         <NButton v-else @click="clearFilters">
           清除筛选
         </NButton>
       </template>
     </NEmpty>
 
-    <div v-else class="poems-container">
-        <div class="poems-grid">
-          <article
-            v-for="poem in poems"
-            :key="poem.id"
-            class="poem-card"
-            @click="goToPoem(poem.id)"
-          >
-            <div class="card-main">
-              <DynastyBadge :dynasty="poem.dynasty" size="small" />
-              <div class="poem-info">
-                <h3 class="poem-title">{{ poem.title || '无题' }}</h3>
-                <div class="poem-subtitle">
-                  <span class="author">{{ poem.author }}</span>
-                  <span class="divider">·</span>
-                  <span class="genre">{{ poem.genre }}</span>
-                </div>
+    <div v-else-if="displayPoems.length > 0" class="poems-container">
+      <div class="poems-grid">
+        <article
+          v-for="poem in paginatedPoems"
+          :key="poem.id"
+          class="poem-card"
+          @click="goToPoemDetail(poem)"
+        >
+          <div class="card-main">
+            <DynastyBadge :dynasty="poem.dynasty" size="small" />
+            <div class="poem-info">
+              <h3 class="poem-title">{{ poem.title || '无题' }}</h3>
+              <div class="poem-subtitle">
+                <span class="author">{{ poem.author }}</span>
+                <span class="divider">·</span>
+                <span class="genre">{{ poem.genre }}</span>
               </div>
-              <ChevronForwardOutline class="arrow-icon" />
             </div>
-          </article>
-        </div>
-
-        <div class="pagination-wrapper">
-          <NPagination
-            :page="page"
-            :page-count="Math.ceil(totalCount / pageSize)"
-            :page-sizes="[12, 24, 48, 96]"
-            :page-size="pageSize"
-            show-size-picker
-            show-quick-jumper
-            @update:page="handlePageChange"
-            @update:page-size="handlePageSizeChange"
-          />
-        </div>
+            <ChevronForwardOutline class="arrow-icon" />
+          </div>
+        </article>
       </div>
+    </div>
+
+    <div class="pagination-wrapper" v-if="totalPages > 1">
+      <NPagination
+        v-model:page="currentPage"
+        :page-count="totalPages"
+        :page-size="pageSize"
+        show-size-picker
+        :page-sizes="[12, 24, 48, 96]"
+        @update:page-size="pageSize = $event"
+      />
+    </div>
   </div>
 </template>
 
@@ -553,10 +514,6 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
 }
 
 .stats-grid {
-  margin-bottom: 24px;
-}
-
-.filters-section {
   margin-bottom: 24px;
 }
 
@@ -612,7 +569,6 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
   font-size: 15px;
   font-weight: 600;
   color: var(--color-ink, #2c3e50);
-  line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -626,17 +582,8 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
   color: var(--color-ink-light, #666);
 }
 
-.poem-subtitle .author {
-  color: var(--color-seal, #8b2635);
-  font-weight: 500;
-}
-
-.poem-subtitle .divider {
-  opacity: 0.5;
-}
-
-.poem-subtitle .genre {
-  opacity: 0.8;
+.divider {
+  color: var(--color-border, #d9d9d9);
 }
 
 .arrow-icon {
@@ -659,38 +606,11 @@ const isLoading = computed(() => indexLoading.value || (chunkLoader.isLoading.va
 
 @media (max-width: 768px) {
   .poems-view {
-    padding: 12px;
+    padding: 16px;
   }
 
   .poems-grid {
     grid-template-columns: 1fr;
-  }
-
-  .filters-section {
-    gap: 8px;
-    padding: 12px;
-  }
-
-  .filters-section :deep(.n-space) {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-    gap: 8px;
-  }
-
-  .filters-section :deep(.n-select),
-  .filters-section :deep(.n-input) {
-    flex: 1 1 calc(50% - 4px) !important;
-    min-width: calc(50% - 4px) !important;
-  }
-
-  .filters-section :deep(.n-input) {
-    flex: 1 1 100% !important;
-    min-width: 100% !important;
-  }
-
-  .filters-section :deep(.n-button) {
-    flex: 0 0 auto;
   }
 }
 </style>

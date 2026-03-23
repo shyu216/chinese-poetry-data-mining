@@ -2,7 +2,9 @@ import { ref, computed, type Ref } from 'vue'
 import * as flatbuffers from 'flatbuffers'
 import type { WordSimilarityData, WordSimilarityMetadata, SimilarWordResult } from './types'
 import { useWordSimilarityMetadata, WORD_SIMILARITY_STORAGE } from './useMetadataLoader'
-import { getCache, setCache, getChunkedCache, setChunkedCache, getMetadata, setMetadata, clearStorage } from './useCacheV2'
+import { getCache, setCache, getMetadata, setMetadata, clearStorage, getValidatedMetadata } from './useCacheV2'
+import { getVerifiedCache, getVerifiedChunk } from './useVerifiedCache'
+import { WordSimilarityFile } from '@/generated/word-similarity/word-similarity-file'
 
 interface WordSimilarityChunk {
   vocab: string[]
@@ -13,23 +15,54 @@ interface WordSimilarityChunk {
   }>
 }
 
+/** 存储版本号，每次数据结构变更时递增 */
+const STORAGE_VERSION = 1
+
 const vocabCache = ref<Map<string, number>>(new Map())
 const vocabReverseCache = ref<Map<number, string>>(new Map())
 const wordToChunkMap = ref<Map<number, number>>(new Map())
 const chunkCache = new Map<number, WordSimilarityChunk>()
 const loadedChunkIds: Ref<number[]> = ref([])
 
+/**
+ * 计算词汇表的哈希值，用于验证缓存一致性
+ */
+function computeVocabHash(vocab: Record<string, number>): string {
+  const entries = Object.entries(vocab)
+  const sample = entries.slice(0, Math.min(100, entries.length))
+  return `${entries.length}:${sample.map(([k, v]) => `${k}=${v}`).join(',')}`
+}
+
+/**
+ * 初始化加载的 chunk IDs，带版本验证
+ */
 async function initLoadedChunkIds() {
-  const meta = await getMetadata(WORD_SIMILARITY_STORAGE)
+  // 使用版本验证获取元数据
+  const meta = await getValidatedMetadata(
+    WORD_SIMILARITY_STORAGE,
+    STORAGE_VERSION,
+    {
+      getDependencyHash: async () => {
+        const vocab = await getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab')
+        return vocab ? computeVocabHash(vocab) : null
+      },
+      autoClean: true
+    }
+  )
+
   if (meta && meta.loadedChunkIds) {
     const validIds = meta.loadedChunkIds.filter((id: number) => id < (meta.totalChunks || 0))
     loadedChunkIds.value = validIds
     if (validIds.length !== meta.loadedChunkIds.length) {
       await setMetadata(WORD_SIMILARITY_STORAGE, {
         loadedChunkIds: validIds,
-        totalChunks: meta.totalChunks
+        totalChunks: meta.totalChunks,
+        version: STORAGE_VERSION
       })
     }
+  } else {
+    // 验证失败或没有元数据，重置状态
+    loadedChunkIds.value = []
   }
 }
 initLoadedChunkIds()
@@ -45,21 +78,30 @@ export function useWordSimilarityV2() {
       return vocabCache.value
     }
 
-    const cached = await getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab')
-    if (cached) {
-      vocabCache.value = new Map(Object.entries(cached))
-      vocabReverseCache.value = new Map(Object.entries(cached).map(([k, v]) => [v, k]))
-      return vocabCache.value
+    const result = await getVerifiedCache<Record<string, number>>(
+      WORD_SIMILARITY_STORAGE,
+      'vocab',
+      'word_similarity_v3/vocab.json',
+      async () => {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/word_similarity_v3/vocab.json`)
+        if (!response.ok) throw new Error('Failed to load vocab')
+        return response.json()
+      }
+    )
+
+    if (!result.data) {
+      const errorMsg = result.error || 'Data is null'
+      console.error('[useWordSimilarityV2] loadVocab failed:', {
+        error: errorMsg,
+        valid: result.valid,
+        fromCache: result.fromCache,
+        hashMatch: result.hashMatch
+      })
+      throw new Error(`Failed to load vocab: ${errorMsg}`)
     }
 
-    const response = await fetch(`${import.meta.env.BASE_URL}data/word_similarity_v3/vocab.json`)
-    if (!response.ok) throw new Error('Failed to load vocab')
-
-    const vocabData: Record<string, number> = await response.json()
-
-    await setCache(WORD_SIMILARITY_STORAGE, 'vocab', vocabData)
-    vocabCache.value = new Map(Object.entries(vocabData))
-    vocabReverseCache.value = new Map(Object.entries(vocabData).map(([k, v]) => [v, k]))
+    vocabCache.value = new Map(Object.entries(result.data))
+    vocabReverseCache.value = new Map(Object.entries(result.data).map(([k, v]) => [v, k]))
 
     return vocabCache.value
   }
@@ -86,35 +128,52 @@ export function useWordSimilarityV2() {
       return chunkCache.get(chunkId)!
     }
 
-    const cached = await getChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
-    if (cached) {
-      const chunk: WordSimilarityChunk = {
-        vocab: cached.vocab,
-        entries: new Map(cached.entries)
-      }
-      chunkCache.set(chunkId, chunk)
-      return chunk
-    }
-
     const chunkIdStr = chunkId.toString().padStart(4, '0')
-    const response = await fetch(`${import.meta.env.BASE_URL}data/word_similarity_v3/word_chunk_${chunkIdStr}.bin`)
-    if (!response.ok) throw new Error(`Failed to load word chunk ${chunkId}`)
+    const filePath = `word_similarity_v3/word_chunk_${chunkIdStr}.bin`
 
-    const buffer = new Uint8Array(await response.arrayBuffer())
-    const chunk = await parseWordSimilarityChunk(buffer)
+    const result = await getVerifiedChunk<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(
+      WORD_SIMILARITY_STORAGE,
+      chunkId,
+      filePath,
+      async () => {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+        if (!response.ok) throw new Error(`Failed to load word chunk ${chunkId}`)
 
-    chunkCache.set(chunkId, chunk)
-    const serializableChunk = {
-      vocab: chunk.vocab,
-      entries: Array.from(chunk.entries.entries())
+        const buffer = new Uint8Array(await response.arrayBuffer())
+        const chunk = await parseWordSimilarityChunk(buffer)
+
+        return {
+          vocab: chunk.vocab,
+          entries: Array.from(chunk.entries.entries())
+        }
+      }
+    )
+
+    if (!result.data) {
+      throw new Error(`Failed to load word chunk ${chunkId}: ${result.error || 'Unknown error'}`)
     }
-    await setChunkedCache(WORD_SIMILARITY_STORAGE, chunkId, serializableChunk)
+
+    const chunk: WordSimilarityChunk = {
+      vocab: result.data.vocab,
+      entries: new Map(result.data.entries)
+    }
+    chunkCache.set(chunkId, chunk)
 
     if (!loadedChunkIds.value.includes(chunkId)) {
       loadedChunkIds.value.push(chunkId)
-      await setMetadata(WORD_SIMILARITY_STORAGE, { 
-        loadedChunkIds: [...loadedChunkIds.value], 
-        totalChunks: totalChunks.value 
+      // 计算当前词汇表的哈希值
+      const vocabData = Object.fromEntries(vocabCache.value)
+      const vocabHash = computeVocabHash(vocabData)
+      await setMetadata(WORD_SIMILARITY_STORAGE, {
+        loadedChunkIds: [...loadedChunkIds.value],
+        totalChunks: totalChunks.value,
+        version: STORAGE_VERSION,
+        dependencyHash: vocabHash,
+        validationData: {
+          vocabSize: vocabCache.value.size,
+          lastChunkLoaded: chunkId,
+          loadedAt: Date.now()
+        }
       })
     }
 
@@ -124,45 +183,45 @@ export function useWordSimilarityV2() {
   async function parseWordSimilarityChunk(buffer: Uint8Array): Promise<WordSimilarityChunk> {
     const bb = new flatbuffers.ByteBuffer(buffer)
 
-    const WordSimilarityFile = (await import('@/generated/word-similarity/word-similarity-file')).WordSimilarityFile
-    
-    let file
-    try {
-      if (WordSimilarityFile.bufferHasIdentifier(bb)) {
-        file = WordSimilarityFile.getRootAsWordSimilarityFile(bb)
-      } else {
-        bb.setPosition(0)
-        file = WordSimilarityFile.getRootAsWordSimilarityFile(bb)
-      }
-    } catch (e) {
-      throw new Error(`Invalid WRSV file: ${e}`)
+    const file = WordSimilarityFile.getRootAsWordSimilarityFile(bb)
+    if (!file) {
+      throw new Error('Invalid WRSV file: failed to parse')
     }
 
-    const vocab: string[] = []
-    for (let i = 0; i < file.vocabLength(); i++) {
+    const vocabLen = file.vocabLength()
+    const vocab: string[] = new Array(vocabLen)
+    let vocabCount = 0
+    for (let i = 0; i < vocabLen; i++) {
       const word = file.vocab(i)
-      if (word) vocab[i] = word
+      if (word) {
+        vocab[vocabCount++] = word
+      }
     }
+    vocab.length = vocabCount
 
     const entries = new Map<number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }>()
 
-    for (let i = 0; i < file.wordsLength(); i++) {
+    const wordsLen = file.wordsLength()
+    for (let i = 0; i < wordsLen; i++) {
       const entry = file.words(i)
       if (!entry) continue
 
       const wordId = entry.wordId()
       const frequency = entry.frequency()
 
-      const similarWords: Array<{ wordId: number; similarity: number }> = []
-      for (let j = 0; j < entry.similarWordsLength(); j++) {
+      const swLen = entry.similarWordsLength()
+      const similarWords: Array<{ wordId: number; similarity: number }> = new Array(swLen)
+      let swCount = 0
+      for (let j = 0; j < swLen; j++) {
         const sw = entry.similarWords(j)
         if (sw) {
-          similarWords.push({
+          similarWords[swCount++] = {
             wordId: sw.wordId(),
             similarity: sw.similarity() / 10000
-          })
+          }
         }
       }
+      similarWords.length = swCount
 
       entries.set(wordId, { frequency, similarWords })
     }

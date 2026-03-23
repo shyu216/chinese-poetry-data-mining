@@ -1,16 +1,24 @@
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import type { SearchResult, SearchOptions, SearchResultSet, PoemIndexManifest, PoemSummary } from './types'
 import { usePoemIndexManifest, POEM_INDEX_STORAGE } from './useMetadataLoader'
-import { getCache, setCache, getChunkedCache, setChunkedCache, getMetadata, setMetadata } from './useCacheV2'
+import { getCache, setCache, getMetadata, setMetadata, getValidatedMetadata } from './useCacheV2'
+import { getVerifiedChunk } from './useVerifiedCache'
+
+/** 存储版本号 */
+const STORAGE_VERSION = 1
 
 const manifestCache = shallowRef<PoemIndexManifest | null>(null)
 const poemChunkCache = shallowRef<Map<string, Map<string, PoemSummary>>>(new Map())
 const loadedPrefixes: Ref<Set<string>> = ref(new Set())
 
 async function initLoadedPrefixes() {
+  // 使用版本验证获取元数据
+  const meta = await getValidatedMetadata(POEM_INDEX_STORAGE, STORAGE_VERSION, { autoClean: true })
   const prefixes = await getCache<string[]>(POEM_INDEX_STORAGE, 'loaded-prefixes')
-  if (prefixes) {
+  if (prefixes && meta) {
     loadedPrefixes.value = new Set(prefixes)
+  } else {
+    loadedPrefixes.value = new Set()
   }
 }
 initLoadedPrefixes()
@@ -30,41 +38,44 @@ export function useSearchIndexV2() {
       return poemChunkCache.value.get(prefix)!
     }
 
-    const cached = await getChunkedCache<Record<string, PoemSummary>>(POEM_INDEX_STORAGE, prefix)
-    if (cached) {
-      const map = new Map(Object.entries(cached))
-      poemChunkCache.value.set(prefix, map)
-      loadedPrefixes.value.add(prefix)
-      return map
-    }
-
     const manifestData = await loadMetadata()
     const fileName = manifestData.prefixMap[prefix]
     if (!fileName) return null
 
-    const response = await fetch(`${import.meta.env.BASE_URL}data/poem_index/${fileName}`)
-    if (!response.ok) return null
+    const filePath = `poem_index/${fileName}`
 
-    const data = await response.json()
+    const result = await getVerifiedChunk<Record<string, PoemSummary>>(
+      POEM_INDEX_STORAGE,
+      prefix,
+      filePath,
+      async () => {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+        if (!response.ok) throw new Error(`Failed to load poem chunk ${prefix}`)
+        return response.json()
+      }
+    )
+
+    if (!result.data) {
+      console.warn(`[useSearchIndexV2] Failed to load chunk ${prefix}: ${result.error || 'Unknown error'}`)
+      return null
+    }
 
     const poemMap = new Map<string, PoemSummary>()
-    for (const [id, poem] of Object.entries(data)) {
+    for (const [id, poem] of Object.entries(result.data)) {
       poemMap.set(id, poem as PoemSummary)
     }
 
     poemChunkCache.value.set(prefix, poemMap)
     loadedPrefixes.value.add(prefix)
 
-    await setChunkedCache(POEM_INDEX_STORAGE, prefix, data)
-
-    const manifestDataForMeta = await loadMetadata()
     const prefixesArray = [...loadedPrefixes.value]
     await setCache(POEM_INDEX_STORAGE, 'loaded-prefixes', prefixesArray)
 
     // 更新 metadata 以支持存储统计展示
     await setMetadata(POEM_INDEX_STORAGE, {
       loadedChunkIds: prefixesArray.map(p => p.charCodeAt(0)),
-      totalChunks: Object.keys(manifestDataForMeta.prefixMap).length
+      totalChunks: Object.keys(manifestData.prefixMap).length,
+      version: STORAGE_VERSION
     })
 
     return poemMap

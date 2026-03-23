@@ -7,7 +7,7 @@ export type { WordSearch } from './WordSearch'
 export type { WordSearchResult, WordSearchOptions } from './WordSearch'
 
 // Vue composable
-import { ref, onMounted, readonly } from 'vue'
+import { ref, readonly } from 'vue'
 import { wordSearch } from './WordSearch'
 import type { WordSearchResult, WordSearchOptions } from './WordSearch'
 import type { WordCountItem } from '@/composables/types'
@@ -17,17 +17,21 @@ export function useWordSearch() {
   const isLoading = ref(false)
   const error = ref<Error | null>(null)
 
-  onMounted(async () => {
-    try {
-      isLoading.value = true
-      await wordSearch.initialize()
-      isReady.value = true
-    } catch (e) {
-      error.value = e instanceof Error ? e : new Error(String(e))
-    } finally {
-      isLoading.value = false
-    }
-  })
+  // 立即开始初始化，不依赖 onMounted
+  // 这样可以支持在 setup() 外调用
+  if (!isLoading.value && !isReady.value) {
+    isLoading.value = true
+    wordSearch.initialize()
+      .then(() => {
+        isReady.value = true
+      })
+      .catch((e) => {
+        error.value = e instanceof Error ? e : new Error(String(e))
+      })
+      .finally(() => {
+        isLoading.value = false
+      })
+  }
 
   async function search(query: string, options?: WordSearchOptions): Promise<WordSearchResult> {
     return wordSearch.search(query, options)

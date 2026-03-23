@@ -25,9 +25,9 @@ const progressPercentage = computed(() =>
 const loadStats = async () => {
   isLoadingStats.value = true
   try {
-    const meta = await keywordIndex.loadMetadata()
-    totalChunks.value = meta.total_chunks || 201
-    cachedChunkIds.value = meta.loadedChunkIds || []
+    // 使用 computed 属性获取统计信息
+    totalChunks.value = keywordIndex.totalChunks.value
+    cachedChunkIds.value = [...keywordIndex.loadedChunkIds.value]
   } finally {
     isLoadingStats.value = false
   }
@@ -35,7 +35,8 @@ const loadStats = async () => {
 
 const downloadAll = async () => {
   try {
-    await keywordIndex.loadMetadata()
+    // 确保 manifest 已加载（自动触发 O(1) 查询准备）
+    await keywordIndex.searchKeywordOptimized('') // 空查询只加载 manifest
     totalChunks.value = keywordIndex.totalChunks.value
 
     const unloadedChunks = []

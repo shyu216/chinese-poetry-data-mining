@@ -11,17 +11,18 @@ import {
   BookOutline, PersonOutline,
   TimeOutline, TextOutline, CopyOutline, ChevronForwardOutline
 } from '@vicons/ionicons5'
-import PageHeader from '@/components/PageHeader.vue'
-import StatsCard from '@/components/StatsCard.vue'
+import { PageHeader } from '@/components/layout'
+import { StatsCard } from '@/components/display'
 import { useLoading } from '@/composables/useLoading'
 
-const globalLoading = useLoading()
+import { PoemContent } from '@/components/content'
+
+const loading = useLoading()
 const route = useRoute()
 const router = useRouter()
 const { getPoemById } = usePoemsV2()
 
 const poem = ref<PoemDetail | null>(null)
-const loading = ref(true)
 const error = ref<string | null>(null)
 
 const poemId = computed(() => route.params.id as string)
@@ -35,29 +36,30 @@ onMounted(async () => {
 })
 
 const loadPoemData = async () => {
-  const taskId = globalLoading.startBlocking(
-    '载入诗词详情',
-    '正在加载诗词内容...',
-    5
-  )
-
-  loading.value = true
+  console.log('[PoemDetailView] loadPoemData START')
+  loading.startBlocking('诗词详情', '正在展开诗卷...')
   error.value = null
+
   try {
-    // 如果 URL 中有 chunk_id 参数，使用它来加速加载
+    loading.updatePhase('data', '正在读取诗词内容...')
+    console.log('[PoemDetailView] Calling getPoemById...')
     poem.value = await getPoemById(poemId.value, chunkId.value)
+    console.log('[PoemDetailView] getPoemById returned:', poem.value ? 'found' : 'not found')
+
     if (!poem.value) {
       error.value = '未找到该诗词'
+      loading.error('未找到该诗词')
+      return
     }
-    globalLoading.update(taskId, { description: '加载完成', progress: 100 })
-    setTimeout(() => globalLoading.finish(taskId), 300)
+
+    loading.updatePhase('complete', '诗卷已展')
+    setTimeout(() => loading.finish(), 300)
   } catch (e) {
     error.value = '加载失败，请稍后重试'
-    globalLoading.update(taskId, { description: '加载失败' })
+    loading.error('加载失败')
     console.error(e)
-  } finally {
-    loading.value = false
   }
+  console.log('[PoemDetailView] loadPoemData END')
 }
 
 const goBack = () => {
@@ -104,7 +106,6 @@ const getDynastyConfig = (dynasty: string) => {
       :icon="BookOutline"
     />
 
-    <NSpin :show="loading" size="large">
       <NEmpty v-if="error" :description="error">
         <template #extra>
           <NButton @click="goToPoems">返回诗词列表</NButton>
@@ -166,41 +167,11 @@ const getDynastyConfig = (dynasty: string) => {
           </NGridItem>
         </NGrid>
 
-        <NCard class="poem-content-card">
-          <div class="poem-content">
-            <p
-              v-for="(sentence, index) in poem.sentences"
-              :key="index"
-              class="poem-sentence"
-            >
-              {{ sentence }}
-            </p>
-          </div>
-        </NCard>
-
-        <NCard class="meter-grid-card">
-          <template #header>
-            <div class="meter-grid-header">
-              <span class="meter-grid-title">米字格</span>
-            </div>
-          </template>
-          <div class="meter-grid">
-            <div 
-              v-for="(sentence, rowIndex) in poem.sentences" 
-              :key="rowIndex"
-              class="meter-row"
-            >
-              <div 
-                v-for="(char, charIndex) in sentence.split('')" 
-                :key="charIndex"
-                class="meter-cell"
-                :title="`第${rowIndex + 1}句 · 第${charIndex + 1}字`"
-              >
-                {{ char }}
-              </div>
-            </div>
-          </div>
-        </NCard>
+        <PoemContent
+          :sentences="poem.sentences"
+          mode="text"
+          :show-meters="true"
+        />
 
         <NCard v-if="poem.words.length > 0" title="关键词" class="words-card">
           <div class="words-list">
@@ -230,7 +201,7 @@ const getDynastyConfig = (dynasty: string) => {
           </div>
         </NCard>
       </template>
-    </NSpin>
+  
   </div>
 </template>
 
@@ -302,83 +273,6 @@ const getDynastyConfig = (dynasty: string) => {
 
 .stats-grid {
   margin-bottom: 24px;
-}
-
-.poem-content-card {
-  margin-bottom: 24px;
-}
-
-.meter-grid-card {
-  margin-bottom: 24px;
-}
-
-.meter-grid-header {
-  display: flex;
-  align-items: center;
-}
-
-.meter-grid-title {
-  font-family: "Noto Serif SC", serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-seal, #8b2635);
-}
-
-.meter-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px;
-  background: linear-gradient(135deg, #fef6f6 0%, #fafafa 100%);
-  border-radius: 8px;
-}
-
-.meter-row {
-  display: flex;
-  gap: 6px;
-}
-
-.meter-cell {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  border: 1px solid #e8d4d4;
-  border-radius: 4px;
-  font-family: "Noto Serif SC", "KaiTi", "楷体", serif;
-  font-size: 20px;
-  color: #2c3e50;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.meter-cell:hover {
-  background: rgba(139, 38, 53, 0.1);
-  border-color: #8b2635;
-  transform: scale(1.05);
-  box-shadow: 0 2px 8px rgba(139, 38, 53, 0.15);
-}
-
-.poem-content {
-  padding: 32px 24px;
-  text-align: center;
-  background: #fafafa;
-  border-radius: 8px;
-}
-
-.poem-sentence {
-  margin: 0 0 16px;
-  font-family: "Noto Serif SC", "Source Han Serif SC", serif;
-  font-size: 22px;
-  line-height: 2;
-  color: #2c3e50;
-  letter-spacing: 0.08em;
-}
-
-.poem-sentence:last-child {
-  margin-bottom: 0;
 }
 
 .words-card {
@@ -467,10 +361,6 @@ const getDynastyConfig = (dynasty: string) => {
 @media (max-width: 768px) {
   .poem-title {
     font-size: 28px;
-  }
-
-  .poem-sentence {
-    font-size: 18px;
   }
 
   .stats-grid {

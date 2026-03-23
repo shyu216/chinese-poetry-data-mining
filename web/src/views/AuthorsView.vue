@@ -12,22 +12,23 @@ import {
 } from '@vicons/ionicons5'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
-import { getMetadata, getChunkedCache } from '@/composables/useCacheV2'
+import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
 import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
 import { useAuthorSearch } from '@/search'
 import type { AuthorStats } from '@/types/author'
-import PageHeader from '@/components/PageHeader.vue'
-import FilterSection from '@/components/FilterSection.vue'
-import StatsCard from '@/components/StatsCard.vue'
-import ChunkLoaderStatus from '@/components/ChunkLoaderStatus.vue'
+import { PageHeader, FilterSection } from '@/components/layout'
+import { StatsCard } from '@/components/display'
+import { ChunkLoaderStatus } from '@/components/feedback'
 import { SearchContainer } from '@/components/search'
-import AuthorClusterViz from '@/components/AuthorClusterViz.vue'
+import { AuthorClusterViz } from '@/components/author'
 import { useAuthorClusters } from '@/composables/useAuthorClusters'
 import type { AuthorNode } from '@/types/cluster'
 import { useLoading } from '@/composables/useLoading'
 
+import { RankBadge, TypeDistribution } from '@/components/display'
+
 const router = useRouter()
-const globalLoading = useLoading()
+const loading = useLoading()
 const {
   totalAuthors: totalAuthorsCount,
   totalChunks,
@@ -36,12 +37,10 @@ const {
   loadAuthorChunk
 } = useAuthorsV2()
 
-// 聚类数据
 const { clusters, authors: clusterAuthors, loading: clusterLoading } = useAuthorClusters()
 
 const chunkLoader = useChunkLoader()
 
-// 新的作者搜索模块
 const { search: searchAuthors, isReady: authorSearchReady } = useAuthorSearch()
 const isSearching = ref(false)
 const searchStats = ref({ queryTime: 0, source: '' })
@@ -52,7 +51,7 @@ const pageSize = ref(20)
 const loadedAuthors = ref<AuthorStats[]>([])
 const hasMoreChunks = ref(true)
 const isInitializing = ref(true)
-const cachedChunksCount = ref(0) // 从 IndexedDB 缓存的 chunk 数量
+const cachedChunksCount = ref(0)
 
 const dynamicStats = computed(() => {
   const list = loadedAuthors.value
@@ -72,7 +71,6 @@ const dynamicStats = computed(() => {
 })
 
 const filteredAuthors = computed(() => {
-  // 如果有搜索且 AuthorSearch 已就绪，返回空（使用搜索结果）
   if (searchQuery.value.trim() && authorSearchReady.value && isSearching.value) {
     return []
   }
@@ -85,11 +83,9 @@ const filteredAuthors = computed(() => {
   )
 })
 
-// 搜索结果
 const searchResults = ref<AuthorStats[]>([])
 const searchTotal = ref(0)
 
-// 使用 AuthorSearch 搜索
 const performSearch = async () => {
   const query = searchQuery.value.trim()
   if (!query || !authorSearchReady.value) {
@@ -112,7 +108,6 @@ const performSearch = async () => {
   }
 }
 
-// 最终显示的作者列表
 const displayAuthors = computed(() => {
   const query = searchQuery.value.trim()
   if (query && authorSearchReady.value) {
@@ -121,7 +116,6 @@ const displayAuthors = computed(() => {
   return filteredAuthors.value
 })
 
-// 显示的总数（用于搜索统计）
 const displayTotal = computed(() => {
   const query = searchQuery.value.trim()
   if (query && authorSearchReady.value) {
@@ -130,7 +124,6 @@ const displayTotal = computed(() => {
   return filteredAuthors.value.length
 })
 
-// 总页数
 const totalPages = computed(() => {
   const query = searchQuery.value.trim()
   if (query && authorSearchReady.value) {
@@ -148,20 +141,6 @@ const paginatedAuthors = computed(() => {
   }))
 })
 
-const getRankColor = (rank: number) => {
-  if (rank === 1) return '#FFD700'
-  if (rank === 2) return '#C0C0C0'
-  if (rank === 3) return '#CD7F32'
-  return '#8b7355'
-}
-
-const getRankIcon = (rank: number) => {
-  if (rank <= 3) return '🏆'
-  if (rank <= 10) return '🥇'
-  if (rank <= 50) return '🥈'
-  return '🥉'
-}
-
 const getTopPoemType = (typeCounts: Record<string, number>) => {
   const entries = Object.entries(typeCounts)
   if (entries.length === 0) return '-'
@@ -169,7 +148,7 @@ const getTopPoemType = (typeCounts: Record<string, number>) => {
   return sorted[0]?.[0] || '-'
 }
 
-const getTypeDistribution = (typeCounts: Record<string, number>) => {
+const getTypeDistributionData = (typeCounts: Record<string, number>) => {
   const total = Object.values(typeCounts).reduce((a, b) => a + b, 0)
   const entries = Object.entries(typeCounts)
     .sort((a, b) => b[1] - a[1])
@@ -191,16 +170,13 @@ const loadingHint = computed(() => {
   return `📚 已加载 ${count.toLocaleString()} 位诗人...`
 })
 
-// 从 IndexedDB 加载缓存的 chunk 数据
-const loadCachedChunks = async (): Promise<number[]> => {
-  console.log('[AuthorsView] 🔄 开始加载本地缓存...')
+const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
+  console.log(`[AuthorsView] 🔄 开始加载本地缓存${quickMode ? ' (快速模式)' : ''}...`)
   const startTime = performance.now()
 
   const meta = await getMetadata(AUTHORS_STORAGE)
   const loadedChunkIds = meta?.loadedChunkIds || []
 
-  // 更新缓存的 chunk 数量
-  cachedChunksCount.value = loadedChunkIds.length
   console.log(`[AuthorsView] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
 
   if (loadedChunkIds.length === 0) {
@@ -208,17 +184,36 @@ const loadCachedChunks = async (): Promise<number[]> => {
     return []
   }
 
-  // 从 IndexedDB 读取每个 chunk 的数据
+  // 快速模式：只读取第一个分块，立即展示
+  if (quickMode) {
+    const firstChunkId = loadedChunkIds[0]!
+    console.log(`[AuthorsView] ⚡ 快速模式：优先加载分块 #${firstChunkId}`)
+
+    const chunkData = await getVerifiedChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, firstChunkId)
+
+    if (chunkData && Array.isArray(chunkData) && chunkData.length > 0) {
+      loadedAuthors.value = chunkData.sort((a, b) => b.poem_count - a.poem_count)
+      cachedChunksCount.value = 1
+      console.log(`[AuthorsView] ✅ 快速加载完成: ${chunkData.length} 位诗人 - ${Math.round(performance.now() - startTime)}ms`)
+    }
+
+    return [firstChunkId]
+  }
+
+  // 完整模式：读取所有缓存分块
+  cachedChunksCount.value = loadedChunkIds.length
   const cachedAuthors: AuthorStats[] = []
   console.log(`[AuthorsView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
-    const chunkData = await getChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
+    const chunkData = await getVerifiedChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
     const chunkDuration = Math.round(performance.now() - chunkStartTime)
 
-    if (chunkData) {
+    if (chunkData && Array.isArray(chunkData)) {
       cachedAuthors.push(...chunkData)
       console.log(`[AuthorsView]   ├─ 分块 #${chunkId}: ${chunkData.length} 位诗人 (${chunkDuration}ms)`)
+    } else if (chunkData) {
+      console.warn(`[AuthorsView]   ├─ 分块 #${chunkId}: 数据格式异常，已跳过`)
     }
   }
 
@@ -236,114 +231,104 @@ const loadData = async () => {
   console.log('[AuthorsView] 🚀 开始加载数据...')
   const totalStartTime = performance.now()
 
-  // 阶段1：阻塞性加载 - 元数据和搜索索引（必须等待）
-  const initTaskId = globalLoading.startBlocking(
-    '准备诗人群像',
-    '正在建立数据连接...'
-  )
-
+  loading.startBlocking('诗人名录', '正在开启诗人档案...')
   isInitializing.value = true
+
   try {
-    // 阶段1：加载元数据
-    globalLoading.update(initTaskId, { phase: 'meta' })
+    loading.updatePhase('metadata', '正在读取诗人索引...')
+    loading.updateProgress(0, 3)
     console.log('[AuthorsView] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
     await loadMetadata()
     const totalChunksCount = totalChunks.value || 0
     console.log(`[AuthorsView] ✅ 元数据加载完成: ${totalAuthorsCount.value} 位诗人, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 阶段2：检查缓存（快速操作）
-    globalLoading.update(initTaskId, {
-      phase: 'search',
-      description: '正在检查本地缓存...',
-      progress: 30
-    })
-    console.log('[AuthorsView] 💾 阶段2: 检查本地缓存...')
-    const cacheStartTime = performance.now()
-    const loadedChunkIds = await loadCachedChunks()
-    console.log(`[AuthorsView] ✅ 缓存检查完成 - ${Math.round(performance.now() - cacheStartTime)}ms`)
+    // 步骤2: 快速加载第一个缓存分块（渐进式加载核心）
+    loading.updateProgress(1, 3, '正在加载首批诗人...')
+    console.log('[AuthorsView] ⚡ 阶段2: 快速加载首批数据...')
+    const quickStartTime = performance.now()
+    const firstChunkIds = await loadCachedChunks(true) // true = 快速模式
+    console.log(`[AuthorsView] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
 
-    // 阶段3：UI 准备
-    globalLoading.update(initTaskId, {
-      phase: 'ui',
-      description: '正在调整布局...',
-      progress: 50
-    })
-    console.log('[AuthorsView] 🎨 阶段3: 准备UI...')
-    const uiStartTime = performance.now()
+    // 步骤3: 立即解除阻塞，展示界面！
+    loading.updateProgress(2, 3, '准备就绪...')
+    loading.updatePhase('complete', '诗人档案已备，请君查阅')
+    loading.updateProgress(3, 3)
+    setTimeout(() => loading.finish(), 200)
+    isInitializing.value = false
 
-    // 只加载未加载的 chunk
-    const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
-    const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
-    console.log(`[AuthorsView] 📊 需要加载的分块: ${unloadedChunkIds.length} 个 (已缓存: ${loadedChunkIds.length} 个)`)
-    console.log(`[AuthorsView] ✅ UI准备完成 - ${Math.round(performance.now() - uiStartTime)}ms`)
+    console.log('[AuthorsView] � 界面已可交互，开始后台加载剩余数据...')
 
-    // 完成阻塞性加载，用户可以开始交互了
-    globalLoading.update(initTaskId, {
-      description: '准备就绪',
-      progress: 100
-    })
-    setTimeout(() => globalLoading.finish(initTaskId), 200)
+    // 步骤4: 后台加载剩余缓存 + 网络数据
+    const remainingStartTime = performance.now()
+    loading.startNonBlocking('补充诗人数据', '正在汇聚千年文脉...')
 
-    // 如果没有需要加载的 chunk，直接返回
-    if (unloadedChunkIds.length === 0) {
-      console.log('[AuthorsView] ✨ 所有数据已从缓存加载，无需网络请求')
-      hasMoreChunks.value = false
-      isInitializing.value = false
-      return
+    // 先加载剩余缓存分块
+    const meta = await getMetadata(AUTHORS_STORAGE)
+    const allCachedChunkIds = meta?.loadedChunkIds || []
+    const remainingCachedIds = allCachedChunkIds.filter(id => !firstChunkIds.includes(id))
+
+    if (remainingCachedIds.length > 0) {
+      console.log(`[AuthorsView] � 后台加载剩余 ${remainingCachedIds.length} 个缓存分块...`)
+      for (const chunkId of remainingCachedIds) {
+        const chunkData = await getVerifiedChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
+        if (chunkData && Array.isArray(chunkData)) {
+          loadedAuthors.value.push(...chunkData)
+          cachedChunksCount.value++
+        }
+      }
+      // 重新排序
+      loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
+      console.log(`[AuthorsView] ✅ 剩余缓存加载完成，当前共 ${loadedAuthors.value.length} 位诗人`)
     }
 
-    // 阶段4：后台加载剩余数据（不阻塞用户交互）
-    console.log('[AuthorsView] 🌐 阶段4: 开始后台加载网络数据...')
-    const bgStartTime = performance.now()
-    const bgTaskId = globalLoading.startBackground(
-      '补充诗人数据',
-      '正在汇聚千年文脉...'
-    )
+    // 加载网络分块
+    const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
+    const unloadedChunkIds = allChunkIds.filter(id => !allCachedChunkIds.includes(id))
 
-    let loadedCount = loadedChunkIds.length
-    const totalCount = totalChunksCount
-    let networkDataCount = 0
+    if (unloadedChunkIds.length === 0) {
+      console.log('[AuthorsView] ✨ 所有数据已加载完成')
+      hasMoreChunks.value = false
+      loading.finish()
+    } else {
+      console.log(`[AuthorsView] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
+      let loadedCount = allCachedChunkIds.length
+      let networkDataCount = 0
 
-    await chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, loadAuthorChunk, {
-      concurrency: 5,
-      chunkDelay: 0,
-      onChunkLoaded: (chunkId, authors) => {
-        const authorsArray = authors as AuthorStats[]
-        loadedAuthors.value.push(...authorsArray)
-        loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
-        networkDataCount += authorsArray.length
+      await chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, loadAuthorChunk, {
+        concurrency: 5,
+        chunkDelay: 0,
+        onChunkLoaded: (chunkId, authors) => {
+          const authorsArray = authors as AuthorStats[]
+          loadedAuthors.value.push(...authorsArray)
+          loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
+          networkDataCount += authorsArray.length
 
-        loadedCount++
-        const progress = Math.round((loadedCount / totalCount) * 100)
+          loadedCount++
+          const progress = Math.round((loadedCount / totalChunksCount) * 100)
 
-        // 每加载10%更新一次提示
-        if (loadedCount % Math.max(1, Math.floor(totalCount / 10)) === 0) {
-          const phases = ['正在读取诗人档案...', '正在整理诗作数据...', '正在汇聚千年文脉...', '正在构建诗人图谱...']
-          const phase = phases[Math.floor((loadedCount / totalCount) * phases.length)] || phases[0]
-          globalLoading.update(bgTaskId, {
-            description: `${phase} (${loadedCount}/${totalCount})`,
-            progress,
-            current: loadedCount,
-            total: totalCount
-          })
-          console.log(`[AuthorsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalCount} 分块, ${networkDataCount} 位诗人)`)
+          if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
+            const phases = ['正在读取诗人档案...', '正在整理诗作数据...', '正在汇聚千年文脉...', '正在构建诗人图谱...']
+            const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
+            loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
+            console.log(`[AuthorsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 位诗人)`)
+          }
+        },
+        onComplete: () => {
+          const bgDuration = Math.round(performance.now() - remainingStartTime)
+          console.log(`[AuthorsView] ✅ 后台加载完成: 共 ${loadedAuthors.value.length} 位诗人 - ${bgDuration}ms`)
+          hasMoreChunks.value = false
+          loading.finish()
         }
-      },
-      onComplete: () => {
-        const bgDuration = Math.round(performance.now() - bgStartTime)
-        console.log(`[AuthorsView] ✅ 后台加载完成: ${networkDataCount} 位诗人 - ${bgDuration}ms`)
-        hasMoreChunks.value = false
-        globalLoading.finish(bgTaskId)
-      }
-    })
+      })
+    }
   } catch (error) {
-    globalLoading.update(initTaskId, { description: '加载失败，请刷新重试' })
+    loading.error('加载失败，请刷新重试')
     console.error('[AuthorsView] ❌ 诗人数据加载失败:', error)
+    isInitializing.value = false
   } finally {
     const totalDuration = Math.round(performance.now() - totalStartTime)
     console.log(`[AuthorsView] 🏁 总加载时间: ${totalDuration}ms`)
-    isInitializing.value = false
   }
 }
 
@@ -351,14 +336,11 @@ const goToAuthorDetail = (author: AuthorStats) => {
   router.push(`/authors/${encodeURIComponent(author.author)}`)
 }
 
-// 从聚组件点击诗人跳转
 const onSelectClusterAuthor = (author: AuthorNode) => {
   router.push(`/authors/${encodeURIComponent(author.name)}`)
 }
 
-// 从聚类组件点击流派筛选
 const onSelectCluster = (clusterId: number) => {
-  // 可以扩展为筛选显示该流派的诗人
   console.log('Selected cluster:', clusterId)
 }
 
@@ -413,7 +395,6 @@ watch(searchQuery, () => {
       </NGridItem>
     </NGrid>
     
-    <!-- 诗人聚类可视化 -->
     <AuthorClusterViz
       :clusters="clusters"
       :authors="clusterAuthors"
@@ -453,49 +434,40 @@ watch(searchQuery, () => {
     <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="暂无诗人数据" />
 
     <div v-else class="authors-list">
-        <TransitionGroup name="author-item">
-          <div
-            v-for="author in paginatedAuthors"
-            :key="author.author"
-            class="author-card"
-            :class="{ 'top-three': author.rank <= 3 }"
-            @click="goToAuthorDetail(author)"
-          >
-            <div class="rank-badge" :style="{ backgroundColor: getRankColor(author.rank) }">
-              <span class="rank-number">{{ author.rank }}</span>
-              <span class="rank-icon">{{ getRankIcon(author.rank) }}</span>
-            </div>
+      <TransitionGroup name="author-item">
+        <div
+          v-for="author in paginatedAuthors"
+          :key="author.author"
+          class="author-card"
+          :class="{ 'top-three': author.rank <= 3 }"
+          @click="goToAuthorDetail(author)"
+        >
+          <RankBadge :rank="author.rank" size="large" />
 
-            <div class="author-info">
-              <h3 class="author-name">{{ author.author }}</h3>
-              <div class="author-stats">
-                <NTag type="primary" size="small">
-                  {{ author.poem_count }} 首诗词
-                </NTag>
-                <span class="top-type">
-                  擅长：{{ getTopPoemType(author.poem_type_counts) }}
-                </span>
-              </div>
+          <div class="author-info">
+            <h3 class="author-name">{{ author.author }}</h3>
+            <div class="author-stats">
+              <NTag type="primary" size="small">
+                {{ author.poem_count }} 首诗词
+              </NTag>
+              <span class="top-type">
+                擅长：{{ getTopPoemType(author.poem_type_counts) }}
+              </span>
             </div>
-
-            <div class="type-distribution">
-              <div
-                v-for="item in getTypeDistribution(author.poem_type_counts)"
-                :key="item.type"
-                class="type-bar"
-              >
-                <span class="type-label">{{ item.type }}</span>
-                <div class="progress-bar">
-                  <div class="progress-fill" :style="{ width: item.percentage + '%' }"></div>
-                </div>
-                <span class="type-count">{{ item.count }}</span>
-              </div>
-            </div>
-
-            <ChevronForwardOutline class="arrow-icon" />
           </div>
-        </TransitionGroup>
-      </div>
+
+          <div class="type-distribution-wrapper">
+            <TypeDistribution
+              :data="getTypeDistributionData(author.poem_type_counts)"
+              :show-percentage="false"
+              size="small"
+            />
+          </div>
+
+          <ChevronForwardOutline class="arrow-icon" />
+        </div>
+      </TransitionGroup>
+    </div>
 
     <div class="pagination-wrapper" v-if="totalPages > 1">
       <NPagination
@@ -560,30 +532,6 @@ watch(searchQuery, () => {
   border: 1px solid #e8d5c4;
 }
 
-.rank-badge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  color: #fff;
-  font-weight: 600;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.rank-number {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.rank-icon {
-  font-size: 14px;
-  margin-top: 2px;
-}
-
 .author-info {
   flex: 1;
   min-width: 0;
@@ -607,77 +555,39 @@ watch(searchQuery, () => {
   color: var(--color-ink-light, #666);
 }
 
-.type-distribution {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.type-distribution-wrapper {
   width: 200px;
   flex-shrink: 0;
-}
-
-.type-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.type-label {
-  font-size: 12px;
-  color: var(--color-ink-light, #666);
-  width: 60px;
-  flex-shrink: 0;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 6px;
-  background: #e5e7eb;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: var(--color-seal, #8b2635);
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-
-.type-count {
-  font-size: 12px;
-  color: #999;
-  width: 30px;
-  text-align: right;
 }
 
 .arrow-icon {
   width: 20px;
   height: 20px;
-  color: var(--color-ink-light, #999);
-  opacity: 0;
-  transition: all 0.2s ease;
+  opacity: 0.3;
+  transition: all 0.3s ease;
   flex-shrink: 0;
 }
 
 .pagination-wrapper {
-  margin-top: 32px;
+  margin-top: 24px;
   display: flex;
   justify-content: center;
 }
 
+.author-item-move,
 .author-item-enter-active,
 .author-item-leave-active {
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
 }
 
-.author-item-enter-from {
-  opacity: 0;
-  transform: translateX(-30px);
-}
-
+.author-item-enter-from,
 .author-item-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateX(-20px);
+}
+
+.author-item-leave-active {
+  position: absolute;
 }
 
 @media (max-width: 768px) {
@@ -686,17 +596,18 @@ watch(searchQuery, () => {
   }
 
   .author-card {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: wrap;
     gap: 12px;
+    padding: 16px;
   }
 
-  .type-distribution {
+  .type-distribution-wrapper {
     width: 100%;
+    order: 3;
   }
 
   .arrow-icon {
-    display: none;
+    order: 4;
   }
 }
 </style>

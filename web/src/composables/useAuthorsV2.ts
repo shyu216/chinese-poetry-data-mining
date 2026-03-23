@@ -2,105 +2,118 @@ import { ref, shallowRef, computed, type Ref } from 'vue'
 import * as flatbuffers from 'flatbuffers'
 import type { AuthorStats, AuthorFilter, AuthorQueryResult, AuthorsIndex } from './types'
 import { useAuthorsMetadata, AUTHORS_STORAGE } from './useMetadataLoader'
-import { getChunkedCache, setChunkedCache, getMetadata, setMetadata } from './useCacheV2'
+import { getMetadata, setMetadata, getValidatedMetadata } from './useCacheV2'
+import { getVerifiedChunk } from './useVerifiedCache'
+import { AuthorChunkFile } from '@/generated/author-chunk/author-chunk-file'
+import { Author } from '@/generated/author-chunk/author'
+import { WordFreq } from '@/generated/author-chunk/word-freq'
+import { MeterPattern } from '@/generated/author-chunk/meter-pattern'
+import { SimilarAuthor } from '@/generated/author-chunk/similar-author'
+
+/** 存储版本号 */
+const STORAGE_VERSION = 1
 
 const authorsCache = shallowRef<Map<number, AuthorStats[]>>(new Map())
 const loadedAuthorChunkIds: Ref<number[]> = ref([])
 
 async function initLoadedAuthorChunkIds() {
-  const meta = await getMetadata(AUTHORS_STORAGE)
+  const meta = await getValidatedMetadata(AUTHORS_STORAGE, STORAGE_VERSION, { autoClean: true })
   if (meta) {
     loadedAuthorChunkIds.value = meta.loadedChunkIds
+  } else {
+    loadedAuthorChunkIds.value = []
   }
 }
 initLoadedAuthorChunkIds()
 
-function convertWordFreq(wf: unknown): { word: string; count: number } {
+function convertWordFreq(wf: WordFreq): { word: string; count: number } {
   return {
-    word: (wf as { word(): string }).word() || '',
-    count: (wf as { count(): number }).count()
+    word: wf.word() || '',
+    count: wf.count()
   }
 }
 
-function convertMeterPattern(mp: unknown): { pattern: string; count: number } {
+function convertMeterPattern(mp: MeterPattern): { pattern: string; count: number } {
   return {
-    pattern: (mp as { pattern(): string }).pattern() || '',
-    count: (mp as { count(): number }).count()
+    pattern: mp.pattern() || '',
+    count: mp.count()
   }
 }
 
-function convertSimilarAuthor(sa: unknown): { author: string; similarity: number } {
+function convertSimilarAuthor(sa: SimilarAuthor): { author: string; similarity: number } {
   return {
-    author: (sa as { author(): string }).author() || '',
-    similarity: (sa as { similarity(): number }).similarity()
+    author: sa.author() || '',
+    similarity: sa.similarity()
   }
 }
 
-function convertAuthor(author: unknown): AuthorStats {
-  const a = author as {
-    author(): string
-    poemCount(): number
-    poemIdsLength(): number
-    poemIds(index: number): string | null
-    poemTypeCountsLength(): number
-    poemTypeCounts(index: number): unknown
-    meterPatternsLength(): number
-    meterPatterns(index: number): unknown
-    wordFrequencyLength(): number
-    wordFrequency(index: number): unknown
-    similarAuthorsLength(): number
-    similarAuthors(index: number): unknown
-  }
-
+function convertAuthor(author: Author): AuthorStats {
   const poemTypeCounts: Record<string, number> = {}
-  for (let i = 0; i < a.poemTypeCountsLength(); i++) {
-    const wf = a.poemTypeCounts(i)
+  const poemTypeCountsLen = author.poemTypeCountsLength()
+  for (let i = 0; i < poemTypeCountsLen; i++) {
+    const wf = author.poemTypeCounts(i)
     if (wf) {
-      const word = convertWordFreq(wf).word
+      const word = wf.word()
       if (word) {
-        poemTypeCounts[word] = convertWordFreq(wf).count
+        poemTypeCounts[word] = wf.count()
       }
     }
   }
 
-  const meterPatterns: Array<{ pattern: string; count: number }> = []
-  for (let i = 0; i < a.meterPatternsLength(); i++) {
-    const mp = a.meterPatterns(i)
+  const meterPatternsLen = author.meterPatternsLength()
+  const meterPatterns: Array<{ pattern: string; count: number }> = new Array(meterPatternsLen)
+  let meterCount = 0
+  for (let i = 0; i < meterPatternsLen; i++) {
+    const mp = author.meterPatterns(i)
     if (mp) {
-      meterPatterns.push(convertMeterPattern(mp))
+      const pattern = mp.pattern()
+      if (pattern) {
+        meterPatterns[meterCount++] = { pattern, count: mp.count() }
+      }
     }
   }
+  meterPatterns.length = meterCount
 
   const wordFrequency: Record<string, number> = {}
-  for (let i = 0; i < a.wordFrequencyLength(); i++) {
-    const wf = a.wordFrequency(i)
+  const wordFreqLen = author.wordFrequencyLength()
+  for (let i = 0; i < wordFreqLen; i++) {
+    const wf = author.wordFrequency(i)
     if (wf) {
-      const word = convertWordFreq(wf).word
+      const word = wf.word()
       if (word) {
-        wordFrequency[word] = convertWordFreq(wf).count
+        wordFrequency[word] = wf.count()
       }
     }
   }
 
-  const similarAuthors: Array<{ author: string; similarity: number }> = []
-  for (let i = 0; i < a.similarAuthorsLength(); i++) {
-    const sa = a.similarAuthors(i)
+  const similarAuthorsLen = author.similarAuthorsLength()
+  const similarAuthors: Array<{ author: string; similarity: number }> = new Array(similarAuthorsLen)
+  let similarCount = 0
+  for (let i = 0; i < similarAuthorsLen; i++) {
+    const sa = author.similarAuthors(i)
     if (sa) {
-      similarAuthors.push(convertSimilarAuthor(sa))
+      const authorName = sa.author()
+      if (authorName) {
+        similarAuthors[similarCount++] = { author: authorName, similarity: sa.similarity() }
+      }
     }
   }
+  similarAuthors.length = similarCount
 
-  const poemIds: string[] = []
-  for (let i = 0; i < a.poemIdsLength(); i++) {
-    const id = a.poemIds(i)
+  const poemIdsLen = author.poemIdsLength()
+  const poemIds: string[] = new Array(poemIdsLen)
+  let poemIdCount = 0
+  for (let i = 0; i < poemIdsLen; i++) {
+    const id = author.poemIds(i)
     if (id) {
-      poemIds.push(id)
+      poemIds[poemIdCount++] = id
     }
   }
+  poemIds.length = poemIdCount
 
   return {
-    author: a.author() || '',
-    poem_count: a.poemCount(),
+    author: author.author() || '',
+    poem_count: author.poemCount(),
     poem_ids: poemIds,
     poem_type_counts: poemTypeCounts,
     meter_patterns: meterPatterns,
@@ -121,41 +134,52 @@ export function useAuthorsV2() {
       return authorsCache.value.get(chunkId)!
     }
 
-    const cached = await getChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
-    if (cached) {
-      authorsCache.value.set(chunkId, cached)
-      return cached
-    }
-
     const chunkIdStr = chunkId.toString().padStart(4, '0')
-    const response = await fetch(`${import.meta.env.BASE_URL}data/author_v2/author_chunk_${chunkIdStr}.fbs`)
-    if (!response.ok) throw new Error(`Failed to load author chunk ${chunkId}`)
+    const filePath = `author_v2/author_chunk_${chunkIdStr}.fbs`
 
-    const buffer = new Uint8Array(await response.arrayBuffer())
-    const bb = new flatbuffers.ByteBuffer(buffer)
+    const result = await getVerifiedChunk<AuthorStats[]>(
+      AUTHORS_STORAGE,
+      chunkId,
+      filePath,
+      async () => {
+        const response = await fetch(`${import.meta.env.BASE_URL}data/${filePath}`)
+        if (!response.ok) throw new Error(`Failed to load author chunk ${chunkId}`)
 
-    const chunkFile = (await import('@/generated/author-chunk/author-chunk-file')).AuthorChunkFile.getRootAsAuthorChunkFile(bb)
-    const authors: AuthorStats[] = []
+        const buffer = new Uint8Array(await response.arrayBuffer())
+        const bb = new flatbuffers.ByteBuffer(buffer)
 
-    for (let i = 0; i < chunkFile.authorsLength(); i++) {
-      const author = chunkFile.authors(i)
-      if (author) {
-        authors.push(convertAuthor(author))
+        const chunkFile = AuthorChunkFile.getRootAsAuthorChunkFile(bb)
+        const len = chunkFile.authorsLength()
+        const authors: AuthorStats[] = new Array(len)
+        let count = 0
+        for (let i = 0; i < len; i++) {
+          const author = chunkFile.authors(i)
+          if (author) {
+            authors[count++] = convertAuthor(author)
+          }
+        }
+        authors.length = count
+
+        return authors
       }
+    )
+
+    if (!result.data) {
+      throw new Error(`Failed to load author chunk ${chunkId}: ${result.error || 'Unknown error'}`)
     }
 
-    authorsCache.value.set(chunkId, authors)
-    await setChunkedCache(AUTHORS_STORAGE, chunkId, authors)
+    authorsCache.value.set(chunkId, result.data)
 
     if (!loadedAuthorChunkIds.value.includes(chunkId)) {
       loadedAuthorChunkIds.value.push(chunkId)
-      await setMetadata(AUTHORS_STORAGE, { 
-        loadedChunkIds: [...loadedAuthorChunkIds.value], 
-        totalChunks: totalChunks.value 
+      await setMetadata(AUTHORS_STORAGE, {
+        loadedChunkIds: [...loadedAuthorChunkIds.value],
+        totalChunks: totalChunks.value,
+        version: STORAGE_VERSION
       })
     }
 
-    return authors
+    return result.data
   }
 
   async function loadAllAuthors(progressCallback?: (loaded: number, total: number) => void): Promise<AuthorStats[]> {

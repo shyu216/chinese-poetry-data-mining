@@ -16,11 +16,11 @@ import {
   ChevronForwardOutline, MedalOutline, BarChartOutline,
   TextOutline
 } from '@vicons/ionicons5'
-import PageHeader from '@/components/PageHeader.vue'
-import StatsCard from '@/components/StatsCard.vue'
+import { PageHeader } from '@/components/layout'
+import { StatsCard } from '@/components/display'
 import { useLoading } from '@/composables/useLoading'
 
-const globalLoading = useLoading()
+const loading = useLoading()
 const route = useRoute()
 const router = useRouter()
 const { getAuthorByName } = useAuthorsV2()
@@ -31,7 +31,7 @@ const authorName = computed(() => route.params.name as string)
 const author = ref<AuthorStats | null>(null)
 const poems = ref<PoemDetail[]>([])
 const poemChunkMap = ref<Map<string, number>>(new Map()) // 存储 poem_id -> chunk_id 映射
-const loading = ref(true)
+const isLoading = ref(true)
 const poemsLoading = ref(false)
 
 const poemsPage = ref(1)
@@ -59,33 +59,32 @@ watch(() => route.params.name, async (newName, oldName) => {
 })
 
 const loadAuthorData = async () => {
-  const taskId = globalLoading.startBlocking(
-    '载入诗人详情',
-    '正在加载诗人信息...',
-    5
-  )
+  // 步骤 1: 初始化
+  loading.startBlocking('诗人详情', '正在寻访诗人足迹...')
 
-  loading.value = true
   try {
+    // 步骤 2: 读取诗人档案
+    loading.updatePhase('metadata', '正在读取诗人档案...')
+    loading.updateProgress(0, 2)
     author.value = await getAuthorByName(authorName.value)
+
+    // 步骤 3: 加载诗词作品
     if (author.value && author.value.poem_ids.length > 0) {
-      globalLoading.update(taskId, {
-        description: `正在加载诗词作品 (0/${author.value.poem_ids.length})...`,
-        progress: 50
-      })
-      await loadAuthorPoems(taskId)
+      loading.updateProgress(1, 2, `正在收集 ${author.value.poem_ids.length} 首作品...`)
+      await loadAuthorPoems()
     }
-    globalLoading.update(taskId, { description: '加载完成', progress: 100 })
-    setTimeout(() => globalLoading.finish(taskId), 300)
+
+    // 步骤 4: 完成
+    loading.updatePhase('complete', '诗人档案已备')
+    loading.updateProgress(2, 2)
+    setTimeout(() => loading.finish(), 300)
   } catch (e) {
-    globalLoading.update(taskId, { description: '加载失败' })
+    loading.error('加载失败')
     console.error('Error loading author:', e)
-  } finally {
-    loading.value = false
   }
 }
 
-const loadAuthorPoems = async (taskId?: string) => {
+const loadAuthorPoems = async () => {
   if (!author.value) return
   poemsLoading.value = true
   poems.value = []
@@ -139,12 +138,8 @@ const loadAuthorPoems = async (taskId?: string) => {
       }
 
       // 更新进度
-      const progress = Math.round((Math.min(i + batchSize, totalPoems) / totalPoems) * 50) + 50
-      const description = `正在加载诗词作品 (${Math.min(i + batchSize, totalPoems)}/${totalPoems})...`
-
-      if (taskId) {
-        globalLoading.update(taskId, { description, progress })
-      }
+      const currentProgress = Math.min(i + batchSize, totalPoems)
+      loading.updateProgress(currentProgress, totalPoems, `已加载 ${currentProgress}/${totalPoems} 首...`)
     }
 
     poems.value = loadedPoems

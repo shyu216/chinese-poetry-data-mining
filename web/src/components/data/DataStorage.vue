@@ -148,10 +148,9 @@ const loadStorageDetails = async () => {
     
     await updateProgress('关键词索引加载中...', 'searchIndex', 70)
 
-    // 加载关键词索引
-    const keywordMeta = await keywordIndex.loadMetadata()
-    keywordIndexStats.value.totalChunks = keywordMeta.total_chunks || 201
-    keywordIndexStats.value.cachedChunks = keywordMeta.loadedChunkIds?.length || 0
+    // 加载关键词索引 - 使用 computed 属性
+    keywordIndexStats.value.totalChunks = keywordIndex.totalChunks.value
+    keywordIndexStats.value.cachedChunks = keywordIndex.loadedChunkIds.value.length
     keywordIndexStats.value.loaded = keywordIndexStats.value.cachedChunks > 0
     
     await updateProgress('计算存储统计...', 'keywordIndex', 85)

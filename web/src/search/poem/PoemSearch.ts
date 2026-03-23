@@ -197,18 +197,48 @@ class PoemSearch {
     
     // 3. 执行搜索
     let poemIds: string[] = []
+    const hasQuery = query.trim().length > 0
+    const hasFilters = filters?.dynasty || filters?.genre || filters?.author
     
-    // 3.1 关键词精确匹配 (O(1))
-    if (this.keywordIndex.has(query)) {
-      poemIds = this.keywordIndex.get(query)!
+    if (hasQuery) {
+      // 3.1 关键词精确匹配 (O(1))
+      if (this.keywordIndex.has(query)) {
+        poemIds = this.keywordIndex.get(query)!
+      }
+      
+      // 3.2 如果没有关键词匹配，搜索标题和作者
+      if (poemIds.length === 0) {
+        poemIds = this.fuzzySearch(query)
+      }
+    } else if (hasFilters) {
+      // 3.3 无关键词但有过滤器时，从过滤器对应的索引开始
+      // 优先使用范围最小的索引作为基础集合
+      const indexSizes: Array<{ type: string; ids: string[]; size: number }> = []
+      
+      if (filters?.author) {
+        const ids = this.authorIndex.get(filters.author) || []
+        indexSizes.push({ type: 'author', ids, size: ids.length })
+      }
+      if (filters?.dynasty) {
+        const ids = this.dynastyIndex.get(filters.dynasty) || []
+        indexSizes.push({ type: 'dynasty', ids, size: ids.length })
+      }
+      if (filters?.genre) {
+        const ids = this.genreIndex.get(filters.genre) || []
+        indexSizes.push({ type: 'genre', ids, size: ids.length })
+      }
+      
+      // 使用最小的索引作为基础，减少后续交集运算量
+      indexSizes.sort((a, b) => a.size - b.size)
+      if (indexSizes.length > 0) {
+        poemIds = indexSizes[0]!.ids
+      }
+    } else {
+      // 3.4 既无关键词也无过滤器，返回所有诗词
+      poemIds = Array.from(this.poems.keys())
     }
     
-    // 3.2 如果没有关键词匹配，搜索标题和作者
-    if (poemIds.length === 0) {
-      poemIds = this.fuzzySearch(query)
-    }
-    
-    // 3.3 应用过滤器
+    // 3.5 应用过滤器（当有过滤器时，与查询结果取交集）
     let filteredIds = poemIds
     if (filters?.dynasty) {
       filteredIds = this.intersect(filteredIds, this.dynastyIndex.get(filters.dynasty) || [])
