@@ -12,7 +12,6 @@
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { NInput, NDropdown, NEmpty, NSpin, NIcon } from 'naive-ui'
 import { SearchOutline, TimeOutline, CloseOutline, TrendingUpOutline } from '@vicons/ionicons5'
-import { searchCopy, getRandomCopy } from '@/constants/copywriting'
 
 interface SuggestionItem {
   label: string
@@ -20,6 +19,7 @@ interface SuggestionItem {
   type: 'history' | 'suggestion' | 'hot'
   highlight?: string
 }
+
 
 interface Props {
   modelValue: string
@@ -35,7 +35,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: searchCopy.placeholder,
+  placeholder: '寻一句诗，觅一位故人...',
   size: 'medium',
   width: 320,
   loading: false,
@@ -45,6 +45,11 @@ const props = withDefaults(defineProps<Props>(), {
   maxHistory: 5,
   enableHighlight: true
 })
+
+const getRandomCopy = (copyArray: string[]): string => {
+  const index = Math.floor(Math.random() * copyArray.length)
+  return copyArray[index] ?? ''
+}
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -285,7 +290,7 @@ const widthStyle = typeof props.width === 'number' ? `${props.width}px` : props.
           <div v-if="!modelValue && searchHistory.length > 0" class="dropdown-header">
             <span class="header-title">
               <NIcon :size="14"><TimeOutline /></NIcon>
-              {{ searchCopy.historyTitle }}
+              曾寻
             </span>
             <span class="header-action" @click="clearHistory">清空</span>
           </div>
@@ -294,7 +299,7 @@ const widthStyle = typeof props.width === 'number' ? `${props.width}px` : props.
           <div v-if="!modelValue && hotSearches.length > 0 && searchHistory.length === 0" class="dropdown-header">
             <span class="header-title">
               <NIcon :size="14"><TrendingUpOutline /></NIcon>
-              {{ searchCopy.hotSearches }}
+              热门
             </span>
           </div>
 

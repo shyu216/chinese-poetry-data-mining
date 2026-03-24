@@ -11,7 +11,6 @@ import { useLoading } from '@/composables/useLoading'
 import { SunmaoOrnament, BreathingFrame } from '@/components/ui/decorative'
 import { AnimatedStatCard } from '@/components/ui/animated'
 import RandomPoemCard from '@/components/content/RandomPoemCard.vue'
-import { loadingCopy, getRandomCopy, pageTitleCopy, poeticQuotes } from '@/constants/copywriting'
 
 const router = useRouter()
 const loading = useLoading()
@@ -21,6 +20,56 @@ const authorsV2 = useAuthorsV2()
 const wordSimilarityV2 = useWordSimilarityV2()
 
 const animationStarted = ref(false)
+
+const loadingCopy = {
+  initializing: [
+    '文脉初启，正在唤醒千年诗魂...',
+    '墨香渐起，诗卷缓缓展开...',
+    '寻诗之旅，即将启程...',
+    '千年文脉，待君品鉴...'
+  ],
+  loading: [
+    '正在翻阅诗词典藏目录...',
+    '正在整理诗人名录档案...',
+    '正在汇聚词频统计数据...',
+    '正在梳理朝代更迭脉络...',
+    '正在采撷千古名句精华...'
+  ],
+  complete: [
+    '文脉已通，请君品鉴',
+    '诗卷已展，静候知音',
+    '千年诗魂，已然苏醒',
+    '万首诗词，待君采撷'
+  ],
+  error: [
+    '文脉暂断，请刷新重试',
+    '诗卷难展，稍后再试',
+    '墨香暂散，请重新启程'
+  ]
+}
+
+const getRandomCopy = (copyArray: string[]): string => {
+  const index = Math.floor(Math.random() * copyArray.length)
+  return copyArray[index] ?? ''
+}
+
+const pageTitleCopy = {
+  home: {
+    title: '文脉千秋',
+    subtitle: '数字诗学图谱'
+  }
+}
+
+const poeticQuotes = [
+  '腹有诗书气自华',
+  '读书破万卷，下笔如有神',
+  '文章千古事，得失寸心知',
+  '李杜文章在，光焰万丈长',
+  '采菊东篱下，悠然见南山',
+  '会当凌绝顶，一览众山小',
+  '山重水复疑无路，柳暗花明又一村',
+  '问君能有几多愁，恰似一江春水向东流'
+]
 
 // 添加调试日志和组件引用
 const statCard1 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)

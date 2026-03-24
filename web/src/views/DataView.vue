@@ -29,7 +29,7 @@ const activeTab = computed({
 <template>
   <div class="data-view">
     <PageHeader
-      title="数据管理中心"
+      title="库藏排清"
       subtitle="管理本地缓存数据，支持离线浏览"
       :icon="ServerOutline"
     />

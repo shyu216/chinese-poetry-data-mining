@@ -1,40 +1,26 @@
-# 🏮 中国古代文学时空图谱
+# 中华诗词数据挖掘
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Vue 3](https://img.shields.io/badge/Vue-3+-42b883.svg)](https://vuejs.org/)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-在线访问-brightgreen)](https://shyu216.github.io/chinese-poetry-data-mining)
+一个现代化、数据驱动的古典诗词探索平台，收录了超过30万首来自多个朝代的诗词。
 
-> 用数据科学的方法，挖掘中国古典诗词中隐藏的时空模式与文学规律
+## 核心功能
 
-[English Version](README.md) · [在线演示](https://shyu216.github.io/chinese-poetry-data-mining)
+- **丰富的诗词收藏**：访问30万+首唐诗、宋词、元曲等多个朝代的诗词
+- **高级搜索**：全文检索，使用倒排索引实现即时搜索结果
+- **诗人分析**：探索5,000+位诗人，包括风格相似度分析和聚类
+- **词频分析**：发现高频词汇和语义关系
+- **数据可视化**：交互式词云和诗人网络图
+- **格律分析**：解析和可视化古典诗词的韵律模式
+- **响应式设计**：移动友好的界面，流畅的动画效果
 
----
+## 快速开始
 
-## ✨ 核心特性
-
-| 功能 | 描述 |
-|:---|:---|
-| 🔍 **全文检索** | 跨朝代、跨体裁的诗词智能搜索，支持多重筛选条件 |
-| 👤 **诗人图谱** | 按朝代查看诗人分布，了解诗词盛世的历史脉络 |
-| 📊 **词频统计** | 统计诗词中的高频词汇，洞察不同时代的用词偏好 |
-| ☁️ **词云可视化** | 生成直观的词云图，感受诗词的意象分布 |
-| 🔗 **词汇相似度** | 基于词向量技术，发现语义相近的词汇关联 |
-| 👥 **诗人相似度** | 分析诗人创作风格，找出"意气相投"的诗人 |
-| 🎵 **格律分析** | 解析诗词格律模式，探索古典诗词的音韵之美 |
-| 📈 **数据仪表盘** | 一览古籍数据全貌，掌握整体分布情况 |
-
----
-
-## 🚀 快速开始
-
-### 前端预览
+### 前端设置
 
 ```bash
-# 克隆项目
+# 克隆仓库
 git clone https://github.com/shyu216/chinese-poetry-data-mining.git
 
-# 进入前端目录
+# 进入web目录
 cd web
 
 # 安装依赖
@@ -54,90 +40,65 @@ npm run build
 npm run preview
 ```
 
----
+## 数据规模
 
-## 🛠️ 技术栈
+- **诗词总数**：300,000+首
+  - 唐诗：50,000+首
+  - 宋诗：200,000+首
+  - 宋词：20,000+首
+- **诗人数量**：5,000+位
+- **词汇统计**：1,000,000+条
+- **数据结构**：使用FlatBuffers优化性能
 
-### 前端
-- **框架**: Vue 3 + Composition API
-- **语言**: TypeScript
-- **构建**: Vite
-- **路由**: Vue Router
-- **可视化**: Plotly.js, D3.js
-
-### 数据处理
-- **数据格式**: FlatBuffers (高性能二进制序列化)
-- **中文处理**: jieba 分词
-- **词向量**: FastText
-- **多进程**: multiprocessing (Python)
-
-### 部署
-- **平台**: GitHub Pages
-- **方式**: 纯静态部署，无需后端服务器
-
----
-
-## 📁 项目结构
+## 项目结构
 
 ```
 chinese-poetry-data-mining/
-├── web/                      # Vue 3 前端项目
-│   ├── src/
-│   │   ├── components/       # UI 组件
-│   │   ├── composables/      # 组合式函数
-│   │   ├── views/            # 页面视图
-│   │   ├── generated/        # 生成的类型定义
-│   │   └── router/           # 路由配置
-│   └── index.html
-├── scripts/                  # 数据处理脚本
-│   ├── word_sim_v3.py        # 词汇相似度计算
-│   ├── author_sim_v2.py      # 诗人相似度分析
-│   ├── wordcount_v2.py       # 词频统计
-│   └── flatbuffers_generated/# FlatBuffers  schema
-└── data/                     # 原始诗词数据
-    └── chinese-poetry/       # 古诗词数据库
-        ├── 全唐诗/           # 唐诗全集
-        ├── 宋词/             # 宋词全集
-        ├── 元曲/             # 元曲全集
-        └── 四书五经/         # 儒家经典
+├── web/              # Vue 3前端应用
+├── scripts/          # 数据处理和分析脚本
+└── data/             # 原始诗词数据
 ```
 
----
+## 技术栈
 
-## 📈 数据规模
+- **前端**：Vue 3, TypeScript, Vite, Naive UI, D3.js
+- **数据处理**：Python, jieba, FastText, FlatBuffers
+- **部署**：GitHub Pages（静态站点）
 
-- **全唐诗**: 逾 5 万首
-- **宋词**: 逾 2 万首
-- **元曲**: 数千首
-- **四书五经**: 完整收录
+## 使用指南
 
----
+### 浏览诗词
+- 按朝代和体裁筛选
+- 按标题和作者搜索
+- 查看详细的诗词信息，包括格律模式
 
-## 🤝 贡献指南
+### 探索诗人
+- 按诗词数量排序诗人
+- 查看诗人作品集和风格分析
+- 基于写作风格发现相似诗人
 
-欢迎提交 Issue 和 Pull Request！
+### 分析词汇
+- 探索不同时代的词汇频率
+- 使用词云可视化词汇关系
+- 搜索特定关键词及其上下文
 
-1. Fork 本仓库
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 打开 Pull Request
+## 许可证
 
----
+MIT许可证 - 详见 [LICENSE](LICENSE) 文件。
 
-## 🙏 致谢
+## 数据来源
 
-- [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) - 全面的中华古诗词数据库
-- [ccpoems](https://github.com/shyu216/ccpoems) - React Native 移动应用配套项目
+本项目基于 [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) 开源数据库。
 
----
+## 致谢
 
-## 📄 许可证
+- [Vue.js](https://vuejs.org/) - 渐进式JavaScript框架
+- [Naive UI](https://www.naiveui.com/) - Vue 3组件库
+- [D3.js](https://d3js.org/) - 数据可视化库
+- [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) - 诗词数据库
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
+## 在线演示
 
----
+[https://shyu216.github.io/chinese-poetry-data-mining](https://shyu216.github.io/chinese-poetry-data-mining)
 
-<p align="center">
-  <i>用数据科学的方式，重新发现中国古典诗词之美 🏮</i>
-</p>
+[English Version](README.md)

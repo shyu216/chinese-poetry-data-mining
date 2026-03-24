@@ -5,7 +5,6 @@ import { NCard, NTag, NIcon, NButton, NSpin, NEmpty, NGrid, NGi, NStatistic, NAl
 import { PeopleOutline, BookOutline, RibbonOutline, ArrowBackOutline } from '@vicons/ionicons5'
 
 import { useAuthorClusters } from '@/composables/useAuthorClusters'
-import { pageTitleCopy } from '@/constants/copywriting'
 
 const route = useRoute()
 const router = useRouter()
@@ -90,7 +89,7 @@ onMounted(() => {
           </div>
           <div class="header-info">
             <h1 class="cluster-title">{{ clusterName }}</h1>
-            <p class="cluster-subtitle">{{ pageTitleCopy.authorDetail.subtitle }}</p>
+            <p class="cluster-subtitle">探寻诗人足迹，领略文心诗魂</p>
           </div>
         </div>
 

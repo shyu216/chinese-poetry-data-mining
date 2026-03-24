@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { NCard, NTag, NButton, NEllipsis, NIcon, useMessage } from 'naive-ui'
 import { BookmarkOutline, CopyOutline, HeartOutline, Heart } from '@vicons/ionicons5'
 import { DynastyBadge } from '@/components/ui/badge'
-import { buttonCopy } from '@/constants/copywriting'
 
 interface Props {
   id: string
@@ -46,14 +45,14 @@ const copyPoem = (e: Event) => {
   e.stopPropagation()
   const text = `${props.title}\n${props.author}〔${props.dynasty}〕\n\n${props.content || ''}`
   navigator.clipboard.writeText(text).then(() => {
-    message.success(buttonCopy.copySuccess)
+    message.success('已誊抄至剪贴板')
   })
 }
 
 const toggleFavorite = (e: Event) => {
   e.stopPropagation()
   isFavorited.value = !isFavorited.value
-  message.success(isFavorited.value ? buttonCopy.favorite : buttonCopy.unfavorite)
+  message.success(isFavorited.value ? '收藏' : '已收藏')
   // TODO: 持久化到本地存储
 }
 </script>

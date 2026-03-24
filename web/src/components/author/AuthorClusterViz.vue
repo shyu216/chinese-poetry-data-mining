@@ -223,31 +223,31 @@ const authorsByCluster = computed(() => {
       <NEmpty v-if="!loading && (!authors.length || !clusters.length)" description="暂无聚类数据" />
       
       <div v-else class="cluster-content">
-        <!-- 聚类筛选 -->
-        <div class="cluster-filters">
-          <NSpace>
-            <NButton 
-              size="small" 
-              :type="selectedCluster === null ? 'primary' : 'default'"
-              @click="selectedCluster = null"
-            >
-              全部流派
-            </NButton>
-            <NButton
-              v-for="cluster in clusters"
-              :key="cluster.id"
-              size="small"
-              :type="selectedCluster === cluster.id ? 'primary' : 'default'"
-              :style="{ borderColor: cluster.color, color: selectedCluster === cluster.id ? '#fff' : cluster.color }"
-              @click="selectedCluster = selectedCluster === cluster.id ? null : cluster.id"
-            >
-              {{ cluster.name }} ({{ cluster.size }})
-            </NButton>
-          </NSpace>
-        </div>
-
         <NTabs v-model:value="activeTab" type="line" animated>
           <NTabPane name="2d" tab="2D分布">
+            <!-- 聚类筛选 -->
+            <div class="cluster-filters">
+              <NSpace>
+                <NButton 
+                  size="small" 
+                  :type="selectedCluster === null ? 'primary' : 'default'"
+                  @click="selectedCluster = null"
+                >
+                  全部流派
+                </NButton>
+                <NButton
+                  v-for="cluster in clusters"
+                  :key="cluster.id"
+                  size="small"
+                  :type="selectedCluster === cluster.id ? 'primary' : 'default'"
+                  :style="{ borderColor: cluster.color, color: selectedCluster === cluster.id ? '#fff' : cluster.color }"
+                  @click="selectedCluster = selectedCluster === cluster.id ? null : cluster.id"
+                >
+                  {{ cluster.name }} ({{ cluster.size }})
+                </NButton>
+              </NSpace>
+            </div>
+            
             <div class="viz-container">
               <canvas
                 ref="canvasRef"
@@ -275,78 +275,65 @@ const authorsByCluster = computed(() => {
           </NTabPane>
 
           <NTabPane name="list" tab="流派列表">
-            <div class="clusters-grid">
+            <div class="clusters-list">
               <div
                 v-for="cluster in clusters"
                 :key="cluster.id"
-                class="cluster-card-wrapper"
+                class="cluster-item-wrapper"
                 :class="{ active: selectedCluster === cluster.id }"
                 @click="goToClusterDetail(cluster.id)"
               >
-                <NCard class="cluster-card" hoverable>
-                  <div class="cluster-badge" :style="{ background: cluster.color }">
-                    <NIcon :size="16" color="#fff">
-                      <RibbonOutline />
-                    </NIcon>
-                  </div>
+                <NCard class="cluster-item" hoverable>
+                  <div class="cluster-item-content">
+                    <!-- 左侧：颜色标识和名称 -->
+                    <div class="cluster-item-left">
+                      <div class="cluster-color-bar" :style="{ background: cluster.color }"></div>
+                      <div class="cluster-main-info">
+                        <h3 class="cluster-item-name">{{ cluster.name }}</h3>
+                        <div class="cluster-item-meta">
+                          <span class="meta-item">
+                            <NIcon :size="14"><PeopleOutline /></NIcon>
+                            {{ formatNumber(cluster.size) }}人
+                          </span>
+                          <span class="meta-item">
+                            <NIcon :size="14"><BookOutline /></NIcon>
+                            平均{{ cluster.avg_poems }}首
+                          </span>
+                        </div>
+                      </div>
+                    </div>
 
-                  <template #header>
-                    <div class="card-header">
-                      <h3 class="cluster-name">{{ cluster.name }}</h3>
-                      <div class="cluster-meta">
-                        <span class="meta-item">
-                          <NIcon :size="14"><PeopleOutline /></NIcon>
-                          {{ formatNumber(cluster.size) }}人
+                    <!-- 中间：代表诗人 -->
+                    <div class="cluster-item-section">
+                      <div class="section-label">代表诗人</div>
+                      <div class="authors-list-horizontal">
+                        <span 
+                          v-for="(author, i) in cluster.representatives.slice(0, 5)" 
+                          :key="i"
+                          class="author-item"
+                        >
+                          {{ author }}
                         </span>
-                        <span class="meta-item">
-                          <NIcon :size="14"><BookOutline /></NIcon>
-                          平均{{ cluster.avg_poems }}首
+                        <span v-if="cluster.representatives.length > 5" class="more-authors">
+                          +{{ cluster.representatives.length - 5 }}
                         </span>
                       </div>
                     </div>
-                  </template>
 
-                  <div class="authors-section">
-                    <div class="section-label">代表诗人</div>
-                    <div class="authors-list">
-                      <span 
-                        v-for="(author, i) in cluster.representatives.slice(0, 3)" 
-                        :key="i"
-                        class="author-item"
-                      >
-                        {{ author }}
-                      </span>
-                      <span v-if="cluster.representatives.length > 3" class="more-authors">
-                        +{{ cluster.representatives.length - 3 }}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div class="words-section">
-                    <div class="section-label">特色词汇</div>
-                    <div class="words-cloud">
-                      <NTag
-                        v-for="(word, i) in cluster.top_words.slice(0, 6)"
-                        :key="i"
-                        size="small"
-                        :bordered="false"
-                        type="info"
-                      >
-                        {{ word.word }}
-                      </NTag>
-                    </div>
-                  </div>
-
-                  <div class="types-section">
-                    <div class="section-label">主要诗体</div>
-                    <div class="types-list">
-                      <span
-                        v-for="(item, i) in cluster.poem_types.slice(0, 3)"
-                        :key="i"
-                        class="type-item"
-                      >
-                        {{ item.type }} ({{ formatNumber(item.count) }})
-                      </span>
+                    <!-- 右侧：特色词汇 -->
+                    <div class="cluster-item-section">
+                      <div class="section-label">特色词汇</div>
+                      <div class="words-list-horizontal">
+                        <NTag
+                          v-for="(word, i) in cluster.top_words.slice(0, 4)"
+                          :key="i"
+                          size="small"
+                          :bordered="false"
+                          type="info"
+                        >
+                          {{ word.word }}
+                        </NTag>
+                      </div>
                     </div>
                   </div>
                 </NCard>
@@ -464,120 +451,118 @@ const authorsByCluster = computed(() => {
   color: #666;
 }
 
-.clusters-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
+.clusters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 8px 0;
 }
 
-.cluster-card-wrapper {
+.cluster-item-wrapper {
   cursor: pointer;
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
-.cluster-card-wrapper:hover {
-  transform: translateY(-4px);
+.cluster-item-wrapper:hover {
+  transform: translateX(4px);
 }
 
-.cluster-card-wrapper.active .cluster-card {
+.cluster-item-wrapper.active .cluster-item {
   box-shadow: 0 4px 16px rgba(139, 38, 53, 0.15);
   border-color: var(--color-seal, #8b2635);
 }
 
-.cluster-card {
-  position: relative;
-  height: 100%;
+.cluster-item {
+  width: 100%;
 }
 
-.cluster-badge {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+.cluster-item-content {
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 1;
+  gap: 24px;
+  padding: 8px 0;
 }
 
-.card-header {
-  padding-right: 24px;
+.cluster-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+  flex-shrink: 0;
 }
 
-.cluster-name {
-  margin: 0 0 8px 0;
-  font-size: 18px;
+.cluster-color-bar {
+  width: 6px;
+  height: 48px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.cluster-main-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cluster-item-name {
+  margin: 0;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-ink);
 }
 
-.cluster-meta {
+.cluster-item-meta {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-ink-light);
 }
 
-.authors-section,
-.words-section,
-.types-section {
-  margin-top: 16px;
+.cluster-item-section {
+  flex: 1;
+  min-width: 150px;
 }
 
 .section-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-ink-light);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.authors-list {
+.authors-list-horizontal {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .author-item {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--color-ink);
-  padding: 4px 8px;
+  padding: 3px 8px;
   background: var(--color-bg-paper);
   border-radius: 4px;
   border: 1px solid var(--color-border);
 }
 
 .more-authors {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--color-ink-light);
-  padding: 4px 8px;
+  padding: 3px 8px;
 }
 
-.words-cloud {
+.words-list-horizontal {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-.types-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.type-item {
-  font-size: 12px;
-  color: var(--color-ink-light);
-  padding: 2px 0;
 }
 
 .stats-grid {

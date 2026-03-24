@@ -1,40 +1,26 @@
-# 🏮 Chinese Ancient Literature Atlas
+# Chinese Poetry Data Mining
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Vue 3](https://img.shields.io/badge/Vue-3+-42b883.svg)](https://vuejs.org/)
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-Live-brightgreen)](https://shyu216.github.io/chinese-poetry-data-mining)
+A modern, data-driven exploration of classical Chinese poetry with over 300,000 poems from multiple dynasties.
 
-> Discover hidden temporal-spatial patterns and literary rules in classical Chinese poetry through data science
+## Key Features
 
-[中文版本](README.CN.md) · [Live Demo](https://shyu216.github.io/chinese-poetry-data-mining)
+- **Extensive Poetry Collection**: Access 300,000+ poems from Tang, Song, Yuan, Ming, and Qing dynasties
+- **Advanced Search**: Full-text search with inverted index for instant results
+- **Poet Analysis**: Explore 5,000+ poets with style similarity analysis and clustering
+- **Word Frequency Analysis**: Discover high-frequency words and semantic relationships
+- **Data Visualization**: Interactive word clouds and poet network graphs
+- **Meter Analysis**: Parse and visualize classical poetry rhythm patterns
+- **Responsive Design**: Mobile-friendly interface with smooth animations
 
----
+## Quick Start
 
-## ✨ Features
-
-| Feature | Description |
-|:---|:---|
-| 🔍 **Full-text Search** | Cross-dynasty, cross-genre intelligent poetry search with multiple filters |
-| 👤 **Poet Atlas** | Explore poet distribution by dynasty, understand the historical context of poetry's golden ages |
-| 📊 **Word Frequency** | Analyze high-frequency words across different eras and writing preferences |
-| ☁️ **Word Cloud** | Visualize poetry imagery with intuitive word clouds |
-| 🔗 **Word Similarity** | Discover semantically related words using word embedding technology |
-| 👥 **Poet Similarity** | Analyze poets' writing styles and find "like-minded" poets |
-| 🎵 **Meter Analysis** | Parse poetry rhythm patterns and explore the beauty of classical Chinese versification |
-| 📈 **Data Dashboard** | Overview of ancient literature data and overall distribution |
-
----
-
-## 🚀 Quick Start
-
-### Frontend Preview
+### Frontend Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/shyu216/chinese-poetry-data-mining.git
 
-# Navigate to the web directory
+# Navigate to web directory
 cd web
 
 # Install dependencies
@@ -54,90 +40,65 @@ npm run build
 npm run preview
 ```
 
----
+## Data Scale
 
-## 🛠️ Tech Stack
+- **Total Poems**: 300,000+
+  - Tang Poems: 50,000+
+  - Song Poems: 200,000+
+  - Song Ci: 20,000+
+- **Total Poets**: 5,000+
+- **Word Statistics**: 1,000,000+
+- **Data Structure**: Optimized with FlatBuffers for performance
 
-### Frontend
-- **Framework**: Vue 3 + Composition API
-- **Language**: TypeScript
-- **Build Tool**: Vite
-- **Routing**: Vue Router
-- **Visualization**: Plotly.js, D3.js
-
-### Data Processing
-- **Data Format**: FlatBuffers (High-performance binary serialization)
-- **Chinese Processing**: jieba
-- **Word Embedding**: FastText
-- **Multiprocessing**: multiprocessing (Python)
-
-### Deployment
-- **Platform**: GitHub Pages
-- **Approach**: Pure static deployment, no backend server required
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 chinese-poetry-data-mining/
-├── web/                      # Vue 3 frontend project
-│   ├── src/
-│   │   ├── components/       # UI components
-│   │   ├── composables/      # Composables
-│   │   ├── views/            # Page views
-│   │   ├── generated/        # Generated type definitions
-│   │   └── router/           # Router configuration
-│   └── index.html
-├── scripts/                  # Data processing scripts
-│   ├── word_sim_v3.py        # Word similarity calculation
-│   ├── author_sim_v2.py      # Poet similarity analysis
-│   ├── wordcount_v2.py       # Word frequency statistics
-│   └── flatbuffers_generated/# FlatBuffers schema
-└── data/                     # Raw poetry data
-    └── chinese-poetry/       # Ancient poetry database
-        ├── 全唐诗/           # Complete Tang Poems
-        ├── 宋词/             # Complete Song Ci
-        ├── 元曲/             # Complete Yuan Qu
-        └── 四书五经/         # Confucian Classics
+├── web/              # Vue 3 frontend application
+├── scripts/          # Data processing and analysis scripts
+└── data/             # Raw poetry data
 ```
 
----
+## Technology Stack
 
-## 📈 Data Scale
+- **Frontend**: Vue 3, TypeScript, Vite, Naive UI, D3.js
+- **Data Processing**: Python, jieba, FastText, FlatBuffers
+- **Deployment**: GitHub Pages (static site)
 
-- **Complete Tang Poems**: 50,000+ poems
-- **Song Ci**: 20,000+ poems
-- **Yuan Qu**: Thousands of works
-- **Four Books and Five Classics**: Complete collection
+## Usage Guide
 
----
+### Browsing Poems
+- Filter by dynasty and genre
+- Search by title and author
+- View detailed poem information including meter patterns
 
-## 🤝 Contributing
+### Exploring Poets
+- Sort poets by poem count
+- View poet collections and style analysis
+- Discover similar poets based on writing style
 
-Contributions are welcome! Please feel free to submit Issues and Pull Requests.
+### Analyzing Words
+- Explore word frequency across different eras
+- Visualize word relationships with word clouds
+- Search for specific keywords and their context
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## License
 
----
+MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Data Sources
 
-- [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) - Comprehensive database of Chinese poetry
-- [ccpoems](https://github.com/shyu216/ccpoems) - React Native mobile app companion project
+This project is based on the [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) open-source database.
 
----
+## Acknowledgments
 
-## 📄 License
+- [Vue.js](https://vuejs.org/) - Progressive JavaScript framework
+- [Naive UI](https://www.naiveui.com/) - Vue 3 component library
+- [D3.js](https://d3js.org/) - Data visualization library
+- [chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) - Poetry database
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Live Demo
 
----
+[https://shyu216.github.io/chinese-poetry-data-mining](https://shyu216.github.io/chinese-poetry-data-mining)
 
-<p align="center">
-  <i>Rediscovering the beauty of classical Chinese poetry through data science 🏮</i>
-</p>
+[中文版本](README.CN.md)
