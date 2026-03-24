@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePoemsV2, POEMS_SUMMARY_STORAGE } from '@/composables/usePoemsV2'
 import { useChunkLoader } from '@/composables/useChunkLoader'
@@ -9,14 +9,15 @@ import { useShuffle } from '@/composables/useShuffle'
 import type { PoemSummary } from '@/composables/types'
 import {
   NEmpty, NSelect,
-  NButton, NPagination, NGrid, NGridItem, NSpace, NTooltip
+  NButton, NGrid, NGridItem, NSpace, NTooltip
 } from 'naive-ui'
+import PoemList from '@/components/display/PoemList.vue'
 import {
   BookOutline,
   ChevronForwardOutline,
   LibraryOutline, FlameOutline,
   SchoolOutline, MusicalNotesOutline,
-  ShuffleOutline, RefreshOutline
+  ShuffleOutline, RefreshOutline, DownloadOutline
 } from '@vicons/ionicons5'
 import PageHeader from '@/components/layout/PageHeader.vue'
 import StatsCard from '@/components/display/StatsCard.vue'
@@ -35,7 +36,8 @@ const {
   genres,
   poemCounts,
   loadMetadata,
-  loadChunkSummaries
+  loadChunkSummaries,
+  queryPoems
 } = usePoemsV2()
 
 const chunkLoader = useChunkLoader()
@@ -49,10 +51,11 @@ const searchStats = ref({ queryTime: 0, source: '' })
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(24)
-const loadedPoems = ref<PoemSummary[]>([])
+const loadedPoems = shallowRef<PoemSummary[]>([])
 const hasMoreChunks = ref(true)
 const isInitializing = ref(true)
 const cachedChunksCount = ref(0)
+const isLoadingMore = ref(false)
 
 // 过滤器
 const dynastyFilter = ref<string | null>(null)
@@ -171,30 +174,30 @@ const loadingHint = computed(() => {
 
 // 从缓存加载
 const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
-  console.log(`[PoemsView] 🔄 开始加载本地缓存${quickMode ? ' (快速模式)' : ''}...`)
+  console.log(`[PoemsViewV2] 🔄 开始加载本地缓存${quickMode ? ' (快速模式)' : ''}...`)
   const startTime = performance.now()
 
   const meta = await getMetadata(POEMS_SUMMARY_STORAGE)
   const loadedChunkIds = meta?.loadedChunkIds || []
 
-  console.log(`[PoemsView] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
+  console.log(`[PoemsViewV2] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
 
   if (loadedChunkIds.length === 0) {
-    console.log('[PoemsView] ⚠️ 无缓存数据，将从服务器加载')
+    console.log('[PoemsViewV2] ⚠️ 无缓存数据，将从服务器加载')
     return []
   }
 
   // 快速模式：只读取第一个分块
   if (quickMode) {
     const firstChunkId = loadedChunkIds[0]!
-    console.log(`[PoemsView] ⚡ 快速模式：优先加载分块 #${firstChunkId}`)
+    console.log(`[PoemsViewV2] ⚡ 快速模式：优先加载分块 #${firstChunkId}`)
 
     const chunkData = await getVerifiedChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, firstChunkId)
 
     if (chunkData && Array.isArray(chunkData) && chunkData.length > 0) {
       loadedPoems.value = chunkData
       cachedChunksCount.value = 1
-      console.log(`[PoemsView] ✅ 快速加载完成: ${chunkData.length} 首诗词 - ${Math.round(performance.now() - startTime)}ms`)
+      console.log(`[PoemsViewV2] ✅ 快速加载完成: ${chunkData.length} 首诗词 - ${Math.round(performance.now() - startTime)}ms`)
     }
 
     return [firstChunkId]
@@ -203,7 +206,7 @@ const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
   // 完整模式：读取所有缓存分块
   cachedChunksCount.value = loadedChunkIds.length
   const cachedPoems: PoemSummary[] = []
-  console.log(`[PoemsView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
+  console.log(`[PoemsViewV2] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
 
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
@@ -212,7 +215,7 @@ const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
 
     if (chunkData && Array.isArray(chunkData)) {
       cachedPoems.push(...chunkData)
-      console.log(`[PoemsView]   ├─ 分块 #${chunkId}: ${chunkData.length} 首诗词 (${chunkDuration}ms)`)
+      console.log(`[PoemsViewV2]   ├─ 分块 #${chunkId}: ${chunkData.length} 首诗词 (${chunkDuration}ms)`)
     }
   }
 
@@ -221,14 +224,14 @@ const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
   }
 
   const totalDuration = Math.round(performance.now() - startTime)
-  console.log(`[PoemsView] ✅ 缓存加载完成: ${cachedPoems.length} 首诗词 - ${totalDuration}ms`)
+  console.log(`[PoemsViewV2] ✅ 缓存加载完成: ${cachedPoems.length} 首诗词 - ${totalDuration}ms`)
 
   return loadedChunkIds
 }
 
 // 主加载函数
 const loadData = async () => {
-  console.log('[PoemsView] 🚀 开始加载数据...')
+  console.log('[PoemsViewV2] 🚀 开始加载数据...')
   const totalStartTime = performance.now()
 
   loading.startBlocking('诗词列表', '正在加载诗词数据...')
@@ -236,17 +239,17 @@ const loadData = async () => {
 
   try {
     loading.updatePhase('metadata', '正在加载元数据...')
-    console.log('[PoemsView] 📋 阶段1: 加载元数据...')
+    console.log('[PoemsViewV2] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
     await loadMetadata()
     const totalChunksCount = totalChunks.value || 0
-    console.log(`[PoemsView] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
+    console.log(`[PoemsViewV2] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
     loading.updateProgress(1, 3, '正在加载首批数据...')
-    console.log('[PoemsView] ⚡ 阶段2: 快速加载首批数据...')
+    console.log('[PoemsViewV2] ⚡ 阶段2: 快速加载首批数据...')
     const quickStartTime = performance.now()
     const firstChunkIds = await loadCachedChunks(true)
-    console.log(`[PoemsView] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
+    console.log(`[PoemsViewV2] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
 
     loading.updateProgress(2, 3, '准备就绪...')
     loading.updatePhase('complete', '数据加载完成')
@@ -254,7 +257,7 @@ const loadData = async () => {
     setTimeout(() => loading.finish(), 200)
     isInitializing.value = false
 
-    console.log('[PoemsView] 🎨 界面已可交互，开始后台加载剩余数据...')
+    console.log('[PoemsViewV2] 🎨 界面已可交互，开始后台加载剩余数据...')
 
     const remainingStartTime = performance.now()
     loading.startNonBlocking('补充诗词数据', '正在加载剩余数据...')
@@ -265,21 +268,21 @@ const loadData = async () => {
     const remainingCachedIds = allCachedChunkIds.filter(id => !firstChunkIds.includes(id))
 
     if (remainingCachedIds.length > 0) {
-      console.log(`[PoemsView] 💾 后台加载剩余 ${remainingCachedIds.length} 个缓存分块...`)
+      console.log(`[PoemsViewV2] 💾 后台加载剩余 ${remainingCachedIds.length} 个缓存分块...`)
       let loadedCachedCount = 0
       for (const chunkId of remainingCachedIds) {
         const chunkData = await getVerifiedChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, chunkId)
         if (chunkData && Array.isArray(chunkData)) {
-          loadedPoems.value.push(...chunkData)
+          loadedPoems.value = [...loadedPoems.value, ...chunkData]
           cachedChunksCount.value++
           loadedCachedCount++
           // 每3个分块输出一次日志
           if (loadedCachedCount % 3 === 0) {
-            console.log(`[PoemsView] 📥 缓存加载进度: ${loadedCachedCount}/${remainingCachedIds.length} 分块`)
+            console.log(`[PoemsViewV2] 📥 缓存加载进度: ${loadedCachedCount}/${remainingCachedIds.length} 分块`)
           }
         }
       }
-      console.log(`[PoemsView] ✅ 剩余缓存加载完成，当前共 ${loadedPoems.value.length} 首诗词`)
+      console.log(`[PoemsViewV2] ✅ 剩余缓存加载完成，当前共 ${loadedPoems.value.length} 首诗词`)
     }
 
     // 加载网络分块
@@ -287,11 +290,11 @@ const loadData = async () => {
     const unloadedChunkIds = allChunkIds.filter(id => !allCachedChunkIds.includes(id))
 
     if (unloadedChunkIds.length === 0) {
-      console.log('[PoemsView] ✨ 所有数据已加载完成')
+      console.log('[PoemsViewV2] ✨ 所有数据已加载完成')
       hasMoreChunks.value = false
       loading.finish()
     } else {
-      console.log(`[PoemsView] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
+      console.log(`[PoemsViewV2] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
       let loadedCount = allCachedChunkIds.length
       let networkDataCount = 0
 
@@ -300,7 +303,7 @@ const loadData = async () => {
         chunkDelay: 0,
         onChunkLoaded: (chunkId, poems) => {
           const poemsArray = poems as PoemSummary[]
-          loadedPoems.value.push(...poemsArray)
+          loadedPoems.value = [...loadedPoems.value, ...poemsArray]
           networkDataCount += poemsArray.length
 
           loadedCount++
@@ -310,12 +313,12 @@ const loadData = async () => {
             const phases = ['正在读取诗词数据...', '正在整理诗词分类...', '正在加载诗词信息...', '正在构建诗词列表...']
             const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
             loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
-            console.log(`[PoemsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
+            console.log(`[PoemsViewV2] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
           }
         },
         onComplete: () => {
           const bgDuration = Math.round(performance.now() - remainingStartTime)
-          console.log(`[PoemsView] ✅ 后台加载完成: 共 ${loadedPoems.value.length} 首诗词 - ${bgDuration}ms`)
+          console.log(`[PoemsViewV2] ✅ 后台加载完成: 共 ${loadedPoems.value.length} 首诗词 - ${bgDuration}ms`)
           hasMoreChunks.value = false
           loading.finish()
         }
@@ -323,11 +326,11 @@ const loadData = async () => {
     }
   } catch (error) {
     loading.error('加载失败，请刷新重试')
-    console.error('[PoemsView] ❌ 诗词数据加载失败:', error)
+    console.error('[PoemsViewV2] ❌ 诗词数据加载失败:', error)
     isInitializing.value = false
   } finally {
     const totalDuration = Math.round(performance.now() - totalStartTime)
-    console.log(`[PoemsView] 🏁 总加载时间: ${totalDuration}ms`)
+    console.log(`[PoemsViewV2] 🏁 总加载时间: ${totalDuration}ms`)
   }
 }
 
@@ -361,12 +364,17 @@ watch(searchQuery, () => {
   currentPage.value = 1
   performSearch()
 })
+
+// 监听过滤器变化
+watch([dynastyFilter, genreFilter], () => {
+  currentPage.value = 1
+})
 </script>
 
 <template>
   <div class="poems-view">
     <PageHeader
-      title="诗词列表"
+      title="诗词列表 V2"
       :subtitle="`共收录 ${dynamicStats.total.toLocaleString()} 首诗词，支持朝代、体裁筛选`"
       :icon="BookOutline"
     />
@@ -499,44 +507,18 @@ watch(searchQuery, () => {
         <NButton v-if="hasMoreChunks" @click="clearFilters">
           清除筛选
         </NButton>
-        <NButton v-else @click="clearFilters">
-          清除筛选
-        </NButton>
       </template>
     </NEmpty>
 
     <div v-else-if="displayPoems.length > 0" class="poems-container">
-      <div class="poems-grid">
-        <article
-          v-for="poem in paginatedPoems"
-          :key="poem.id"
-          class="poem-card"
-          @click="goToPoemDetail(poem)"
-        >
-          <div class="card-main">
-            <DynastyBadge :dynasty="poem.dynasty" size="small" />
-            <div class="poem-info">
-              <h3 class="poem-title">{{ poem.title || '无题' }}</h3>
-              <div class="poem-subtitle">
-                <span class="author">{{ poem.author }}</span>
-                <span class="divider">·</span>
-                <span class="genre">{{ poem.genre }}</span>
-              </div>
-            </div>
-            <ChevronForwardOutline class="arrow-icon" />
-          </div>
-        </article>
-      </div>
-    </div>
-
-    <div class="pagination-wrapper" v-if="totalPages > 1">
-      <NPagination
+      <PoemList
+        :poems="displayPoems"
+        :total="searchQuery.trim() ? searchTotal : undefined"
         v-model:page="currentPage"
-        :page-count="totalPages"
-        :page-size="pageSize"
-        show-size-picker
-        :page-sizes="[12, 24, 48, 96]"
-        @update:page-size="pageSize = $event"
+        v-model:page-size="pageSize"
+        :show-pagination="true"
+        :grid-view="true"
+        @view-poem="goToPoemDetail"
       />
     </div>
   </div>
@@ -557,87 +539,6 @@ watch(searchQuery, () => {
   display: flex;
   flex-direction: column;
   gap: 24px;
-}
-
-.poems-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 12px;
-}
-
-.poem-card {
-  background: var(--color-bg-paper, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
-  padding: 12px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.poem-card:hover {
-  border-color: var(--color-seal, #8b2635);
-  background: rgba(139, 38, 53, 0.02);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.poem-card:hover .arrow-icon {
-  opacity: 1;
-  color: var(--color-seal, #8b2635);
-  transform: translateX(2px);
-}
-
-.card-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.poem-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.poem-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-ink, #2c3e50);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.poem-subtitle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--color-ink-light, #666);
-}
-
-.divider {
-  color: var(--color-border, #d9d9d9);
-}
-
-.arrow-icon {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  color: var(--color-ink-light, #999);
-  opacity: 0;
-  transition: all 0.2s ease;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 16px;
-  background: var(--color-bg-paper, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
 }
 
 @media (max-width: 768px) {

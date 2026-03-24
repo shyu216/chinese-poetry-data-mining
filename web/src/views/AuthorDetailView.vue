@@ -18,6 +18,7 @@ import {
 } from '@vicons/ionicons5'
 import { PageHeader } from '@/components/layout'
 import { StatsCard } from '@/components/display'
+import PoemList from '@/components/display/PoemList.vue'
 import { useLoading } from '@/composables/useLoading'
 
 const loading = useLoading()
@@ -307,50 +308,14 @@ const getTypeDistribution = () => {
         <NCard title="作品列表" class="poems-card">
           <NEmpty v-if="!poemsLoading && poems.length === 0" description="暂无诗词作品" />
           <template v-else>
-            <NList hoverable clickable>
-              <NListItem
-                v-for="poem in paginatedPoems"
-                :key="poem.id"
-                @click="goToPoem(poem.id)"
-              >
-                <NThing>
-                  <template #header>
-                    <span class="poem-title">{{ poem.title || '无题' }}</span>
-                  </template>
-                  <template #description>
-                    <div class="poem-meta">
-                      <NTag
-                        v-if="poem.dynasty"
-                        :type="dynastyColors[poem.dynasty] as any"
-                        size="small"
-                      >
-                        {{ poem.dynasty }}
-                      </NTag>
-                      <NTag v-if="poem.genre" type="info" size="small">
-                        {{ poem.genre }}
-                      </NTag>
-                      <NTag v-if="poem.poem_type" type="success" size="small">
-                        {{ poem.poem_type }}
-                      </NTag>
-                    </div>
-                  </template>
-                  <template #header-extra>
-                    <ChevronForwardOutline class="arrow-icon" />
-                  </template>
-                </NThing>
-              </NListItem>
-            </NList>
-
-            <div v-if="totalPoemsPages > 1" class="pagination-wrapper">
-              <NPagination
-                v-model:page="poemsPage"
-                :page-count="totalPoemsPages"
-                :page-size="poemsPageSize"
-                show-size-picker
-                :page-sizes="[10, 20, 50, 100]"
-                @update:page-size="poemsPageSize = $event"
-              />
-            </div>
+            <PoemList
+              :poems="poems"
+              v-model:page="poemsPage"
+              v-model:page-size="poemsPageSize"
+              :show-pagination="true"
+              :grid-view="false"
+              @view-poem="(poem) => goToPoem(poem.id)"
+            />
           </template>
         </NCard>
       </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, shallowRef } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   NCard, NEmpty, NInput, NSpace, NTag,
@@ -41,7 +41,7 @@ const searchStats = ref({ queryTime: 0, source: '' })
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(50)
-const loadedWords = ref<WordCountItem[]>([])
+const loadedWords = shallowRef<WordCountItem[]>([])
 const hasMoreChunks = ref(true)
 const isInitializing = ref(true)
 const cachedChunksCount = ref(0)
@@ -58,7 +58,7 @@ interface WordSimItem {
   similarWords: Array<{ word: string; similarity: number }>
 }
 
-const loadedWordSimWords = ref<WordSimItem[]>([])
+const loadedWordSimWords = shallowRef<WordSimItem[]>([])
 const wordSimCachedChunksCount = ref(0)
 const wordSimTotalChunks = ref(0)
 const isWordSimInitializing = ref(true)
@@ -156,11 +156,6 @@ const paginatedWords = computed(() => {
 const globalTotalWords = computed(() => wordcountV2.totalWords.value || 0)
 const globalTotalChunks = computed(() => wordcountV2.totalChunks.value || 0)
 
-const topWord = computed(() => {
-  if (loadedWords.value.length === 0) return '-'
-  return loadedWords.value[0]?.word || '-'
-})
-
 const topCount = computed(() => {
   if (loadedWords.value.length === 0) return 0
   return loadedWords.value[0]?.count || 0
@@ -176,9 +171,6 @@ const avgWordLength = computed(() => {
   )
   return totalCount > 0 ? (totalWeightedLength / totalCount).toFixed(2) : '0'
 })
-
-// 词频相似度统计
-const wordSimTotalWords = computed(() => wordSimV2.vocabSize.value || 0)
 
 const loadedChunksCount = computed(() => cachedChunksCount.value + chunkLoader.loadedCount.value)
 const hasMoreToLoad = computed(() => loadedChunksCount.value < totalChunks.value)
@@ -227,7 +219,7 @@ const loadCachedChunks = async (): Promise<number[]> => {
   if (cachedWords.length > 0) {
     loadedWords.value = cachedWords.sort((a, b) => a.rank - b.rank)
     totalWords.value = cachedWords.length
-    
+
     // Debug: 检查缓存数据
     console.log('[loadCachedChunks] 加载完成:', {
       total: cachedWords.length,
@@ -394,13 +386,12 @@ const loadWordSimCachedChunks = async (): Promise<number[]> => {
 
   const vocabReverseMap = wordSimV2.getVocabReverseMap()
   let loadedCount = 0
-  const batchWords: typeof loadedWordSimWords.value = []
 
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
     const cached = await getVerifiedChunkedCache<{ vocab: string[], entries: [number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }][] }>(WORD_SIMILARITY_STORAGE, chunkId)
     const chunkDuration = Math.round(performance.now() - chunkStartTime)
-
+    const batchWords: typeof loadedWordSimWords.value = []
     if (cached) {
       const entries = new Map(cached.entries)
       for (const [wordId, entry] of entries) {
@@ -419,12 +410,12 @@ const loadWordSimCachedChunks = async (): Promise<number[]> => {
       loadedCount += entries.size
       console.log(`[WordCountView]   ├─ [词频相似度] 分块 #${chunkId}: ${entries.size} 个词 (${chunkDuration}ms)`)
     }
+    // 一次性批量添加所有缓存的词频相似度数据
+    if (batchWords.length > 0) {
+      loadedWordSimWords.value = [...loadedWordSimWords.value, ...batchWords]
+    }
   }
 
-  // 一次性批量添加所有缓存的词频相似度数据
-  if (batchWords.length > 0) {
-    loadedWordSimWords.value.push(...batchWords)
-  }
 
   const totalDuration = Math.round(performance.now() - startTime)
   console.log(`[WordCountView] ✅ [词频相似度] 缓存加载完成: ${loadedCount} 个词 - ${totalDuration}ms`)
@@ -504,7 +495,7 @@ const loadWordSimData = async () => {
 
         // 一次性批量添加，减少响应式更新次数
         if (newWords.length > 0) {
-          loadedWordSimWords.value.push(...newWords)
+          loadedWordSimWords.value = [...loadedWordSimWords.value, ...newWords]
         }
       },
       onComplete: () => {
@@ -605,122 +596,59 @@ watch(lengthFilter, () => {
 
 <template>
   <div class="wordcount-view">
-    <PageHeader
-      title="词频统计"
-      :subtitle="`共收录 ${loadedWords.length.toLocaleString()} 个高频词汇，按使用频率排序`"
-      :icon="TextOutline"
-    />
+    <PageHeader title="词频统计" :subtitle="`共收录 ${loadedWords.length.toLocaleString()} 个高频词汇，按使用频率排序`"
+      :icon="TextOutline" />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
-        <NGridItem>
-          <StatsCard
-            label="词汇总数"
-            :value="loadedWords.length.toLocaleString()"
-            :prefix-icon="LibraryOutline"
-          />
-        </NGridItem>
-        <NGridItem>
-          <StatsCard
-            label="高频词"
-            :value="loadedWordSimWords.length.toLocaleString()"
-            :prefix-icon="GitNetworkOutline"
-          />
-        </NGridItem>
-        <NGridItem>
-          <StatsCard
-            label="最高频率"
-            :value="topCount.toLocaleString()"
-            suffix="次"
-            :prefix-icon="StarOutline"
-          />
-        </NGridItem>
-        <NGridItem>
-          <StatsCard
-            label="平均长度"
-            :value="avgWordLength"
-            :prefix-icon="ResizeOutline"
-          />
-        </NGridItem>
-      </NGrid>
+      <NGridItem>
+        <StatsCard label="词汇总数" :value="loadedWords.length.toLocaleString()" :prefix-icon="LibraryOutline" />
+      </NGridItem>
+      <NGridItem>
+        <StatsCard label="高频词" :value="loadedWordSimWords.length.toLocaleString()" :prefix-icon="GitNetworkOutline" />
+      </NGridItem>
+      <NGridItem>
+        <StatsCard label="最高频率" :value="topCount.toLocaleString()" suffix="次" :prefix-icon="StarOutline" />
+      </NGridItem>
+      <NGridItem>
+        <StatsCard label="平均长度" :value="avgWordLength" :prefix-icon="ResizeOutline" />
+      </NGridItem>
+    </NGrid>
 
-    <ChunkLoaderStatus
-      v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
-      :is-loading="chunkLoader.isLoading.value"
-      :is-paused="chunkLoader.isPaused.value"
-      :progress="Math.round((loadedChunksCount / (totalChunks || 1)) * 100)"
-      :loaded-count="loadedChunksCount"
-      :total-count="totalChunks"
-      title="加载词频数据"
-      :hint="loadingHint"
-      :stats="[
+    <ChunkLoaderStatus v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
+      :is-loading="chunkLoader.isLoading.value" :is-paused="chunkLoader.isPaused.value"
+      :progress="Math.round((loadedChunksCount / (totalChunks || 1)) * 100)" :loaded-count="loadedChunksCount"
+      :total-count="totalChunks" title="加载词频数据" :hint="loadingHint" :stats="[
         { label: '已加载词汇', value: loadedWords.length.toLocaleString() + ' 个' },
         { label: '缓存分块', value: cachedChunksCount.toLocaleString() + ' 个' }
-      ]"
-      @pause="chunkLoader.pause"
-      @resume="chunkLoader.resume"
-    />
+      ]" @pause="chunkLoader.pause" @resume="chunkLoader.resume" />
 
-    <ChunkLoaderStatus
-      v-if="wordSimChunkLoader.isLoading.value || wordSimCachedChunksCount > 0"
-      :is-loading="wordSimChunkLoader.isLoading.value"
-      :is-paused="wordSimChunkLoader.isPaused.value"
+    <ChunkLoaderStatus v-if="wordSimChunkLoader.isLoading.value || wordSimCachedChunksCount > 0"
+      :is-loading="wordSimChunkLoader.isLoading.value" :is-paused="wordSimChunkLoader.isPaused.value"
       :progress="Math.round((wordSimLoadedChunksCount / (wordSimTotalChunks || 1)) * 100)"
-      :loaded-count="wordSimLoadedChunksCount"
-      :total-count="wordSimTotalChunks"
-      title="加载词频相似度数据"
-      :hint="wordSimLoadingHint"
-      :stats="[
+      :loaded-count="wordSimLoadedChunksCount" :total-count="wordSimTotalChunks" title="加载词频相似度数据"
+      :hint="wordSimLoadingHint" :stats="[
         { label: '已加载词汇', value: loadedWordSimWords.length.toLocaleString() + ' 个' },
         { label: '缓存分块', value: wordSimCachedChunksCount.toLocaleString() + ' 个' }
-      ]"
-      @pause="wordSimChunkLoader.pause"
-      @resume="wordSimChunkLoader.resume"
-    />
+      ]" @pause="wordSimChunkLoader.pause" @resume="wordSimChunkLoader.resume" />
 
-    <WordCloud
-      v-if="isWordCloudReady"
-      :words="wordcloudWords"
-      :max-words="80"
-      :width="700"
-      :height="350"
-      :loading="chunkLoader.isLoading.value"
-      @click="handleWordCloudClick"
-    />
+    <WordCloud v-if="isWordCloudReady" :words="wordcloudWords" :max-words="80" :width="700" :height="350"
+      :loading="chunkLoader.isLoading.value" @click="handleWordCloudClick" />
 
-    <SearchContainer
-      v-model="searchQuery"
-      placeholder="搜索"
-      :total="displayTotal"
-      :query-time="searchStats.queryTime"
-      :source="searchStats.source as any"
-      :loading="isSearching"
-      @search="handleSearch"
-      @clear="clearFilters"
-    >
+    <SearchContainer v-model="searchQuery" placeholder="搜索" :total="displayTotal" :query-time="searchStats.queryTime"
+      :source="searchStats.source as any" :loading="isSearching" @search="handleSearch" @clear="clearFilters">
       <template #filters>
-        <NSelect
-          v-model:value="lengthFilter"
-          :options="lengthOptions"
-          placeholder="长度"
-          style="width: 130px"
-          size="medium"
-          clearable
-        />
+        <NSelect v-model:value="lengthFilter" :options="lengthOptions" placeholder="长度" style="width: 130px"
+          size="medium" clearable />
       </template>
     </SearchContainer>
 
     <!-- 加载中状态 -->
-    <NEmpty
-      v-if="isInitializing || (loadedWords.length === 0 && hasMoreToLoad && !searchQuery.trim() && !lengthFilter)"
-      description="加载中..."
-    >
+    <NEmpty v-if="isInitializing || (loadedWords.length === 0 && hasMoreToLoad && !searchQuery.trim() && !lengthFilter)"
+      description="加载中...">
     </NEmpty>
 
     <!-- 无搜索结果状态 -->
-    <NEmpty
-      v-else-if="displayWords.length === 0"
-      :description="hasMoreToLoad ? '加载更多数据可能会有结果' : '没有数据'"
-    >
+    <NEmpty v-else-if="displayWords.length === 0" :description="hasMoreToLoad ? '加载更多数据可能会有结果' : '没有数据'">
       <template #extra>
         <NButton v-if="hasMoreToLoad" @click="clearFilters">
           清除筛选以查看更多
@@ -732,64 +660,32 @@ watch(lengthFilter, () => {
     </NEmpty>
 
     <div v-else-if="displayWords.length > 0" class="wordcount-container">
-        <div class="words-grid">
-          <div
-            v-for="word in paginatedWords"
-            :key="word.rank"
-            class="word-card"
-            @click="goToKeyword(word.word)"
-          >
-            <div class="rank-badge" :class="{ 'top-ten': word.rank <= 10 }">
-              {{ word.rank }}
-            </div>
-            <div class="word-info">
-              <h3 class="word-text">{{ word.word }}</h3>
-              <div class="word-stats">
-                <NTag type="primary" size="small">
-                  {{ (word.count ?? 0).toLocaleString() }} 次
-                </NTag>
-              </div>
-              <!-- 词频相似度信息 -->
-              <div class="word-similarity">
-                <template v-if="getWordSimInfo(word.word).status === 'loading'">
-                  <NTag type="default" size="small" class="sim-tag loading-tag">
-                    解析中...
-                  </NTag>
-                </template>
-                <template v-else-if="getWordSimInfo(word.word).status === 'has-data'">
-                  <div class="similar-words">
-                    <NTag
-                      v-for="sw in getWordSimInfo(word.word).similarWords.slice(0, 3)"
-                      :key="sw.word"
-                      :type="getSimilarityColor(sw.similarity)"
-                      size="small"
-                      class="sim-tag"
-                    >
-                      {{ sw.word }}
-                    </NTag>
-                  </div>
-                </template>
-                <template v-else>
-                  <!-- no-data: 不显示任何内容 -->
-                </template>
-              </div>
-            </div>
+      <div class="words-grid">
+        <div v-for="word in paginatedWords" :key="word.rank" class="word-card" @click="goToKeyword(word.word)">
+          <div class="rank-badge" :class="{
+            'top-ten': word.rank <= 10,
+            'rank-1': word.rank === 1,
+            'rank-2': word.rank === 2,
+            'rank-3': word.rank === 3
+          }">{{ word.rank }}</div>
+          <h3 class="word-text">{{ word.word }}</h3>
+          <NTag type="primary" size="small" class="count-tag">{{ (word.count ?? 0).toLocaleString() }} 次</NTag>
+          <div class="word-similarity" v-if="getWordSimInfo(word.word).status === 'loading'">
+            <NTag type="default" size="small" class="sim-tag">解析中...</NTag>
           </div>
-        </div>
-
-        <div class="pagination-wrapper">
-          <NPagination
-            :page="currentPage"
-            :page-count="totalPages"
-            :page-size="pageSize"
-            :page-sizes="[20, 50, 100, 200]"
-            show-size-picker
-            show-quick-jumper
-            @update:page="handlePageChange"
-            @update:page-size="handlePageSizeChange"
-          />
+          <div class="word-similarity" v-else-if="getWordSimInfo(word.word).status === 'has-data'">
+            <NTag v-for="sw in getWordSimInfo(word.word).similarWords.slice(0, 3)" :key="sw.word"
+              :type="getSimilarityColor(sw.similarity)" size="small" class="sim-tag">{{ sw.word }}</NTag>
+          </div>
+          <div class="word-length">{{ word.word.length }}字</div>
         </div>
       </div>
+
+      <div class="pagination-wrapper">
+        <NPagination :page="currentPage" :page-count="totalPages" :page-size="pageSize" :page-sizes="[20, 50, 100, 200]"
+          show-size-picker show-quick-jumper @update:page="handlePageChange" @update:page-size="handlePageSizeChange" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -821,88 +717,152 @@ watch(lengthFilter, () => {
 }
 
 .word-card {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
   padding: 16px;
-  background: var(--color-bg-paper, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  transition: all 0.3s ease;
   cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.word-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, #8b2635 0%, #c41e3a 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
 .word-card:hover {
-  border-color: var(--color-seal, #8b2635);
-  background: rgba(139, 38, 53, 0.02);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(139, 38, 53, 0.12);
+  border-color: #8b2635;
+}
+
+.word-card:hover::before {
+  opacity: 1;
 }
 
 .rank-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: var(--color-bg-elevated, #f5f5f5);
-  color: var(--color-ink, #2c3e50);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #f1f3f4;
+  color: #666;
   font-weight: 600;
-  font-size: 16px;
-  flex-shrink: 0;
+  font-size: 13px;
+  transition: all 0.3s ease;
 }
 
 .rank-badge.top-ten {
   background: linear-gradient(135deg, #8b2635 0%, #a83246 100%);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(139, 38, 53, 0.3);
 }
 
-.word-info {
-  flex: 1;
-  min-width: 0;
+.rank-badge.rank-1 {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #2c3e50;
+}
+
+.rank-badge.rank-2 {
+  background: linear-gradient(135deg, #C0C0C0 0%, #A9A9A9 100%);
+  color: #2c3e50;
+}
+
+.rank-badge.rank-3 {
+  background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
+  color: #fff;
+}
+
+.word-card:hover .rank-badge {
+  transform: scale(1.1);
 }
 
 .word-text {
-  margin: 0 0 4px 0;
+  margin: 8px 0 10px 0;
   font-size: 18px;
-  font-weight: 600;
-  color: var(--color-ink, #2c3e50);
-  line-height: 1.4;
+  font-weight: 700;
+  color: #2c3e50;
+  line-height: 1.3;
+  font-family: 'Noto Serif SC', serif;
 }
 
-.word-stats {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.count-tag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 12px !important;
+  background: #f1f3f4 !important;
+  border: none !important;
+  border-radius: 16px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  color: #666 !important;
 }
 
 .word-similarity {
-  margin-top: 6px;
-  min-height: 24px;
-}
-
-.similar-words {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
+  min-height: 28px;
+  margin-bottom: 8px;
 }
 
 .sim-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  transition: all 0.2s ease;
 }
 
-.sim-text {
-  margin-left: 4px;
+.sim-tag:hover {
+  transform: scale(1.05);
 }
 
-.word-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
+.word-length {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 11px;
+  color: #999;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 2px 6px;
+  border-radius: 8px;
 }
+
+/* 动画效果 */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.word-card:nth-child(1) { animation-delay: 0.05s; }
+.word-card:nth-child(2) { animation-delay: 0.1s; }
+.word-card:nth-child(3) { animation-delay: 0.15s; }
+.word-card:nth-child(4) { animation-delay: 0.2s; }
+.word-card:nth-child(5) { animation-delay: 0.25s; }
+.word-card:nth-child(6) { animation-delay: 0.3s; }
+.word-card:nth-child(7) { animation-delay: 0.35s; }
+.word-card:nth-child(8) { animation-delay: 0.4s; }
+.word-card:nth-child(9) { animation-delay: 0.45s; }
+.word-card:nth-child(10) { animation-delay: 0.5s; }
 
 .pagination-wrapper {
   display: flex;

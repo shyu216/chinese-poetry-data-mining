@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useKeywordIndex } from '@/composables/useKeywordIndex'
 import { usePoemsV2 } from '@/composables/usePoemsV2'
@@ -8,12 +8,36 @@ import { useWordcountV2 } from '@/composables/useWordcountV2'
 import type { PoemSummary } from '@/composables/types'
 import {
   NCard, NSpin, NEmpty, NTag, NButton, NSpace,
-  NPageHeader, NGrid, NGridItem, NStatistic, NBackTop, NPagination
+  NPageHeader, NGrid, NGridItem, NBackTop, NPagination
 } from 'naive-ui'
+import { StatsCard } from '@/components/display'
+import PoemList from '@/components/display/PoemList.vue'
 import { ArrowBackOutline, SearchOutline, BookOutline,
   TextOutline, TrendingUpOutline, ListOutline
 } from '@vicons/ionicons5'
 import { useLoading } from '@/composables/useLoading'
+import * as Plotly from 'plotly.js-dist-min'
+// 为 Plotly 添加类型声明
+declare module 'plotly.js-dist-min' {
+  export interface PlotlyHTMLElement extends HTMLElement {}
+  export interface PlotlyConfig {
+    responsive?: boolean
+    displayModeBar?: boolean
+  }
+  export function newPlot(
+    element: HTMLElement | string,
+    data: any[],
+    layout?: any,
+    config?: PlotlyConfig
+  ): any
+  export function react(
+    element: HTMLElement | string,
+    data: any[],
+    layout?: any,
+    config?: PlotlyConfig
+  ): any
+  export function purge(element: HTMLElement | string): void
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -38,8 +62,9 @@ const loadingPoems = ref(false)
 const totalPoems = computed(() => poemsV2.totalPoems.value)
 
 const dynastyStats = computed(() => {
+  const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
   const stats: Record<string, number> = {}
-  poems.value.forEach(p => {
+  targetPoems.forEach(p => {
     const d = p.dynasty || '未知'
     stats[d] = (stats[d] || 0) + 1
   })
@@ -49,8 +74,9 @@ const dynastyStats = computed(() => {
 })
 
 const genreStats = computed(() => {
+  const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
   const stats: Record<string, number> = {}
-  poems.value.forEach(p => {
+  targetPoems.forEach(p => {
     const g = p.genre || '未知'
     stats[g] = (stats[g] || 0) + 1
   })
@@ -185,6 +211,8 @@ const loadData = async () => {
     } else {
       console.log(`[KeywordDetail] No remaining poems to load`)
       loadingPoems.value = false
+      // 直接使用当前数据作为完整数据
+      allPoems.value = poems.value
     }
 
     // 后台获取词频统计
@@ -216,12 +244,160 @@ const loadRemainingPoems = async (ids: string[]) => {
     loadingPoems.value = false
     loading.finish()
     console.log(`[KeywordDetail] loadRemainingPoems DONE: ${allPoems.value.length} total poems in ${Date.now() - startTime}ms`)
+    // 数据加载完成后更新图表
+    setTimeout(() => {
+      renderCharts()
+    }, 100)
   } catch (e) {
     console.error('[KeywordDetail] ERROR in loadRemainingPoems:', e)
     loadingPoems.value = false
     loading.finish()
   }
 }
+
+// 图表相关
+const dynastyChartRef = ref<HTMLDivElement | null>(null)
+const genreChartRef = ref<HTMLDivElement | null>(null)
+const dynastyChartInstance = ref<any>(null)
+const genreChartInstance = ref<any>(null)
+
+const renderCharts = () => {
+  // 渲染朝代分布图表
+  if (dynastyChartRef.value) {
+    const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
+    const dynastyData = dynastyStats.value
+    
+    if (dynastyData.length > 0) {
+      const labels = dynastyData.map(d => d.dynasty)
+      const values = dynastyData.map(d => d.count)
+      const colors = dynastyData.map(d => getDynastyColor(d.dynasty))
+      
+      const data = [{
+        type: 'pie',
+        values: values,
+        labels: labels,
+        hole: 0.4,
+        marker: {
+          colors: colors
+        },
+        textinfo: 'label+percent',
+        textposition: 'outside',
+        hoverinfo: 'label+value+percent'
+      }]
+      
+      const layout = {
+        title: {
+          text: '朝代分布',
+          font: {
+            size: 16,
+            weight: 'bold'
+          }
+        },
+        showlegend: true,
+        legend: {
+          position: 'right'
+        },
+        margin: {
+          l: 20,
+          r: 80,
+          t: 40,
+          b: 20
+        }
+      }
+      
+      if (dynastyChartInstance.value) {
+        Plotly.react(dynastyChartRef.value, data, layout)
+      } else {
+        dynastyChartInstance.value = Plotly.newPlot(dynastyChartRef.value, data, layout, {
+          responsive: true,
+          displayModeBar: false
+        })
+      }
+    }
+  }
+  
+  // 渲染体裁分布图表
+  if (genreChartRef.value) {
+    const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
+    const genreData = genreStats.value
+    
+    if (genreData.length > 0) {
+      const labels = genreData.map(g => g.genre)
+      const values = genreData.map(g => g.count)
+      const colors = [
+        '#8b2635', '#1e40af', '#047857', '#b45309', '#7c3aed',
+        '#dc2626', '#0369a1', '#16a34a', '#9333ea', '#0284c7'
+      ]
+      
+      const data = [{
+        type: 'pie',
+        values: values,
+        labels: labels,
+        hole: 0.4,
+        marker: {
+          colors: colors
+        },
+        textinfo: 'label+percent',
+        textposition: 'outside',
+        hoverinfo: 'label+value+percent'
+      }]
+      
+      const layout = {
+        title: {
+          text: '体裁分布',
+          font: {
+            size: 16,
+            weight: 'bold'
+          }
+        },
+        showlegend: true,
+        legend: {
+          position: 'right'
+        },
+        margin: {
+          l: 20,
+          r: 80,
+          t: 40,
+          b: 20
+        }
+      }
+      
+      if (genreChartInstance.value) {
+        Plotly.react(genreChartRef.value, data, layout)
+      } else {
+        genreChartInstance.value = Plotly.newPlot(genreChartRef.value, data, layout, {
+          responsive: true,
+          displayModeBar: false
+        })
+      }
+    }
+  }
+}
+
+onMounted(() => {
+  loadData()
+})
+
+watch(keyword, () => {
+  loadData()
+})
+
+// 监听数据变化，更新图表
+watch([dynastyStats, genreStats, allPoems], () => {
+  setTimeout(() => {
+    renderCharts()
+  }, 100)
+}, { deep: true })
+
+onUnmounted(() => {
+  // 清理图表实例
+  if (dynastyChartInstance.value) {
+    Plotly.purge(dynastyChartRef.value!)
+  }
+  if (genreChartInstance.value) {
+    Plotly.purge(genreChartRef.value!)
+  }
+})
 
 // 处理分页变化
 const handlePageChange = async (newPage: number) => {
@@ -325,44 +501,32 @@ watch(keyword, () => {
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
       <NGridItem>
-        <NCard class="stat-card">
-          <NStatistic label="出现频次">
-            <template #prefix>
-              <TrendingUpOutline />
-            </template>
-            <span class="stat-value">{{ wordCount !== null ? wordCount.toLocaleString() : '-' }}</span>
-          </NStatistic>
-        </NCard>
+        <StatsCard 
+          label="出现频次" 
+          :value="wordCount !== null ? wordCount.toLocaleString() : '-'" 
+          :prefix-icon="TrendingUpOutline" 
+        />
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card">
-          <NStatistic label="词频排名">
-            <template #prefix>
-              <TextOutline />
-            </template>
-            <span class="stat-value">{{ wordRank !== null ? `#${wordRank.toLocaleString()}` : '-' }}</span>
-          </NStatistic>
-        </NCard>
+        <StatsCard 
+          label="词频排名" 
+          :value="wordRank !== null ? `#${wordRank.toLocaleString()}` : '-'" 
+          :prefix-icon="TextOutline" 
+        />
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card">
-          <NStatistic label="收录诗词">
-            <template #prefix>
-              <BookOutline />
-            </template>
-            <span class="stat-value">{{ poemIds.length.toLocaleString() }} / {{ totalPoems.toLocaleString() }}</span>
-          </NStatistic>
-        </NCard>
+        <StatsCard 
+          label="收录诗词" 
+          :value="`${poemIds.length.toLocaleString()} / ${totalPoems.toLocaleString()}`" 
+          :prefix-icon="BookOutline" 
+        />
       </NGridItem>
       <NGridItem>
-        <NCard class="stat-card">
-          <NStatistic label="朝代分布">
-            <template #prefix>
-              <ListOutline />
-            </template>
-            <span class="stat-value">{{ dynastyStats.length }} 个</span>
-          </NStatistic>
-        </NCard>
+        <StatsCard 
+          label="朝代分布" 
+          :value="`${dynastyStats.length} 个`" 
+          :prefix-icon="ListOutline" 
+        />
       </NGridItem>
     </NGrid>
 
@@ -374,70 +538,27 @@ watch(keyword, () => {
       </NEmpty>
 
       <template v-else>
-        <NCard v-if="dynastyStats.length > 0" title="朝代分布" class="stats-card">
-          <div class="stats-bars">
-            <div v-for="stat in dynastyStats" :key="stat.dynasty" class="stat-bar-item">
-              <span class="stat-label" :style="{ color: getDynastyColor(stat.dynasty) }">
-                {{ stat.dynasty }}
-              </span>
-              <div class="stat-bar-container">
-                <div 
-                  class="stat-bar" 
-                  :style="{ 
-                    width: `${(stat.count / poemIds.length) * 100}%`,
-                    background: getDynastyColor(stat.dynasty)
-                  }"
-                ></div>
-              </div>
-              <span class="stat-count">{{ stat.count }}</span>
+        <NCard v-if="dynastyStats.length > 0 || genreStats.length > 0" title="朝代和体裁分布" class="stats-card">
+          <div class="charts-container">
+            <div class="chart-item">
+              <div ref="dynastyChartRef" class="chart"></div>
             </div>
-          </div>
-        </NCard>
-
-        <NCard v-if="genreStats.length > 0" title="体裁分布" class="stats-card">
-          <div class="tags-list">
-            <NTag v-for="stat in genreStats" :key="stat.genre" size="medium">
-              {{ stat.genre }} ({{ stat.count }})
-            </NTag>
+            <div class="chart-item">
+              <div ref="genreChartRef" class="chart"></div>
+            </div>
           </div>
         </NCard>
 
         <NCard title="包含该关键词的诗词" class="poems-card">
-          <div class="poems-list">
-            <div
-              v-for="poem in poems"
-              :key="poem.id"
-              class="poem-item"
-              @click="goToPoem(poem.id)"
-            >
-              <div class="poem-info">
-                <h3 class="poem-title">{{ poem.title || '无题' }}</h3>
-                <div class="poem-meta">
-                  <span
-                    class="dynasty-badge"
-                    :style="{ color: getDynastyColor(poem.dynasty) }"
-                  >
-                    {{ poem.dynasty || '未知' }}
-                  </span>
-                  <span class="author-link" @click.stop="goToAuthor(poem.author)">
-                    {{ poem.author }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="pagination-wrapper">
-            <NPagination
-              :page="page"
-              :page-count="Math.ceil(poemIds.length / pageSize)"
-              :page-sizes="[12, 24, 48, 96]"
-              :page-size="pageSize"
-              show-size-picker
-              show-quick-jumper
-              @update:page="handlePageChange"
-              @update:page-size="handlePageSizeChange"
-            />
-          </div>
+          <PoemList
+            :poems="poems"
+            :total="poemIds.length"
+            v-model:page="page"
+            v-model:page-size="pageSize"
+            :show-pagination="true"
+            :grid-view="false"
+            @view-poem="(poem) => goToPoem(poem.id)"
+          />
         </NCard>
       </template>
     </NSpin>
@@ -487,15 +608,7 @@ watch(keyword, () => {
   margin-bottom: 24px;
 }
 
-.stat-card {
-  text-align: center;
-}
 
-.stat-value {
-  font-size: 18px;
-  font-weight: 600;
-  color: #2c3e50;
-}
 
 .stats-card {
   margin-bottom: 24px;
@@ -551,69 +664,24 @@ watch(keyword, () => {
   margin-top: 24px;
 }
 
-.poems-list {
+.charts-container {
   display: flex;
-  flex-direction: column;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-.poem-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.poem-item:last-child {
-  border-bottom: none;
-}
-
-.poem-item:hover {
-  background: rgba(139, 38, 53, 0.04);
-}
-
-.poem-info {
+.chart-item {
   flex: 1;
-  min-width: 0;
+  min-width: 300px;
+  max-width: 450px;
 }
 
-.poem-title {
-  margin: 0 0 8px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c3e50;
+.chart {
+  width: 100%;
+  height: 250px;
 }
 
-.poem-meta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 13px;
-}
 
-.dynasty-badge {
-  font-weight: 500;
-}
-
-.author-link {
-  color: #8b2635;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.author-link:hover {
-  opacity: 0.7;
-  text-decoration: underline;
-}
-
-.pagination-wrapper {
-  display: flex;
-  justify-content: center;
-  padding: 24px 16px;
-  border-top: 1px solid #f0f0f0;
-  margin-top: 16px;
-}
 
 @media (max-width: 768px) {
   .keyword-title {
