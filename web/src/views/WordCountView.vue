@@ -607,7 +607,7 @@ watch(lengthFilter, () => {
   <div class="wordcount-view">
     <PageHeader
       title="词频统计"
-      :subtitle="`共收录 ${globalTotalWords.toLocaleString()} 个高频词汇，按使用频率排序`"
+      :subtitle="`共收录 ${loadedWords.length.toLocaleString()} 个高频词汇，按使用频率排序`"
       :icon="TextOutline"
     />
 
@@ -615,14 +615,14 @@ watch(lengthFilter, () => {
         <NGridItem>
           <StatsCard
             label="词汇总数"
-            :value="globalTotalWords.toLocaleString()"
+            :value="loadedWords.length.toLocaleString()"
             :prefix-icon="LibraryOutline"
           />
         </NGridItem>
         <NGridItem>
           <StatsCard
             label="高频词"
-            :value="wordSimTotalWords.toLocaleString()"
+            :value="loadedWordSimWords.length.toLocaleString()"
             :prefix-icon="GitNetworkOutline"
           />
         </NGridItem>

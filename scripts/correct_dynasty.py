@@ -17,44 +17,69 @@ from collections import defaultdict
 
 def build_id_to_dynasty_mapping(data_dir: Path) -> dict:
     """
-    读取全唐诗目录下的所有 JSON 文件，建立诗词 ID 到朝代的映射。
+    读取全唐诗和宋词目录下的所有 JSON 文件，建立诗词 ID 到朝代的映射。
     
     文件名格式:
     - poet.song.*.json -> 宋
     - poet.tang.*.json -> 唐
+    - ci.song.*.json -> 宋 (宋词)
     """
     id_to_dynasty = {}
+    
+    # 处理全唐诗目录
     quan_tang_shi_dir = data_dir / "chinese-poetry" / "全唐诗"
-    
-    if not quan_tang_shi_dir.exists():
-        print(f"错误: 目录不存在 {quan_tang_shi_dir}")
-        return id_to_dynasty
-    
-    json_files = list(quan_tang_shi_dir.glob("poet.*.json"))
-    print(f"找到 {len(json_files)} 个 JSON 文件")
-    
-    for idx, file in enumerate(json_files, 1):
-        # 从文件名判断朝代
-        if ".song." in file.name:
-            dynasty = "宋"
-        elif ".tang." in file.name:
-            dynasty = "唐"
-        else:
-            print(f"  跳过未知类型文件: {file.name}")
-            continue
+    if quan_tang_shi_dir.exists():
+        json_files = list(quan_tang_shi_dir.glob("poet.*.json"))
+        print(f"找到 {len(json_files)} 个全唐诗 JSON 文件")
         
-        try:
-            with open(file, "r", encoding="utf-8") as f:
-                items = json.load(f)
-                for item in items:
-                    poem_id = item.get("id", "")
-                    if poem_id:
-                        id_to_dynasty[poem_id] = dynasty
-        except Exception as e:
-            print(f"  错误: 无法读取 {file}: {e}")
+        for idx, file in enumerate(json_files, 1):
+            # 从文件名判断朝代
+            if ".song." in file.name:
+                dynasty = "宋"
+            elif ".tang." in file.name:
+                dynasty = "唐"
+            else:
+                print(f"  跳过未知类型文件: {file.name}")
+                continue
+            
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    items = json.load(f)
+                    for item in items:
+                        poem_id = item.get("id", "")
+                        if poem_id:
+                            id_to_dynasty[poem_id] = dynasty
+            except Exception as e:
+                print(f"  错误: 无法读取 {file}: {e}")
+            
+            if idx % 50 == 0:
+                print(f"  已处理 {idx}/{len(json_files)} 个文件，当前映射表大小: {len(id_to_dynasty)}")
+    else:
+        print(f"警告: 目录不存在 {quan_tang_shi_dir}")
+    
+    # 处理宋词目录
+    song_ci_dir = data_dir / "chinese-poetry" / "宋词"
+    if song_ci_dir.exists():
+        json_files = list(song_ci_dir.glob("ci.song.*.json"))
+        print(f"找到 {len(json_files)} 个宋词 JSON 文件")
         
-        if idx % 50 == 0:
-            print(f"  已处理 {idx}/{len(json_files)} 个文件，当前映射表大小: {len(id_to_dynasty)}")
+        for idx, file in enumerate(json_files, 1):
+            dynasty = "宋"  # 宋词都是宋代的
+            
+            try:
+                with open(file, "r", encoding="utf-8") as f:
+                    items = json.load(f)
+                    for item in items:
+                        poem_id = item.get("id", "")
+                        if poem_id:
+                            id_to_dynasty[poem_id] = dynasty
+            except Exception as e:
+                print(f"  错误: 无法读取 {file}: {e}")
+            
+            if idx % 50 == 0:
+                print(f"  已处理 {idx}/{len(json_files)} 个文件，当前映射表大小: {len(id_to_dynasty)}")
+    else:
+        print(f"警告: 目录不存在 {song_ci_dir}")
     
     print(f"\n共建立 {len(id_to_dynasty)} 条 ID->朝代 映射")
     

@@ -12,7 +12,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   duration: 1500,
   delay: 0,
-  startOnMount: true,
+  startOnMount: false,
   formatter: (value: number) => value.toLocaleString()
 })
 
@@ -27,7 +27,7 @@ const animate = (targetValue: number) => {
   if (isAnimating.value) return
 
   isAnimating.value = true
-  const startValue = displayValue.value
+  const startValue = 0 // 总是从 0 开始动画
   const startTime = performance.now()
 
   const updateNumber = (currentTime: number) => {
@@ -51,14 +51,18 @@ const animate = (targetValue: number) => {
 }
 
 watch(() => props.value, (newValue) => {
-  animate(newValue)
+  // 只有当 startOnMount 为 true 时，才在 value 变化时触发动画
+  if (props.startOnMount) {
+    animate(newValue)
+  }
 }, { immediate: false })
 
 onMounted(() => {
   if (props.startOnMount) {
     animate(props.value)
   } else {
-    displayValue.value = props.value
+    // 当 startOnMount 为 false 时，保持 displayValue 为 0
+    displayValue.value = 0
   }
 })
 

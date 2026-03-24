@@ -22,36 +22,18 @@ const wordSimilarityV2 = useWordSimilarityV2()
 const animationStarted = ref(false)
 
 const loadingCopy = {
-  initializing: [
-    '正在初始化...',
-    '正在加载数据...',
-    '正在准备...',
-    '正在启动...'
-  ],
-  loading: [
-    '正在加载诗词数据...',
-    '正在加载诗人数据...',
-    '正在加载词频数据...',
+  initializing: '正在启动...',
+  loading:
     '正在加载元数据...',
-    '正在处理数据...'
-  ],
-  complete: [
+
+  complete:
     '加载完成',
-    '数据已就绪',
-    '加载成功',
-    '准备就绪'
-  ],
-  error: [
+
+  error:
     '加载失败，请刷新重试',
-    '数据加载出错，请稍后重试',
-    '加载失败，请检查网络后重试'
-  ]
+
 }
 
-const getRandomCopy = (copyArray: string[]): string => {
-  const index = Math.floor(Math.random() * copyArray.length)
-  return copyArray[index] ?? ''
-}
 
 const pageTitleCopy = {
   home: {
@@ -60,16 +42,6 @@ const pageTitleCopy = {
   }
 }
 
-const poeticQuotes = [
-  '腹有诗书气自华',
-  '读书破万卷，下笔如有神',
-  '文章千古事，得失寸心知',
-  '李杜文章在，光焰万丈长',
-  '采菊东篱下，悠然见南山',
-  '会当凌绝顶，一览众山小',
-  '山重水复疑无路，柳暗花明又一村',
-  '问君能有几多愁，恰似一江春水向东流'
-]
 
 // 添加调试日志和组件引用
 const statCard1 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)
@@ -80,22 +52,23 @@ const loadAllData = async () => {
   animationStarted.value = false
 
   loading.startBlocking(
-    getRandomCopy(loadingCopy.initializing),
-    getRandomCopy(loadingCopy.loading)
+    loadingCopy.initializing,
+    loadingCopy.loading
   )
 
   try {
-    loading.updatePhase('metadata', getRandomCopy(loadingCopy.loading))
+    loading.updatePhase('metadata', loadingCopy.loading)
     loading.updateProgress(0, 3)
-    await poemsV2.loadMetadata()
+    // 强制刷新 metadata，避免使用缓存的空数据
+    await poemsV2.loadMetadata(true)
 
-    loading.updateProgress(1, 3, getRandomCopy(loadingCopy.loading))
-    await authorsV2.loadMetadata()
+    loading.updateProgress(1, 3, loadingCopy.loading)
+    await authorsV2.loadMetadata(true)
 
-    loading.updateProgress(2, 3, getRandomCopy(loadingCopy.loading))
-    await wordSimilarityV2.loadMetadata()
+    loading.updateProgress(2, 3, loadingCopy.loading)
+    await wordSimilarityV2.loadMetadata(true)
 
-    loading.updatePhase('complete', getRandomCopy(loadingCopy.complete))
+    loading.updatePhase('complete', loadingCopy.complete)
     loading.updateProgress(3, 3)
 
     setTimeout(() => {
@@ -105,7 +78,7 @@ const loadAllData = async () => {
       }, 100)
     }, 500)
   } catch (error) {
-    loading.error(getRandomCopy(loadingCopy.error))
+    loading.error(loadingCopy.error)
     console.error('数据加载失败:', error)
   }
 }
@@ -140,28 +113,26 @@ const formatNumber = (num: number | undefined | null): string => {
   return num.toLocaleString()
 }
 
-const animatedNumbers = ref({
-  authors: 0,
-  poems: 0,
-  vocab: 0
-})
-
 watch(() => animationStarted.value, (started) => {
   console.log('[HomeView] animationStarted changed:', started)
   if (started) {
     console.log('[HomeView] Triggering stat card animations...')
-    console.log('[HomeView] statCard1 ref:', statCard1.value)
-    console.log('[HomeView] statCard2 ref:', statCard2.value)
-    console.log('[HomeView] statCard3 ref:', statCard3.value)
+    console.log('[HomeView] Data values:', {
+      authors: authorsV2.totalAuthors.value,
+      poems: poemsV2.totalPoems.value,
+      vocab: wordSimilarityV2.vocabSize.value
+    })
 
-    // 触发每个卡片的动画
-    statCard1.value?.startAnimation()
-    statCard2.value?.startAnimation()
-    statCard3.value?.startAnimation()
-
-    setTimeout(() => animatedNumbers.value.authors = authorsV2.totalAuthors.value || 0, 800)
-    setTimeout(() => animatedNumbers.value.poems = poemsV2.totalPoems.value || 0, 1000)
-    setTimeout(() => animatedNumbers.value.vocab = wordSimilarityV2.vocabSize.value || 0, 1200)
+    // 直接触发动画
+    setTimeout(() => {
+      statCard1.value?.startAnimation()
+    }, 0)
+    setTimeout(() => {
+      statCard2.value?.startAnimation()
+    }, 200)
+    setTimeout(() => {
+      statCard3.value?.startAnimation()
+    }, 400)
   }
 })
 </script>
@@ -184,12 +155,8 @@ watch(() => animationStarted.value, (started) => {
         </div>
 
         <div class="title-block">
-          <span
-            class="title-zh"
-            v-for="(char, i) in '诗词数据'.split('')"
-            :key="i"
-            :style="{ animationDelay: `${0.3 + i * 0.12}s` }"
-          >
+          <span class="title-zh" v-for="(char, i) in '诗词数据'.split('')" :key="i"
+            :style="{ animationDelay: `${0.3 + i * 0.12}s` }">
             {{ char }}
           </span>
         </div>
@@ -206,33 +173,13 @@ watch(() => animationStarted.value, (started) => {
 
     <section class="stats-section">
       <div class="stats-grid">
-        <AnimatedStatCard
-          ref="statCard1"
-          label="诗人"
-          :value="animatedNumbers.authors"
-          :prefix-icon="PeopleOutline"
-          :animation-delay="800"
-          :animation-duration="1500"
-          :formatter="formatNumber"
-        />
-        <AnimatedStatCard
-          ref="statCard2"
-          label="诗词"
-          :value="animatedNumbers.poems"
-          :prefix-icon="BookOutline"
-          :animation-delay="1000"
-          :animation-duration="1800"
-          :formatter="formatNumber"
-        />
-        <AnimatedStatCard
-          ref="statCard3"
-          label="词条"
-          :value="animatedNumbers.vocab"
-          :prefix-icon="GitNetworkOutline"
-          :animation-delay="1200"
-          :animation-duration="1200"
-          :formatter="formatNumber"
-        />
+        <AnimatedStatCard ref="statCard1" label="诗人" :value="authorsV2.totalAuthors.value" :prefix-icon="PeopleOutline"
+          :animation-delay="800" :animation-duration="1500" :formatter="formatNumber" />
+        <AnimatedStatCard ref="statCard2" label="诗词" :value="poemsV2.totalPoems.value" :prefix-icon="BookOutline"
+          :animation-delay="1000" :animation-duration="1800" :formatter="formatNumber" />
+        <AnimatedStatCard ref="statCard3" label="词条" :value="wordSimilarityV2.vocabSize.value"
+          :prefix-icon="GitNetworkOutline" :animation-delay="1200" :animation-duration="1200"
+          :formatter="formatNumber" />
       </div>
     </section>
 
@@ -248,7 +195,8 @@ watch(() => animationStarted.value, (started) => {
         <div class="frame-corner br"></div>
         <div class="intro-content">
           <p class="intro-text">
-            基于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" class="intro-link">chinese-poetry</a>
+            基于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank"
+              class="intro-link">chinese-poetry</a>
             开源数据库构建，收录<strong>全唐诗</strong>、<strong>全宋诗</strong>、<strong>全宋词</strong>三大诗词库。
             提供词频分析、相似度分析等数据可视化功能。
           </p>
@@ -380,6 +328,7 @@ watch(() => animationStarted.value, (started) => {
     opacity: 0;
     transform: translateY(-30px) rotate(-8deg) scale(0.8);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) rotate(0) scale(1);
@@ -433,6 +382,7 @@ watch(() => animationStarted.value, (started) => {
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -444,6 +394,7 @@ watch(() => animationStarted.value, (started) => {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

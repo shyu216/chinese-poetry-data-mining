@@ -23,6 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const isVisible = ref(false)
+const animatedNumberRef = ref<InstanceType<typeof AnimatedNumber> | null>(null)
 
 const trendColors = {
   up: '#059669',
@@ -43,6 +44,10 @@ const startAnimation = () => {
   setTimeout(() => {
     isVisible.value = true
     console.log('[AnimatedStatCard] isVisible set to true, label:', props.label)
+    // 触发数字动画
+    setTimeout(() => {
+      animatedNumberRef.value?.animate(props.value)
+    }, 100)
   }, props.animationDelay)
 }
 
@@ -62,8 +67,10 @@ defineExpose({
     </div>
     <div class="stat-content">
       <AnimatedNumber
+        ref="animatedNumberRef"
         :value="value"
         :duration="animationDuration"
+        :start-on-mount="false"
         class="stat-number"
       />
       <span class="stat-suffix">{{ suffix }}</span>
