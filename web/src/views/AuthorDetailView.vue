@@ -60,22 +60,19 @@ watch(() => route.params.name, async (newName, oldName) => {
 
 const loadAuthorData = async () => {
   // 步骤 1: 初始化
-  loading.startBlocking('诗人详情', '正在寻访诗人足迹...')
+  loading.startBlocking('诗人详情', '正在加载诗人数据...')
 
   try {
-    // 步骤 2: 读取诗人档案
-    loading.updatePhase('metadata', '正在读取诗人档案...')
+    loading.updatePhase('metadata', '正在加载诗人信息...')
     loading.updateProgress(0, 2)
     author.value = await getAuthorByName(authorName.value)
 
-    // 步骤 3: 加载诗词作品
     if (author.value && author.value.poem_ids.length > 0) {
-      loading.updateProgress(1, 2, `正在收集 ${author.value.poem_ids.length} 首作品...`)
+      loading.updateProgress(1, 2, `正在加载 ${author.value.poem_ids.length} 首作品...`)
       await loadAuthorPoems()
     }
 
-    // 步骤 4: 完成
-    loading.updatePhase('complete', '诗人档案已备')
+    loading.updatePhase('complete', '数据加载完成')
     loading.updateProgress(2, 2)
     setTimeout(() => loading.finish(), 300)
   } catch (e) {
@@ -205,8 +202,8 @@ const getTypeDistribution = () => {
 <template>
   <div class="author-detail-view">
     <PageHeader
-      title="诗人详情"
-      subtitle="查看诗人详细信息及作品列表"
+      title="作者详情"
+      subtitle="查看作者详细信息及作品列表"
       :icon="PersonOutline"
     />
 

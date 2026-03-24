@@ -38,20 +38,26 @@ const poemPairs = computed(() => {
   const pairs: string[][] = []
 
   if (props.genre === '诗') {
+    // 诗：每两句一行
     for (let i = 0; i < props.sentences.length; i += 2) {
       pairs.push([props.sentences[i] || '', props.sentences[i + 1] || ''])
     }
   } else {
-    const maxWordLength = 10
-    let currentSentence = ''
-    let sentenceIndex = 0
-    for (let i = 0; i < props.sentences.length; i++) {
-      if (currentSentence.length <= maxWordLength) {
-        currentSentence += props.sentences[i]
+    // 词：每行最多10个字
+    let currentLine = ''
+    for (const sentence of props.sentences) {
+      if (currentLine.length === 0) {
+        currentLine = sentence
+      } else if (currentLine.length + sentence.length <= 10) {
+        currentLine += sentence
       } else {
-        pairs.push([currentSentence, ''])
-        currentSentence = ''
+        pairs.push([currentLine, ''])
+        currentLine = sentence
       }
+    }
+    // 处理最后一行
+    if (currentLine) {
+      pairs.push([currentLine, ''])
     }
   }
 
@@ -123,7 +129,7 @@ const getModeIcon = () => {
               <ExpandOutline v-else />
             </NIcon>
           </template>
-          {{ isExpanded ? '收起' : '全屏' }}
+          {{ isExpanded ? '收起' : '展开' }}
         </NButton>
       </NSpace>
     </div>

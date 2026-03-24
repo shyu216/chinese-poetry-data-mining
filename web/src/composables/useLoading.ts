@@ -29,55 +29,55 @@ export interface UnifiedLoadingState {
   error?: string             // 错误信息
 }
 
-// 诗意文案库
+// 文案库
 const phaseDescriptions: Record<LoadingPhase, string[]> = {
   init: [
-    '文脉初启，正在唤醒千年诗魂...',
-    '墨香浮动，正在铺展宣纸...',
-    '笔尖轻触，正在研墨调锋...',
-    '诗心初动，正在开启文脉...'
+    '初始化...',
+    '准备中...',
+    '启动中...',
+    '加载中...'
   ],
   connect: [
-    '正在架设通往诗海的桥梁...',
-    '正在拨动连接古今的琴弦...',
-    '正在打开通往文脉的大门...',
-    '正在架设跨越时空的诗廊...'
+    '连接中...',
+    '建立连接...',
+    '加载数据...',
+    '获取信息...'
   ],
   metadata: [
-    '正在翻阅诗词典藏目录...',
-    '正在整理诗人名录档案...',
-    '正在检索千年文脉索引...',
-    '正在梳理浩瀚诗海脉络...'
+    '加载元数据...',
+    '读取索引...',
+    '加载配置...',
+    '准备数据...'
   ],
   data: [
-    '正在汇聚唐诗宋词精华...',
-    '正在采撷历代诗词瑰宝...',
-    '正在装载千古诗文典籍...',
-    '正在汇聚千年诗词精华...'
+    '加载数据...',
+    '读取内容...',
+    '处理数据...',
+    '获取信息...'
   ],
   search: [
-    '正在诗海中寻觅佳句...',
-    '正在古籍中搜寻踪迹...',
-    '正在词林间探寻意境...',
-    '正在诗山词海中寻访...'
+    '搜索中...',
+    '查找中...',
+    '检索中...',
+    '匹配中...'
   ],
   render: [
-    '正在描绘诗意画卷...',
-    '正在勾勒文字之美...',
-    '正在呈现诗境风华...',
-    '正在渲染诗词意境...'
+    '渲染中...',
+    '显示中...',
+    '生成页面...',
+    '更新界面...'
   ],
   complete: [
-    '文脉已通，请君品鉴...',
-    '诗海已开，任君遨游...',
-    '墨香已至，静候赏析...',
-    '诗词已备，请君雅赏...'
+    '完成',
+    '就绪',
+    '准备就绪',
+    '加载成功'
   ],
   error: [
-    '墨尽纸枯，请稍后再试...',
-    '文脉暂断，正在重连...',
-    '诗海起波，请刷新页面...',
-    '加载遇阻，请稍后重试...'
+    '加载失败，请重试',
+    '数据加载出错',
+    '连接失败，请刷新',
+    '加载失败，请稍后重试'
   ]
 }
 
@@ -279,12 +279,12 @@ export function useLoading(): UseUnifiedLoadingReturn {
   // 便捷方法：开始页面加载
   const startViewLoad = (viewName: string): void => {
     const titles: Record<string, string> = {
-      'home': '文脉初启',
-      'poems': '诗词典藏',
-      'authors': '诗人名录',
+      'home': '首页',
+      'poems': '诗词列表',
+      'authors': '诗人列表',
       'author-detail': '诗人详情',
       'poem-detail': '诗词详情',
-      'keyword': '词境探幽',
+      'keyword': '关键词',
       'wordcount': '词频统计',
       'data': '数据管理'
     }
@@ -293,18 +293,18 @@ export function useLoading(): UseUnifiedLoadingReturn {
 
   // 便捷方法：开始搜索
   const startSearch = (keyword: string): void => {
-    startNonBlocking('诗海寻踪', `正在搜寻"${keyword}"...`)
+    startNonBlocking('搜索', `正在搜索"${keyword}"...`)
   }
 
   // 便捷方法：开始数据获取
   const startDataFetch = (dataType: string): void => {
     const titles: Record<string, string> = {
-      'poems': '正在汇聚诗词...',
-      'authors': '正在整理诗人...',
-      'words': '正在统计词频...',
-      'metadata': '正在读取索引...'
+      'poems': '加载诗词...',
+      'authors': '加载诗人...',
+      'words': '统计词频...',
+      'metadata': '读取索引...'
     }
-    startNonBlocking('数据加载', titles[dataType] || '正在加载数据...')
+    startNonBlocking('数据加载', titles[dataType] || '加载数据...')
   }
 
   const instance: UseUnifiedLoadingReturn = {

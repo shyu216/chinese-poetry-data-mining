@@ -23,28 +23,28 @@ const animationStarted = ref(false)
 
 const loadingCopy = {
   initializing: [
-    '文脉初启，正在唤醒千年诗魂...',
-    '墨香渐起，诗卷缓缓展开...',
-    '寻诗之旅，即将启程...',
-    '千年文脉，待君品鉴...'
+    '正在初始化...',
+    '正在加载数据...',
+    '正在准备...',
+    '正在启动...'
   ],
   loading: [
-    '正在翻阅诗词典藏目录...',
-    '正在整理诗人名录档案...',
-    '正在汇聚词频统计数据...',
-    '正在梳理朝代更迭脉络...',
-    '正在采撷千古名句精华...'
+    '正在加载诗词数据...',
+    '正在加载诗人数据...',
+    '正在加载词频数据...',
+    '正在加载元数据...',
+    '正在处理数据...'
   ],
   complete: [
-    '文脉已通，请君品鉴',
-    '诗卷已展，静候知音',
-    '千年诗魂，已然苏醒',
-    '万首诗词，待君采撷'
+    '加载完成',
+    '数据已就绪',
+    '加载成功',
+    '准备就绪'
   ],
   error: [
-    '文脉暂断，请刷新重试',
-    '诗卷难展，稍后再试',
-    '墨香暂散，请重新启程'
+    '加载失败，请刷新重试',
+    '数据加载出错，请稍后重试',
+    '加载失败，请检查网络后重试'
   ]
 }
 
@@ -55,8 +55,8 @@ const getRandomCopy = (copyArray: string[]): string => {
 
 const pageTitleCopy = {
   home: {
-    title: '文脉千秋',
-    subtitle: '数字诗学图谱'
+    title: '中华诗词数据',
+    subtitle: '数据分析平台'
   }
 }
 
@@ -178,15 +178,15 @@ watch(() => animationStarted.value, (started) => {
 
       <div class="hero-content">
         <div class="time-greeting">
-          <span class="greeting-text">寻诗者</span>
+          <span class="greeting-text">欢迎使用</span>
           <span class="greeting-divider"></span>
-          <span class="greeting-sub">今日可有所得</span>
+          <span class="greeting-sub">诗词数据分析平台</span>
         </div>
 
         <div class="title-block">
           <span
             class="title-zh"
-            v-for="(char, i) in pageTitleCopy.home.title.split('')"
+            v-for="(char, i) in '诗词数据'.split('')"
             :key="i"
             :style="{ animationDelay: `${0.3 + i * 0.12}s` }"
           >
@@ -195,11 +195,11 @@ watch(() => animationStarted.value, (started) => {
         </div>
 
         <h1 class="hero-title">
-          <span class="title-main">{{ pageTitleCopy.home.subtitle }}</span>
+          <span class="title-main">中华古典诗词数据分析平台</span>
         </h1>
 
         <p class="hero-subtitle">
-          <span class="subtitle-line">{{ pageTitleCopy.home.subtitle }}</span>
+          <span class="subtitle-line">数据驱动的诗词研究平台</span>
         </p>
       </div>
     </section>
@@ -208,7 +208,7 @@ watch(() => animationStarted.value, (started) => {
       <div class="stats-grid">
         <AnimatedStatCard
           ref="statCard1"
-          label="位诗人"
+          label="诗人"
           :value="animatedNumbers.authors"
           :prefix-icon="PeopleOutline"
           :animation-delay="800"
@@ -217,7 +217,7 @@ watch(() => animationStarted.value, (started) => {
         />
         <AnimatedStatCard
           ref="statCard2"
-          label="首诗词"
+          label="诗词"
           :value="animatedNumbers.poems"
           :prefix-icon="BookOutline"
           :animation-delay="1000"
@@ -226,7 +226,7 @@ watch(() => animationStarted.value, (started) => {
         />
         <AnimatedStatCard
           ref="statCard3"
-          label="个词条"
+          label="词条"
           :value="animatedNumbers.vocab"
           :prefix-icon="GitNetworkOutline"
           :animation-delay="1200"
@@ -249,8 +249,8 @@ watch(() => animationStarted.value, (started) => {
         <div class="intro-content">
           <p class="intro-text">
             基于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank" class="intro-link">chinese-poetry</a>
-            开源数据库构建，收录<strong>全唐诗</strong>、<strong>全宋诗</strong>、<strong>全宋词</strong>三大诗词宝库。
-            提供词频分析、相似度分析等可视化挖掘功能，让千年文脉在数据中流转。
+            开源数据库构建，收录<strong>全唐诗</strong>、<strong>全宋诗</strong>、<strong>全宋词</strong>三大诗词库。
+            提供词频分析、相似度分析等数据可视化功能。
           </p>
         </div>
       </div>

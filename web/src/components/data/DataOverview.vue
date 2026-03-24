@@ -284,7 +284,7 @@ defineExpose({
             :bars="wordcountChunkBars" :max-count="maxWordcountCount" color-class="wordcount" />
         </NGridItem>
         <NGridItem>
-          <DataItemCard icon="🔗" title="词境" description="词境探索数据库，包含词汇相似度数据，支持词语关联分析"
+          <DataItemCard icon="🔗" title="词频相似度" description="词频相似度数据库，包含词汇相似度数据，支持词语关联分析"
             :cached-count="wordSimStats.cachedChunks" :total-count="wordSimStats.totalChunks" :bars="wordSimChunkBars"
             :max-count="maxWordSimCount" color-class="wordsim" />
         </NGridItem>

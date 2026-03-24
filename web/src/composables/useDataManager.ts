@@ -3,7 +3,7 @@
  * 
  * ## 概述
  * DataManager 是一个单例模式的数据管理类，提供统一的数据加载、缓存、转换接口。
- * 支持多种数据类型（诗词、诗人、词频、词境、搜索索引、关键词索引）的分块加载和持久化存储。
+ * 支持多种数据类型（诗词、诗人、词频、词频相似度、搜索索引、关键词索引）的分块加载和持久化存储。
  * 
  * ## 核心功能
  * 1. 数据类型注册 - registerType() 注册数据类型配置
@@ -30,11 +30,11 @@
  * 3. 数据下载: 各 DownloadSection 使用对应的 composable (usePoemsV2, useKeywordIndex 等)
  * 4. 搜索功能: useSearchIndexV2, useKeywordIndex 等提供搜索数据
  * 
- * ## 支持的数据类型
- * - poems: 诗词数据 (CSV)
+ * ## 数据类型
+ * - poems: 诗词数据 (JSON)
  * - authors: 诗人数据 (FBS)
  * - wordcount: 词频数据 (JSON)
- * - wordSimilarity: 词境/相似词 (FBS)
+ * - wordSimilarity: 词频相似度 (FBS)
  * - poemIndex: 诗词搜索索引 (JSON)
  * - keywordIndex: 关键词索引 (JSON)
  */

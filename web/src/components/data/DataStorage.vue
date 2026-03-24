@@ -101,13 +101,13 @@ const loadStorageDetails = async () => {
     ])
     storageStats.value = allStats
     browserStorageInfo.value = browserInfo
-    await updateProgress('词境数据加载中...', 'browserInfo', 20)
+    await updateProgress('词频相似度数据加载中...', 'browserInfo', 20)
   } catch (e) {
     console.error('Failed to load storage details:', e)
   }
 
   try {
-    loadingStep.value = '正在加载词境数据...'
+    loadingStep.value = '正在加载词频相似度数据...'
     const { useWordSimilarityMetadata, usePoemIndexManifest } = await import('@/composables/useMetadataLoader')
     const wsMeta = useWordSimilarityMetadata()
     const piMeta = usePoemIndexManifest()
@@ -237,7 +237,7 @@ const handleClearCache = async () => {
             </div>
             <div class="loading-state-item" :class="{ done: loadingState.wordSim }">
               <span class="state-icon">{{ loadingState.wordSim ? '✓' : '○' }}</span>
-              词境数据
+              词频相似度数据
             </div>
             <div class="loading-state-item" :class="{ done: loadingState.searchIndex }">
               <span class="state-icon">{{ loadingState.searchIndex ? '✓' : '○' }}</span>
@@ -265,17 +265,17 @@ const handleClearCache = async () => {
         <NCard title="浏览器存储">
           <div v-if="browserStorageInfo && browserStorageInfo.quota" class="storage-info">
             <div class="info-row">
-              <span class="info-label">已使用:</span>
-              <span class="info-value">{{ formatBytes(browserStorageInfo.quota.usage) }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">配额:</span>
-              <span class="info-value">{{ formatBytes(browserStorageInfo.quota.quota) }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">使用率:</span>
-              <span class="info-value">{{ Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100) }}%</span>
-            </div>
+          <span class="info-label">已用:</span>
+          <span class="info-value">{{ formatBytes(browserStorageInfo.quota.usage) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">限额:</span>
+          <span class="info-value">{{ formatBytes(browserStorageInfo.quota.quota) }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">使用率:</span>
+          <span class="info-value">{{ Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100) }}%</span>
+        </div>
             <NProgress
               type="line"
               :percentage="Math.round((browserStorageInfo.quota.usage / browserStorageInfo.quota.quota) * 100)"
@@ -291,9 +291,9 @@ const handleClearCache = async () => {
         <NCard title="数据概览">
           <NSpace vertical>
             <div class="stat-row">
-              <NTag type="success">词境数据</NTag>
+              <NTag type="success">词频相似度数据</NTag>
               <span v-if="wordSimStats.vocabCached">
-                词汇量: {{ wordSimStats.vocabSize.toLocaleString() }} |
+                词汇: {{ wordSimStats.vocabSize.toLocaleString() }} |
                 分块: {{ wordSimStats.cachedChunks }}/{{ wordSimStats.totalChunks }}
               </span>
               <span v-else>未缓存</span>
@@ -301,7 +301,7 @@ const handleClearCache = async () => {
             <div class="stat-row">
               <NTag type="info">搜索索引</NTag>
               <span v-if="searchIndexStats.loaded">
-                前缀数: {{ searchIndexStats.cachedPrefixes.toLocaleString() }}
+                项数: {{ searchIndexStats.cachedPrefixes.toLocaleString() }}
               </span>
               <span v-else>未加载</span>
             </div>
@@ -336,7 +336,7 @@ const handleClearCache = async () => {
     <NCard v-if="selectedStorageDetail" :title="`存储详情: ${selectedStorageDetail.storage}`" class="mb-4">
       <div class="detail-info">
         <div class="detail-row">
-          <span class="detail-label">存储名称:</span>
+          <span class="detail-label">名称:</span>
           <span class="detail-value">{{ selectedStorageDetail.storage }}</span>
         </div>
         <div class="detail-row">
@@ -344,15 +344,15 @@ const handleClearCache = async () => {
           <span class="detail-value">{{ formatBytes(selectedStorageDetail.totalSize) }}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">条目数:</span>
+          <span class="detail-label">条目:</span>
           <span class="detail-value">{{ selectedStorageDetail.chunkCount + selectedStorageDetail.cacheCount }}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Chunk 数:</span>
+          <span class="detail-label">块数:</span>
           <span class="detail-value">{{ selectedStorageDetail.chunkCount }}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Cache 数:</span>
+          <span class="detail-label">缓存数:</span>
           <span class="detail-value">{{ selectedStorageDetail.cacheCount }}</span>
         </div>
       </div>

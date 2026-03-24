@@ -174,11 +174,11 @@ const getTypeDistributionData = (typeCounts: Record<string, number>) => {
 
 const loadingHint = computed(() => {
   const count = loadedAuthors.value.length
-  if (count === 0) return '🚀 正在连接...'
-  if (count === 1) return `🏆 冠军登场：${loadedAuthors.value[0]?.author}！`
-  if (count === 2) return `🥈 亚军揭晓：${loadedAuthors.value[1]?.author}！`
-  if (count === 3) return `🥉 季军出炉：${loadedAuthors.value[2]?.author}！`
-  return `📚 已加载 ${count.toLocaleString()} 位诗人...`
+  if (count === 0) return '正在连接...'
+  if (count === 1) return `已加载：${loadedAuthors.value[0]?.author}`
+  if (count === 2) return `已加载：${loadedAuthors.value[1]?.author}`
+  if (count === 3) return `已加载：${loadedAuthors.value[2]?.author}`
+  return `已加载 ${count.toLocaleString()} 位诗人`
 })
 
 const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
@@ -242,11 +242,11 @@ const loadData = async () => {
   console.log('[AuthorsView] 🚀 开始加载数据...')
   const totalStartTime = performance.now()
 
-  loading.startBlocking('诗人名录', '正在开启诗人档案...')
+  loading.startBlocking('诗人名录', '正在加载诗人数据...')
   isInitializing.value = true
 
   try {
-    loading.updatePhase('metadata', '正在读取诗人索引...')
+    loading.updatePhase('metadata', '正在加载元数据...')
     loading.updateProgress(0, 3)
     console.log('[AuthorsView] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
@@ -254,25 +254,22 @@ const loadData = async () => {
     const totalChunksCount = totalChunks.value || 0
     console.log(`[AuthorsView] ✅ 元数据加载完成: ${totalAuthorsCount.value} 位诗人, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 步骤2: 快速加载第一个缓存分块（渐进式加载核心）
-    loading.updateProgress(1, 3, '正在加载首批诗人...')
+    loading.updateProgress(1, 3, '正在加载首批数据...')
     console.log('[AuthorsView] ⚡ 阶段2: 快速加载首批数据...')
     const quickStartTime = performance.now()
     const firstChunkIds = await loadCachedChunks(true) // true = 快速模式
     console.log(`[AuthorsView] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
 
-    // 步骤3: 立即解除阻塞，展示界面！
     loading.updateProgress(2, 3, '准备就绪...')
-    loading.updatePhase('complete', '诗人档案已备，请君查阅')
+    loading.updatePhase('complete', '数据加载完成')
     loading.updateProgress(3, 3)
     setTimeout(() => loading.finish(), 200)
     isInitializing.value = false
 
-    console.log('[AuthorsView] � 界面已可交互，开始后台加载剩余数据...')
+    console.log('[AuthorsView] 🎨 界面已可交互，开始后台加载剩余数据...')
 
-    // 步骤4: 后台加载剩余缓存 + 网络数据
     const remainingStartTime = performance.now()
-    loading.startNonBlocking('补充诗人数据', '正在汇聚千年文脉...')
+    loading.startNonBlocking('补充诗人数据', '正在加载剩余数据...')
 
     // 先加载剩余缓存分块
     const meta = await getMetadata(AUTHORS_STORAGE)
@@ -319,7 +316,7 @@ const loadData = async () => {
           const progress = Math.round((loadedCount / totalChunksCount) * 100)
 
           if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-            const phases = ['正在读取诗人档案...', '正在整理诗作数据...', '正在汇聚千年文脉...', '正在构建诗人图谱...']
+            const phases = ['正在读取诗人数据...', '正在整理诗作数据...', '正在加载诗人信息...', '正在构建诗人列表...']
             const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
             loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
             console.log(`[AuthorsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 位诗人)`)
@@ -369,43 +366,43 @@ watch(searchQuery, () => {
 <template>
   <div class="authors-view">
     <PageHeader
-      title="墨客之息"
-      :subtitle="`收录 ${dynamicStats.total} 位诗人，按诗词数量排序`"
+      title="诗人列表"
+      :subtitle="`共 ${dynamicStats.total} 位诗人`"
       :icon="TrophyOutline"
     />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
-      <NGridItem>
-        <StatsCard
-          label="总收录诗人"
-          :value="dynamicStats.total"
-          :prefix-icon="PersonOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="诗词最多"
-          :value="dynamicStats.topAuthor"
-          :prefix-icon="MedalOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="最高产量"
-          :value="dynamicStats.maxPoems"
-          suffix="首"
-          :prefix-icon="BookOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="平均产量"
-          :value="dynamicStats.average"
-          suffix="首"
-          :prefix-icon="BarChartOutline"
-        />
-      </NGridItem>
-    </NGrid>
+        <NGridItem>
+          <StatsCard
+            label="诗人数量"
+            :value="dynamicStats.total"
+            :prefix-icon="PersonOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="作品最多"
+            :value="dynamicStats.topAuthor"
+            :prefix-icon="MedalOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="最多作品"
+            :value="dynamicStats.maxPoems"
+            suffix="首"
+            :prefix-icon="BookOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="平均作品"
+            :value="dynamicStats.average"
+            suffix="首"
+            :prefix-icon="BarChartOutline"
+          />
+        </NGridItem>
+      </NGrid>
     
     <AuthorClusterViz
       :clusters="sortedClusters"
@@ -422,11 +419,11 @@ watch(searchQuery, () => {
       :progress="Math.round(((cachedChunksCount + chunkLoader.loadedCount.value) / (totalChunks || 1)) * 100)"
       :loaded-count="cachedChunksCount + chunkLoader.loadedCount.value"
       :total-count="totalChunks || 0"
-      title="加载诗人数据"
+      title="加载中"
       :hint="loadingHint"
       :stats="[
-        { label: '已收录诗词', value: dynamicStats.totalPoems.toLocaleString() + ' 首' },
-        { label: '当前平均', value: dynamicStats.average + ' 首/人' }
+        { label: '诗词总数', value: dynamicStats.totalPoems.toLocaleString() + ' 首' },
+        { label: '平均作品', value: dynamicStats.average + ' 首/人' }
       ]"
       @pause="chunkLoader.pause"
       @resume="chunkLoader.resume"
@@ -434,7 +431,7 @@ watch(searchQuery, () => {
 
     <SearchContainer
       v-model="searchQuery"
-      placeholder="搜索诗人..."
+      placeholder="搜索"
       size="large"
       :width="300"
       :total="displayTotal"
@@ -456,10 +453,10 @@ watch(searchQuery, () => {
                 <template #icon>
                   <ShuffleOutline />
                 </template>
-                {{ isShuffled ? '随机中' : '随机排序' }}
+                {{ isShuffled ? '随机' : '随机' }}
               </NButton>
             </template>
-            {{ isShuffled ? '点击恢复默认排序' : '点击随机打乱诗人顺序' }}
+            切换排序方式
           </NTooltip>
           <NTooltip v-if="isShuffled" trigger="hover">
             <template #trigger>
@@ -470,16 +467,16 @@ watch(searchQuery, () => {
                 <template #icon>
                   <RefreshOutline />
                 </template>
-                换一批
+                刷新
               </NButton>
             </template>
-            重新随机排序
+            重新排序
           </NTooltip>
         </NSpace>
       </template>
     </SearchContainer>
 
-    <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="暂无诗人数据" />
+    <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="没有数据" />
 
     <div v-else class="authors-list">
       <TransitionGroup name="author-item">
@@ -496,10 +493,10 @@ watch(searchQuery, () => {
             <h3 class="author-name">{{ author.author }}</h3>
             <div class="author-stats">
               <NTag type="primary" size="small">
-                {{ author.poem_count }} 首诗词
+                {{ author.poem_count }} 首
               </NTag>
               <span class="top-type">
-                擅长：{{ getTopPoemType(author.poem_type_counts) }}
+                {{ getTopPoemType(author.poem_type_counts) }}
               </span>
             </div>
           </div>

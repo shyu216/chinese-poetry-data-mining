@@ -104,7 +104,7 @@ const handleLoadMore = () => {
             <template #description>
               <div v-if="showPoemCount" class="author-desc">
                 <PersonOutline class="desc-icon" />
-                <span>{{ author.poemCount }} 首诗</span>
+                <span>{{ author.poemCount }} 首</span>
               </div>
             </template>
 

@@ -89,7 +89,7 @@ onMounted(() => {
           </div>
           <div class="header-info">
             <h1 class="cluster-title">{{ clusterName }}</h1>
-            <p class="cluster-subtitle">探寻诗人足迹，领略文心诗魂</p>
+            <p class="cluster-subtitle">诗人流派分析</p>
           </div>
         </div>
 

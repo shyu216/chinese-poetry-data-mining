@@ -69,7 +69,7 @@ const displayTypes = computed(() => {
             </span>
             <span class="meta-item">
               <NIcon :size="14"><BookOutline /></NIcon>
-              平均{{ Math.round(avgPoems) }}首
+              平均{{ Math.round(avgPoems) }}首诗
             </span>
           </div>
         </div>

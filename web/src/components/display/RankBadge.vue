@@ -11,9 +11,9 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const rankConfig = {
-  1: { color: '#FFD700', bgColor: 'rgba(255, 215, 0, 0.15)', icon: '🏆', label: '冠军' },
-  2: { color: '#C0C0C0', bgColor: 'rgba(192, 192, 192, 0.15)', icon: '🥈', label: '亚军' },
-  3: { color: '#CD7F32', bgColor: 'rgba(205, 127, 50, 0.15)', icon: '🥉', label: '季军' }
+  1: { color: '#FFD700', bgColor: 'rgba(255, 215, 0, 0.15)', icon: '🏆', label: '第1' },
+  2: { color: '#C0C0C0', bgColor: 'rgba(192, 192, 192, 0.15)', icon: '🥈', label: '第2' },
+  3: { color: '#CD7F32', bgColor: 'rgba(205, 127, 50, 0.15)', icon: '🥉', label: '第3' }
 }
 
 const getRankIcon = () => {

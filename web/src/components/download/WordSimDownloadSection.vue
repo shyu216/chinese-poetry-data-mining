@@ -105,9 +105,9 @@ defineExpose({
 </script>
 
 <template>
-  <NCard title="🔗 词境探索数据" class="download-section">
+  <NCard title="🔗 词频相似度数据" class="download-section">
     <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-      词境探索数据库包含 {{ vocabSize.toLocaleString() }} 个词汇的相似度数据，共 {{ totalChunks }} 个分块。
+      词频相似度数据库包含 {{ vocabSize.toLocaleString() }} 个词汇的相似度数据，共 {{ totalChunks }} 个分块。
     </NAlert>
 
     <NProgress
@@ -155,7 +155,7 @@ defineExpose({
         <template #icon>
           <DownloadOutline />
         </template>
-        {{ isFullyDownloaded ? '下载完成' : '下载全部词境数据' }}
+        {{ isFullyDownloaded ? '已完成' : '下载全部词频相似度' }}
       </NButton>
     </NSpace>
   </NCard>

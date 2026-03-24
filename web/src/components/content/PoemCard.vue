@@ -45,7 +45,7 @@ const copyPoem = (e: Event) => {
   e.stopPropagation()
   const text = `${props.title}\n${props.author}〔${props.dynasty}〕\n\n${props.content || ''}`
   navigator.clipboard.writeText(text).then(() => {
-    message.success('已誊抄至剪贴板')
+    message.success('已复制')
   })
 }
 
@@ -111,11 +111,11 @@ const toggleFavorite = (e: Event) => {
 
       <template v-if="showActions" #action>
         <NButton quaternary size="small" @click="goToAuthor">
-          <template #icon>
-            <BookmarkOutline />
-          </template>
-          作者
-        </NButton>
+            <template #icon>
+              <BookmarkOutline />
+            </template>
+            作者详情
+          </NButton>
         <NButton quaternary size="small" @click="copyPoem">
           <template #icon>
             <CopyOutline />

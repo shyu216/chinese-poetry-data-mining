@@ -16,8 +16,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: '数据加载中',
-  description: '正在加载数据分块',
+  title: '加载中',
+  description: '正在加载',
   hint: ''
 })
 

@@ -69,7 +69,7 @@ onMounted(async () => {
     
     <div class="card-legend">
       <span class="legend-dot" :class="['cached', colorClass]"></span> 已缓存
-      <span class="legend-dot uncached"></span> 未下载
+      <span class="legend-dot uncached"></span> 未缓存
     </div>
   </NCard>
 </template>

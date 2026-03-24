@@ -214,13 +214,13 @@ const authorsByCluster = computed(() => {
   <NCard class="cluster-viz-card" :content-style="{ padding: '16px' }">
     <template #header>
       <div class="cluster-header">
-        <span class="title">🎭 诗人流派聚类</span>
+        <span class="title">诗人流派聚类</span>
         <span class="subtitle">基于词频和诗体特征的谱聚类分析</span>
       </div>
     </template>
 
     <NSpin :show="loading" size="large">
-      <NEmpty v-if="!loading && (!authors.length || !clusters.length)" description="暂无聚类数据" />
+      <NEmpty v-if="!loading && (!authors.length || !clusters.length)" description="暂无数据" />
       
       <div v-else class="cluster-content">
         <NTabs v-model:value="activeTab" type="line" animated>
@@ -297,7 +297,7 @@ const authorsByCluster = computed(() => {
                           </span>
                           <span class="meta-item">
                             <NIcon :size="14"><BookOutline /></NIcon>
-                            平均{{ cluster.avg_poems }}首
+                            平均{{ cluster.avg_poems }}首诗
                           </span>
                         </div>
                       </div>
@@ -345,11 +345,11 @@ const authorsByCluster = computed(() => {
             <div class="stats-grid">
               <div class="stat-item">
                 <div class="stat-value">{{ authors.length }}</div>
-                <div class="stat-label">分析诗人</div>
+                <div class="stat-label">诗人</div>
               </div>
               <div class="stat-item">
                 <div class="stat-value">{{ clusters.length }}</div>
-                <div class="stat-label">识别流派</div>
+                <div class="stat-label">流派</div>
               </div>
               <div class="stat-item">
                 <div class="stat-value">{{ Math.round(authors.reduce((a, b) => a + b.poem_count, 0) / authors.length) }}</div>

@@ -120,7 +120,7 @@ defineExpose({
         <template #icon>
           <CloseOutline />
         </template>
-        取消下载
+        取消
       </NButton>
       <NButton
         v-else
@@ -132,7 +132,7 @@ defineExpose({
         <template #icon>
           <DownloadOutline />
         </template>
-        {{ isFullyDownloaded ? '下载完成' : '下载全部诗人数据' }}
+        {{ isFullyDownloaded ? '已完成' : '下载全部诗人' }}
       </NButton>
     </NSpace>
   </NCard>

@@ -70,14 +70,14 @@ const getSourceType = () => {
   <div v-if="visible" class="search-stats">
     <NSpace align="center" size="small">
       <span class="stats-text">
-        找到 <strong>{{ total.toLocaleString() }}</strong> 条结果
+        {{ total.toLocaleString() }} 条
       </span>
       
       <NTag v-if="queryTime > 0" size="small" type="default" class="stats-tag">
         <template #icon>
           <TimeOutline />
         </template>
-        {{ queryTime }}ms
+        {{ queryTime }} 毫秒
       </NTag>
       
       <NTag size="small" :type="getSourceType()" class="stats-tag">

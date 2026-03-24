@@ -116,7 +116,7 @@ defineExpose({
           已全部下载
         </NTag>
         <NTag v-else type="default">
-          已下载 {{ cachedCount }} / {{ totalPrefixes }} 前缀
+          已下载 {{ cachedCount }} / {{ totalPrefixes }} 项
         </NTag>
       </NSpace>
 
@@ -141,7 +141,7 @@ defineExpose({
         <template #icon>
           <DownloadOutline />
         </template>
-        {{ isFullyDownloaded ? '下载完成' : '下载全部搜索索引' }}
+        {{ isFullyDownloaded ? '已完成' : '下载全部索引' }}
       </NButton>
     </NSpace>
   </NCard>

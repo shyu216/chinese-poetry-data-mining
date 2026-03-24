@@ -35,7 +35,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '寻一句诗，觅一位故人...',
+  placeholder: '搜索诗词或作者...',
   size: 'medium',
   width: 320,
   loading: false,
@@ -286,47 +286,49 @@ const widthStyle = typeof props.width === 'number' ? `${props.width}px` : props.
       <!-- 搜索建议下拉 -->
       <Transition name="dropdown">
         <div v-if="showDropdown && (dropdownOptions.length > 0 || !modelValue)" class="search-dropdown">
-          <!-- 历史记录标题 -->
-          <div v-if="!modelValue && searchHistory.length > 0" class="dropdown-header">
-            <span class="header-title">
-              <NIcon :size="14"><TimeOutline /></NIcon>
-              曾寻
-            </span>
-            <span class="header-action" @click="clearHistory">清空</span>
-          </div>
-
-          <!-- 热门搜索标题 -->
-          <div v-if="!modelValue && hotSearches.length > 0 && searchHistory.length === 0" class="dropdown-header">
-            <span class="header-title">
-              <NIcon :size="14"><TrendingUpOutline /></NIcon>
-              热门
-            </span>
-          </div>
-
-          <!-- 建议列表 -->
-          <div class="suggestion-list">
-            <div
-              v-for="(item, index) in dropdownOptions"
-              :key="item.value + index"
-              class="suggestion-item"
-              :class="{ 'is-active': index === activeIndex, [`type-${item.type}`]: true }"
-              @click="selectSuggestion(item.value)"
-              @mouseenter="activeIndex = index"
-            >
-              <NIcon :size="16" class="suggestion-icon">
-                <component :is="getIcon(item.type)" />
-              </NIcon>
-              <span class="suggestion-text" v-html="item.label"></span>
-              <NIcon
-                v-if="item.type === 'history'"
-                :size="14"
-                class="remove-icon"
-                @click="removeHistory(item.value, $event)"
-              >
-                <CloseOutline />
-              </NIcon>
+          <template v-if="!loading">
+            <!-- 历史记录标题 -->
+            <div v-if="!modelValue && searchHistory.length > 0" class="dropdown-header">
+              <span class="header-title">
+                <NIcon :size="14"><TimeOutline /></NIcon>
+                历史
+              </span>
+              <span class="header-action" @click="clearHistory">清空</span>
             </div>
-          </div>
+
+            <!-- 热门搜索标题 -->
+            <div v-if="!modelValue && hotSearches.length > 0 && searchHistory.length === 0" class="dropdown-header">
+              <span class="header-title">
+                <NIcon :size="14"><TrendingUpOutline /></NIcon>
+                热门
+              </span>
+            </div>
+
+            <!-- 建议列表 -->
+            <div class="suggestion-list">
+              <div
+                v-for="(item, index) in dropdownOptions"
+                :key="item.value + index"
+                class="suggestion-item"
+                :class="{ 'is-active': index === activeIndex, [`type-${item.type}`]: true }"
+                @click="selectSuggestion(item.value)"
+                @mouseenter="activeIndex = index"
+              >
+                <NIcon :size="16" class="suggestion-icon">
+                  <component :is="getIcon(item.type)" />
+                </NIcon>
+                <span class="suggestion-text" v-html="item.label"></span>
+                <NIcon
+                  v-if="item.type === 'history'"
+                  :size="14"
+                  class="remove-icon"
+                  @click="removeHistory(item.value, $event)"
+                >
+                  <CloseOutline />
+                </NIcon>
+              </div>
+            </div>
+          </template>
 
           <!-- 加载状态 -->
           <div v-if="loading" class="dropdown-loading">

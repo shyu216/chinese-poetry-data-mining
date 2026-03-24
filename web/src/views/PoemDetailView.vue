@@ -37,7 +37,7 @@ onMounted(async () => {
 
 const loadPoemData = async () => {
   console.log('[PoemDetailView] loadPoemData START')
-  loading.startBlocking('诗词详情', '正在展开诗卷...')
+  loading.startBlocking('诗词详情', '正在加载诗词详情...')
   error.value = null
 
   try {
@@ -52,7 +52,7 @@ const loadPoemData = async () => {
       return
     }
 
-    loading.updatePhase('complete', '诗卷已展')
+    loading.updatePhase('complete', '加载完成')
     setTimeout(() => loading.finish(), 300)
   } catch (e) {
     error.value = '加载失败，请稍后重试'
@@ -102,7 +102,7 @@ const getDynastyConfig = (dynasty: string) => {
   <div class="poem-detail-view">
     <PageHeader
       title="诗词详情"
-      subtitle="品读经典诗词，感受千年文脉"
+      subtitle="查看诗词完整内容及作者信息"
       :icon="BookOutline"
     />
 

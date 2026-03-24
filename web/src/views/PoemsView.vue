@@ -165,8 +165,8 @@ const paginatedPoems = computed(() => {
 // 加载提示
 const loadingHint = computed(() => {
   const count = loadedPoems.value.length
-  if (count === 0) return '🚀 正在连接...'
-  return `📚 已加载 ${count.toLocaleString()} 首诗词...`
+  if (count === 0) return '正在连接...'
+  return `已加载 ${count.toLocaleString()} 首诗词`
 })
 
 // 从缓存加载
@@ -231,37 +231,33 @@ const loadData = async () => {
   console.log('[PoemsView] 🚀 开始加载数据...')
   const totalStartTime = performance.now()
 
-  loading.startBlocking('翰墨集珍', '正在开启诗词宝库...')
+  loading.startBlocking('诗词列表', '正在加载诗词数据...')
   isInitializing.value = true
 
   try {
-    // 阶段1: 加载元数据
-    loading.updatePhase('metadata', '正在读取诗词索引...')
+    loading.updatePhase('metadata', '正在加载元数据...')
     console.log('[PoemsView] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
     await loadMetadata()
     const totalChunksCount = totalChunks.value || 0
     console.log(`[PoemsView] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 阶段2: 快速加载第一个缓存分块
-    loading.updateProgress(1, 3, '正在加载首批诗词...')
+    loading.updateProgress(1, 3, '正在加载首批数据...')
     console.log('[PoemsView] ⚡ 阶段2: 快速加载首批数据...')
     const quickStartTime = performance.now()
     const firstChunkIds = await loadCachedChunks(true)
     console.log(`[PoemsView] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
 
-    // 阶段3: 立即解除阻塞，展示界面
     loading.updateProgress(2, 3, '准备就绪...')
-    loading.updatePhase('complete', '诗词宝库已开，请君品鉴')
+    loading.updatePhase('complete', '数据加载完成')
     loading.updateProgress(3, 3)
     setTimeout(() => loading.finish(), 200)
     isInitializing.value = false
 
     console.log('[PoemsView] 🎨 界面已可交互，开始后台加载剩余数据...')
 
-    // 阶段4: 后台加载剩余数据
     const remainingStartTime = performance.now()
-    loading.startNonBlocking('补充诗词数据', '正在汇聚千年文脉...')
+    loading.startNonBlocking('补充诗词数据', '正在加载剩余数据...')
 
     // 加载剩余缓存分块
     const meta = await getMetadata(POEMS_SUMMARY_STORAGE)
@@ -311,7 +307,7 @@ const loadData = async () => {
           const progress = Math.round((loadedCount / totalChunksCount) * 100)
 
           if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-            const phases = ['正在读取诗作档案...', '正在整理诗词分类...', '正在汇聚千年文脉...', '正在构建诗词图谱...']
+            const phases = ['正在读取诗词数据...', '正在整理诗词分类...', '正在加载诗词信息...', '正在构建诗词列表...']
             const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
             loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
             console.log(`[PoemsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
@@ -370,41 +366,41 @@ watch(searchQuery, () => {
 <template>
   <div class="poems-view">
     <PageHeader
-      title="翰墨集珍"
-      :subtitle="`收录 ${dynamicStats.total.toLocaleString()} 首诗词，按朝代、体裁筛选`"
+      title="诗词列表"
+      :subtitle="`共收录 ${dynamicStats.total.toLocaleString()} 首诗词，支持朝代、体裁筛选`"
       :icon="BookOutline"
     />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
-      <NGridItem>
-        <StatsCard
-          label="总收录诗词"
-          :value="dynamicStats.total.toLocaleString()"
-          :prefix-icon="LibraryOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="唐诗数量"
-          :value="dynamicStats.tangshi.toLocaleString()"
-          :prefix-icon="FlameOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="宋诗数量"
-          :value="dynamicStats.songshi.toLocaleString()"
-          :prefix-icon="SchoolOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="宋词数量"
-          :value="dynamicStats.songci.toLocaleString()"
-          :prefix-icon="MusicalNotesOutline"
-        />
-      </NGridItem>
-    </NGrid>
+        <NGridItem>
+          <StatsCard
+            label="诗词总数"
+            :value="dynamicStats.total.toLocaleString()"
+            :prefix-icon="LibraryOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="唐诗"
+            :value="dynamicStats.tangshi.toLocaleString()"
+            :prefix-icon="FlameOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="宋诗"
+            :value="dynamicStats.songshi.toLocaleString()"
+            :prefix-icon="SchoolOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="宋词"
+            :value="dynamicStats.songci.toLocaleString()"
+            :prefix-icon="MusicalNotesOutline"
+          />
+        </NGridItem>
+      </NGrid>
 
     <ChunkLoaderStatus
       v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
@@ -417,9 +413,9 @@ watch(searchQuery, () => {
       :hint="loadingHint"
       :stats="[
         { label: '已加载诗词', value: dynamicStats.total.toLocaleString() + ' 首' },
-        { label: '当前唐诗', value: dynamicStats.tangshi.toLocaleString() + ' 首' },
-        { label: '当前宋诗', value: dynamicStats.songshi.toLocaleString() + ' 首' },
-        { label: '当前宋词', value: dynamicStats.songci.toLocaleString() + ' 首' },
+        { label: '唐诗', value: dynamicStats.tangshi.toLocaleString() + ' 首' },
+        { label: '宋诗', value: dynamicStats.songshi.toLocaleString() + ' 首' },
+        { label: '宋词', value: dynamicStats.songci.toLocaleString() + ' 首' },
       ]"
       @pause="chunkLoader.pause"
       @resume="chunkLoader.resume"
@@ -427,7 +423,7 @@ watch(searchQuery, () => {
 
     <SearchContainer
       v-model="searchQuery"
-      placeholder="搜索诗词、作者..."
+      placeholder="搜索诗词或作者..."
       :total="displayTotal"
       :query-time="searchStats.queryTime"
       :source="searchStats.source as any"
@@ -439,7 +435,7 @@ watch(searchQuery, () => {
         <NSelect
           v-model:value="dynastyFilter"
           :options="dynastyOptions"
-          placeholder="选择朝代"
+          placeholder="朝代"
           style="width: 130px"
           size="medium"
           clearable
@@ -447,7 +443,7 @@ watch(searchQuery, () => {
         <NSelect
           v-model:value="genreFilter"
           :options="genreOptions"
-          placeholder="选择体裁"
+          placeholder="体裁"
           style="width: 130px"
           size="medium"
           clearable
@@ -465,7 +461,7 @@ watch(searchQuery, () => {
                 <template #icon>
                   <ShuffleOutline />
                 </template>
-                {{ isShuffled ? '随机中' : '随机排序' }}
+                {{ isShuffled ? '已随机' : '随机排序' }}
               </NButton>
             </template>
             {{ isShuffled ? '点击恢复默认排序' : '点击随机打乱诗词顺序' }}

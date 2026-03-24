@@ -281,8 +281,8 @@ const legend = [
         <h3 class="graph-title">诗人关系网络</h3>
         <div class="graph-controls">
           <NSwitch v-model:value="showLabels" size="small">
-            <template #checked>标签</template>
-            <template #unchecked>标签</template>
+            <template #checked>显示标签</template>
+            <template #unchecked>隐藏标签</template>
           </NSwitch>
           <NButton size="small" quaternary @click="resetView">
             <template #icon>

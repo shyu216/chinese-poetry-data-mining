@@ -49,11 +49,11 @@ onUnmounted(() => {
 })
 
 const menuOptions = [
-  { label: '启卷', key: 'home', path: '/', icon: HomeIcon },
-  { label: '诗海', key: 'poems', path: '/poems', icon: PoemsIcon },
-  { label: '墨客', key: 'authors', path: '/authors', icon: AuthorsIcon },
-  { label: '词韵', key: 'word-count', path: '/word-count', icon: WordCountIcon },
-  { label: '库藏', key: 'data', path: '/data', icon: DataIcon },
+  { label: '首页', key: 'home', path: '/', icon: HomeIcon },
+  { label: '诗词', key: 'poems', path: '/poems', icon: PoemsIcon },
+  { label: '作者', key: 'authors', path: '/authors', icon: AuthorsIcon },
+  { label: '词频', key: 'word-count', path: '/word-count', icon: WordCountIcon },
+  { label: '数据', key: 'data', path: '/data', icon: DataIcon },
 ]
 
 // 页面过渡动画配置
@@ -172,7 +172,7 @@ const themeOverrides = {
             <div class="footer-inner">
               <span class="copyright">© 2026 中华诗词数据挖掘</span>
               <span class="divider">|</span>
-              <span class="stats">收录诗词 <em>{{ formatNumber(poemsV2.totalPoems.value) }}</em> 首</span>
+              <span class="stats">诗词总数 <em>{{ formatNumber(poemsV2.totalPoems.value) }}</em> 首</span>
               <span class="divider">|</span>
               <span class="version">v1.0</span>
             </div>

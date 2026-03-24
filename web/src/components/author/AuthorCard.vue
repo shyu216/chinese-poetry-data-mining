@@ -66,7 +66,7 @@ const goToAuthors = (e: Event) => {
           <div class="stat-item">
             <BookOutline class="stat-icon" />
             <span class="stat-value">{{ poemCount }}</span>
-            <span class="stat-label">首诗</span>
+            <span class="stat-label">首</span>
           </div>
         </div>
 
@@ -87,7 +87,7 @@ const goToAuthors = (e: Event) => {
     <template #action>
       <div class="card-action" @click="goToAuthors">
         <PersonOutline />
-        <span>同名诗人</span>
+        <span>同诗人</span>
       </div>
     </template>
   </NCard>

@@ -134,15 +134,15 @@ const loadData = async () => {
   const startTime = Date.now()
 
   // 步骤 1: 初始化 - 开始 blocking loading
-  loading.startBlocking('词境探幽', `正在探寻"${keyword.value}"的诗意世界...`)
-  isLoading.value = true
-  loadingPoems.value = true
-  poems.value = []
-  page.value = 1
+    loading.startBlocking('关键词详情', `查询"${keyword.value}"...`)
+    isLoading.value = true
+    loadingPoems.value = true
+    poems.value = []
+    page.value = 1
 
-  try {
-    // 步骤 2: 检索相关诗词（必须完成，因为需要知道总数）
-    loading.updatePhase('search', '正在检索相关诗词...')
+    try {
+      // 步骤 2: 检索相关诗词（必须完成，因为需要知道总数）
+      loading.updatePhase('search', '检索相关诗词...')
     loading.updateProgress(0, 2)
     console.log(`[KeywordDetail] Step 1: Getting keyword poem IDs...`)
     const step1Start = Date.now()
@@ -171,7 +171,7 @@ const loadData = async () => {
 
     // 步骤 4: 立即解除阻塞，展示界面！
     loading.updateProgress(2, 2, '准备就绪...')
-    loading.updatePhase('complete', '词境已现')
+    loading.updatePhase('complete', '数据已就绪')
     setTimeout(() => loading.finish(), 200)
     isLoading.value = false
     console.log(`[KeywordDetail] 🎉 界面已可交互，开始后台加载剩余数据...`)

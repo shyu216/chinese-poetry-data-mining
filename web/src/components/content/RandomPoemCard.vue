@@ -181,7 +181,7 @@ onUnmounted(() => {
     <!-- 加载状态 -->
     <div v-if="isLoading && !randomPoem" class="loading-container">
       <NSpin size="small" />
-      <span class="loading-text">采撷诗词...</span>
+      <span class="loading-text">加载中</span>
     </div>
 
     <!-- 诗词内容 -->
@@ -208,8 +208,8 @@ onUnmounted(() => {
 
     <!-- 空状态 -->
     <div v-else class="empty-state">
-      <p>暂无诗词</p>
-      <button class="retry-btn" @click.stop="fetchRandomPoem">重新加载</button>
+      <p>暂无数据</p>
+      <button class="retry-btn" @click.stop="fetchRandomPoem">重试</button>
     </div>
 
     <!-- 倒计时进度条 -->
@@ -219,8 +219,8 @@ onUnmounted(() => {
 
     <!-- 倒计时显示 -->
     <div class="countdown-display">
-      <span class="countdown-text">{{ countdown }}s</span>
-      <span class="countdown-label">后刷新</span>
+      <span class="countdown-text">{{ countdown }}</span>
+      <span class="countdown-label">秒后刷新</span>
     </div>
   </div>
 </template>

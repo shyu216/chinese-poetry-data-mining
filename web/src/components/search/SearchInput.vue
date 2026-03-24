@@ -22,7 +22,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '搜索...',
+  placeholder: '搜索',
   size: 'medium',
   width: 220,
   loading: false,

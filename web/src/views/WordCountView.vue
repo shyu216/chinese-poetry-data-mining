@@ -49,7 +49,7 @@ const totalWords = ref(0)
 const totalChunks = ref(0)
 const lengthFilter = ref<string | null>(null)
 
-// 词境模块数据
+// 词频相似度模块数据
 interface WordSimItem {
   word: string
   wordId: number
@@ -177,7 +177,7 @@ const avgWordLength = computed(() => {
   return totalCount > 0 ? (totalWeightedLength / totalCount).toFixed(2) : '0'
 })
 
-// 词境统计
+// 词频相似度统计
 const wordSimTotalWords = computed(() => wordSimV2.vocabSize.value || 0)
 
 const loadedChunksCount = computed(() => cachedChunksCount.value + chunkLoader.loadedCount.value)
@@ -185,8 +185,8 @@ const hasMoreToLoad = computed(() => loadedChunksCount.value < totalChunks.value
 
 const loadingHint = computed(() => {
   const count = loadedWords.value.length
-  if (count === 0) return '🚀 正在连接...'
-  return `📊 已加载 ${count.toLocaleString()} 个词汇...`
+  if (count === 0) return '正在连接...'
+  return `已加载 ${count.toLocaleString()} 个词汇`
 })
 
 const loadCachedChunks = async (): Promise<number[]> => {
@@ -246,12 +246,11 @@ const loadData = async () => {
   const totalStartTime = performance.now()
 
   // 步骤 1: 初始化 - 开始 blocking loading
-  loading.startBlocking('词频统计', '正在开启词频宝库...')
+  loading.startBlocking('词频统计', '正在加载词频数据...')
   isInitializing.value = true
 
   try {
-    // 步骤 2: 加载元数据
-    loading.updatePhase('metadata', '正在读取词频索引...')
+    loading.updatePhase('metadata', '正在加载元数据...')
     loading.updateProgress(0, 4)
     console.log('[WordCountView] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
@@ -260,14 +259,12 @@ const loadData = async () => {
     totalChunks.value = totalChunksCount
     console.log(`[WordCountView] ✅ 元数据加载完成: ${globalTotalWords.value} 个词汇, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    // 步骤 3: 检查缓存
     loading.updateProgress(1, 4, '正在检查本地缓存...')
     console.log('[WordCountView] 💾 阶段2: 检查本地缓存...')
     const cacheStartTime = performance.now()
     const loadedChunkIds = await loadCachedChunks()
     console.log(`[WordCountView] ✅ 缓存检查完成 - ${Math.round(performance.now() - cacheStartTime)}ms`)
 
-    // 步骤 4: UI 准备
     loading.updateProgress(2, 4, '正在准备词频展示...')
     console.log('[WordCountView] 🎨 阶段3: 准备UI...')
     const uiStartTime = performance.now()
@@ -277,9 +274,8 @@ const loadData = async () => {
     console.log(`[WordCountView] 📊 需要加载的分块: ${unloadedChunkIds.length} 个 (已缓存: ${loadedChunkIds.length} 个)`)
     console.log(`[WordCountView] ✅ UI准备完成 - ${Math.round(performance.now() - uiStartTime)}ms`)
 
-    // 完成阻塞性加载
     loading.updateProgress(3, 4, '准备就绪...')
-    loading.updatePhase('complete', '词频宝库已开，请君查阅')
+    loading.updatePhase('complete', '数据加载完成')
     loading.updateProgress(4, 4)
     setTimeout(() => loading.finish(), 300)
 
@@ -290,10 +286,9 @@ const loadData = async () => {
       return
     }
 
-    // 步骤 5: 后台加载剩余数据（non-blocking）
     console.log('[WordCountView] 🌐 阶段4: 开始后台加载网络数据...')
     const bgStartTime = performance.now()
-    loading.startNonBlocking('补充词频数据', '正在汇聚千年文脉...')
+    loading.startNonBlocking('补充词频数据', '正在加载剩余数据...')
 
     let currentLoadedCount = loadedChunkIds.length
     let networkDataCount = 0
@@ -327,7 +322,7 @@ const loadData = async () => {
 
         // 每加载10%更新一次提示
         if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-          const phases = ['正在读取词频档案...', '正在整理词汇数据...', '正在汇聚千年文脉...', '正在构建词频图谱...']
+          const phases = ['正在读取词频数据...', '正在整理词汇数据...', '正在加载词频信息...', '正在构建词频列表...']
           const phase = phases[Math.floor((currentLoadedCount / totalChunksCount) * phases.length)] || phases[0]
           loading.updateProgress(currentLoadedCount, totalChunksCount, `${phase} (${currentLoadedCount}/${totalChunksCount})`)
           console.log(`[WordCountView] 📥 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词汇)`)
@@ -378,24 +373,24 @@ const goToKeyword = (word: string) => {
   router.push(`/keyword/${encodeURIComponent(word)}`)
 }
 
-// 词境模块加载函数
+// 词频相似度模块加载函数
 const loadWordSimCachedChunks = async (): Promise<number[]> => {
-  console.log('[WordCountView] 🔄 [词境] 开始加载本地缓存...')
+  console.log('[WordCountView] 🔄 [词频相似度] 开始加载本地缓存...')
   const startTime = performance.now()
 
   const vocab = await getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab')
 
   if (!vocab || Object.keys(vocab).length === 0) {
-    console.log('[WordCountView] ⚠️ [词境] 无词汇表缓存')
+    console.log('[WordCountView] ⚠️ [词频相似度] 无词汇表缓存')
     return []
   }
-  console.log(`[WordCountView] 📚 [词境] 词汇表已加载: ${Object.keys(vocab).length} 个词`)
+  console.log(`[WordCountView] 📚 [词频相似度] 词汇表已加载: ${Object.keys(vocab).length} 个词`)
 
   const meta = await getMetadata(WORD_SIMILARITY_STORAGE)
   const loadedChunkIds = meta?.loadedChunkIds || []
 
   wordSimCachedChunksCount.value = loadedChunkIds.length
-  console.log(`[WordCountView] 📦 [词境] 发现 ${loadedChunkIds.length} 个缓存分块`)
+  console.log(`[WordCountView] 📦 [词频相似度] 发现 ${loadedChunkIds.length} 个缓存分块`)
 
   const vocabReverseMap = wordSimV2.getVocabReverseMap()
   let loadedCount = 0
@@ -422,52 +417,52 @@ const loadWordSimCachedChunks = async (): Promise<number[]> => {
         })
       }
       loadedCount += entries.size
-      console.log(`[WordCountView]   ├─ [词境] 分块 #${chunkId}: ${entries.size} 个词 (${chunkDuration}ms)`)
+      console.log(`[WordCountView]   ├─ [词频相似度] 分块 #${chunkId}: ${entries.size} 个词 (${chunkDuration}ms)`)
     }
   }
 
-  // 一次性批量添加所有缓存的词境数据
+  // 一次性批量添加所有缓存的词频相似度数据
   if (batchWords.length > 0) {
     loadedWordSimWords.value.push(...batchWords)
   }
 
   const totalDuration = Math.round(performance.now() - startTime)
-  console.log(`[WordCountView] ✅ [词境] 缓存加载完成: ${loadedCount} 个词 - ${totalDuration}ms`)
+  console.log(`[WordCountView] ✅ [词频相似度] 缓存加载完成: ${loadedCount} 个词 - ${totalDuration}ms`)
 
   return loadedChunkIds
 }
 
 const loadWordSimData = async () => {
-  console.log('[WordCountView] 🚀 [词境] 开始加载数据...')
+  console.log('[WordCountView] 🚀 [词频相似度] 开始加载数据...')
   const totalStartTime = performance.now()
 
   isWordSimInitializing.value = true
   try {
-    console.log('[WordCountView] 📋 [词境] 加载元数据...')
+    console.log('[WordCountView] 📋 [词频相似度] 加载元数据...')
     const metaStartTime = performance.now()
     await wordSimMeta.loadMetadata()
     const totalChunksCount = wordSimV2.totalChunks.value || 0
     wordSimTotalChunks.value = totalChunksCount
-    console.log(`[WordCountView] ✅ [词境] 元数据加载完成: ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
+    console.log(`[WordCountView] ✅ [词频相似度] 元数据加载完成: ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
-    console.log('[WordCountView] 📚 [词境] 加载词汇表...')
+    console.log('[WordCountView] 📚 [词频相似度] 加载词汇表...')
     const vocabStartTime = performance.now()
     await wordSimV2.loadVocab()
-    console.log(`[WordCountView] ✅ [词境] 词汇表加载完成 - ${Math.round(performance.now() - vocabStartTime)}ms`)
+    console.log(`[WordCountView] ✅ [词频相似度] 词汇表加载完成 - ${Math.round(performance.now() - vocabStartTime)}ms`)
 
     const loadedChunkIds = await loadWordSimCachedChunks()
 
     const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
     const unloadedChunkIds = allChunkIds.filter(id => !loadedChunkIds.includes(id))
-    console.log(`[WordCountView] 📊 [词境] 需要加载的分块: ${unloadedChunkIds.length} 个 (已缓存: ${loadedChunkIds.length} 个)`)
+    console.log(`[WordCountView] 📊 [词频相似度] 需要加载的分块: ${unloadedChunkIds.length} 个 (已缓存: ${loadedChunkIds.length} 个)`)
 
     if (unloadedChunkIds.length === 0) {
-      console.log('[WordCountView] ✨ [词境] 所有数据已从缓存加载，无需网络请求')
+      console.log('[WordCountView] ✨ [词频相似度] 所有数据已从缓存加载，无需网络请求')
       wordSimHasMoreChunks.value = false
       return
     }
 
-    console.log('[WordCountView] 🌐 [词境] 开始后台加载网络数据...')
+    console.log('[WordCountView] 🌐 [词频相似度] 开始后台加载网络数据...')
     const bgStartTime = performance.now()
     let networkDataCount = 0
     let currentLoadedCount = loadedChunkIds.length
@@ -481,7 +476,7 @@ const loadWordSimData = async () => {
 
         // 每加载10%更新一次日志
         if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-          console.log(`[WordCountView] 📥 [词境] 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词境)`)
+          console.log(`[WordCountView] 📥 [词频相似度] 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词频相似度)`)
         }
 
         const vocabReverseMap = wordSimV2.getVocabReverseMap()
@@ -514,32 +509,32 @@ const loadWordSimData = async () => {
       },
       onComplete: () => {
         const bgDuration = Math.round(performance.now() - bgStartTime)
-        console.log(`[WordCountView] ✅ [词境] 后台加载完成: ${networkDataCount} 个分块 - ${bgDuration}ms`)
+        console.log(`[WordCountView] ✅ [词频相似度] 后台加载完成: ${networkDataCount} 个分块 - ${bgDuration}ms`)
         wordSimHasMoreChunks.value = false
       }
     })
   } finally {
     const totalDuration = Math.round(performance.now() - totalStartTime)
-    console.log(`[WordCountView] 🏁 [词境] 总加载时间: ${totalDuration}ms`)
+    console.log(`[WordCountView] 🏁 [词频相似度] 总加载时间: ${totalDuration}ms`)
     isWordSimInitializing.value = false
   }
 }
 
-// 词境模块计算属性
+// 词频相似度模块计算属性
 const wordSimLoadedChunksCount = computed(() => wordSimCachedChunksCount.value + wordSimChunkLoader.loadedCount.value)
 const wordSimHasMoreToLoad = computed(() => wordSimLoadedChunksCount.value < wordSimTotalChunks.value)
 
 const wordSimLoadingHint = computed(() => {
   const count = loadedWordSimWords.value.length
-  if (count === 0) return '🚀 正在连接...'
-  return `🔗 已加载 ${count.toLocaleString()} 个词汇...`
+  if (count === 0) return '正在连接...'
+  return `已加载 ${count.toLocaleString()} 个词汇`
 })
 
-// 获取词的词境信息
+// 获取词的词频相似度信息
 const getWordSimInfo = (word: string): { status: 'loading' | 'no-data' | 'has-data', similarWords: Array<{ word: string; similarity: number }> } => {
   const simWord = loadedWordSimWords.value.find(w => w.word === word)
   if (!simWord) {
-    // 如果词境数据还在加载中，返回loading状态
+    // 如果词频相似度数据还在加载中，返回loading状态
     if (wordSimChunkLoader.isLoading.value || isWordSimInitializing.value) {
       return { status: 'loading', similarWords: [] }
     }
@@ -588,7 +583,7 @@ const handleWordCloudClick = (word: WordCountItem) => {
 onMounted(async () => {
   await loadData()
 
-  // 同时加载词境数据
+  // 同时加载词频相似度数据
   loadWordSimData()
 
   const queryWord = route.query.word as string
@@ -611,42 +606,42 @@ watch(lengthFilter, () => {
 <template>
   <div class="wordcount-view">
     <PageHeader
-      title="辞藻绘影"
-      :subtitle="`收录 ${globalTotalWords.toLocaleString()} 个高频词汇，按使用频率排序`"
+      title="词频统计"
+      :subtitle="`共收录 ${globalTotalWords.toLocaleString()} 个高频词汇，按使用频率排序`"
       :icon="TextOutline"
     />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
-      <NGridItem>
-        <StatsCard
-          label="总收录词"
-          :value="globalTotalWords.toLocaleString()"
-          :prefix-icon="LibraryOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="高频词"
-          :value="wordSimTotalWords.toLocaleString()"
-          :prefix-icon="GitNetworkOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="最高频率"
-          :value="topCount.toLocaleString()"
-          suffix="次"
-          :prefix-icon="StarOutline"
-        />
-      </NGridItem>
-      <NGridItem>
-        <StatsCard
-          label="平均长度"
-          :value="avgWordLength"
-          :prefix-icon="ResizeOutline"
-        />
-      </NGridItem>
-    </NGrid>
+        <NGridItem>
+          <StatsCard
+            label="词汇总数"
+            :value="globalTotalWords.toLocaleString()"
+            :prefix-icon="LibraryOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="高频词"
+            :value="wordSimTotalWords.toLocaleString()"
+            :prefix-icon="GitNetworkOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="最高频率"
+            :value="topCount.toLocaleString()"
+            suffix="次"
+            :prefix-icon="StarOutline"
+          />
+        </NGridItem>
+        <NGridItem>
+          <StatsCard
+            label="平均长度"
+            :value="avgWordLength"
+            :prefix-icon="ResizeOutline"
+          />
+        </NGridItem>
+      </NGrid>
 
     <ChunkLoaderStatus
       v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
@@ -672,7 +667,7 @@ watch(lengthFilter, () => {
       :progress="Math.round((wordSimLoadedChunksCount / (wordSimTotalChunks || 1)) * 100)"
       :loaded-count="wordSimLoadedChunksCount"
       :total-count="wordSimTotalChunks"
-      title="加载词境数据"
+      title="加载词频相似度数据"
       :hint="wordSimLoadingHint"
       :stats="[
         { label: '已加载词汇', value: loadedWordSimWords.length.toLocaleString() + ' 个' },
@@ -694,7 +689,7 @@ watch(lengthFilter, () => {
 
     <SearchContainer
       v-model="searchQuery"
-      placeholder="搜索词汇..."
+      placeholder="搜索"
       :total="displayTotal"
       :query-time="searchStats.queryTime"
       :source="searchStats.source as any"
@@ -706,7 +701,7 @@ watch(lengthFilter, () => {
         <NSelect
           v-model:value="lengthFilter"
           :options="lengthOptions"
-          placeholder="按长度筛选"
+          placeholder="长度"
           style="width: 130px"
           size="medium"
           clearable
@@ -717,18 +712,18 @@ watch(lengthFilter, () => {
     <!-- 加载中状态 -->
     <NEmpty
       v-if="isInitializing || (loadedWords.length === 0 && hasMoreToLoad && !searchQuery.trim() && !lengthFilter)"
-      description="正在加载词频数据..."
+      description="加载中..."
     >
     </NEmpty>
 
     <!-- 无搜索结果状态 -->
     <NEmpty
       v-else-if="displayWords.length === 0"
-      :description="hasMoreToLoad ? '加载更多数据可能会有结果' : '暂无词频数据'"
+      :description="hasMoreToLoad ? '加载更多数据可能会有结果' : '没有数据'"
     >
       <template #extra>
         <NButton v-if="hasMoreToLoad" @click="clearFilters">
-          清除筛选
+          清除筛选以查看更多
         </NButton>
         <NButton v-else @click="clearFilters">
           清除筛选
@@ -754,7 +749,7 @@ watch(lengthFilter, () => {
                   {{ (word.count ?? 0).toLocaleString() }} 次
                 </NTag>
               </div>
-              <!-- 词境信息 -->
+              <!-- 词频相似度信息 -->
               <div class="word-similarity">
                 <template v-if="getWordSimInfo(word.word).status === 'loading'">
                   <NTag type="default" size="small" class="sim-tag loading-tag">

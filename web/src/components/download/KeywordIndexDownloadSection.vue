@@ -132,7 +132,7 @@ defineExpose({
         <template #icon>
           <DownloadOutline />
         </template>
-        {{ isFullyDownloaded ? '下载完成' : '下载全部关键词索引' }}
+        {{ isFullyDownloaded ? '已完成' : '下载全部关键词' }}
       </NButton>
     </NSpace>
   </NCard>
