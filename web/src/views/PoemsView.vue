@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePoemsV2, POEMS_SUMMARY_STORAGE } from '@/composables/usePoemsV2'
-import { useChunkLoader } from '@/composables/useChunkLoader'
+import { useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS } from '@/composables/useChunkLoader'
 import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
 import { usePoemSearch } from '@/search'
 import { useShuffle } from '@/composables/useShuffle'
@@ -40,7 +40,7 @@ const {
   queryPoems
 } = usePoemsV2()
 
-const chunkLoader = useChunkLoader()
+const chunkLoader = useChunkLoader({ preferenceKey: CHUNK_LOADER_PREFERENCE_KEYS.poems })
 
 // 搜索模块
 const { search: searchPoems, isReady: poemSearchReady } = usePoemSearch()
@@ -260,7 +260,11 @@ const loadData = async () => {
     console.log('[PoemsViewV2] 🎨 界面已可交互，开始后台加载剩余数据...')
 
     const remainingStartTime = performance.now()
-    loading.startNonBlocking('补充诗词数据', '正在加载剩余数据...')
+    if (chunkLoader.autoLoadEnabled.value) {
+      loading.startNonBlocking('补充诗词数据', '正在加载剩余数据...')
+    } else {
+      console.log('[PoemsViewV2] autoLoadOnEnter=false — skip unified non-blocking toast until user resumes chunk load')
+    }
 
     // 加载剩余缓存分块
     const meta = await getMetadata(POEMS_SUMMARY_STORAGE)
@@ -298,31 +302,41 @@ const loadData = async () => {
       let loadedCount = allCachedChunkIds.length
       let networkDataCount = 0
 
-      await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, loadChunkSummaries, {
-        concurrency: 5,
-        chunkDelay: 0,
-        onChunkLoaded: (chunkId, poems) => {
-          const poemsArray = poems as PoemSummary[]
-          loadedPoems.value = [...loadedPoems.value, ...poemsArray]
-          networkDataCount += poemsArray.length
+      const runNetworkChunkLoad = () =>
+        chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, loadChunkSummaries, {
+          concurrency: 5,
+          chunkDelay: 0,
+          onChunkLoaded: (chunkId, poems) => {
+            const poemsArray = poems as PoemSummary[]
+            loadedPoems.value = [...loadedPoems.value, ...poemsArray]
+            networkDataCount += poemsArray.length
 
-          loadedCount++
-          const progress = Math.round((loadedCount / totalChunksCount) * 100)
+            loadedCount++
+            const progress = Math.round((loadedCount / totalChunksCount) * 100)
 
-          if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-            const phases = ['正在读取诗词数据...', '正在整理诗词分类...', '正在加载诗词信息...', '正在构建诗词列表...']
-            const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
-            loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
-            console.log(`[PoemsViewV2] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
+            if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
+              const phases = ['正在读取诗词数据...', '正在整理诗词分类...', '正在加载诗词信息...', '正在构建诗词列表...']
+              const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
+              loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
+              console.log(`[PoemsViewV2] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
+            }
+          },
+          onComplete: () => {
+            const bgDuration = Math.round(performance.now() - remainingStartTime)
+            console.log(`[PoemsViewV2] ✅ 后台加载完成: 共 ${loadedPoems.value.length} 首诗词 - ${bgDuration}ms`)
+            hasMoreChunks.value = false
+            loading.finish()
           }
-        },
-        onComplete: () => {
-          const bgDuration = Math.round(performance.now() - remainingStartTime)
-          console.log(`[PoemsViewV2] ✅ 后台加载完成: 共 ${loadedPoems.value.length} 首诗词 - ${bgDuration}ms`)
-          hasMoreChunks.value = false
-          loading.finish()
-        }
-      })
+        })
+
+      if (chunkLoader.autoLoadEnabled.value) {
+        await runNetworkChunkLoad()
+      } else {
+        console.log(
+          '[PoemsViewV2] autoLoadOnEnter=false (localStorage) — network chunk load started paused; not awaiting loadData'
+        )
+        void runNetworkChunkLoad()
+      }
     }
   } catch (error) {
     loading.error('加载失败，请刷新重试')

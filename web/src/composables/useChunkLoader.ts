@@ -1,6 +1,19 @@
-import { ref, computed, onUnmounted, onMounted } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 
-const STORAGE_KEY = 'chunkLoader:autoLoad'
+/** 各页面独立的 localStorage key，默认「进入页面不自动加载网络分块」 */
+export const CHUNK_LOADER_PREFERENCE_KEYS = {
+  poems: 'chunkLoader:autoLoadOnEnter:poems',
+  authors: 'chunkLoader:autoLoadOnEnter:authors',
+  wordcount: 'chunkLoader:autoLoadOnEnter:wordcount',
+  wordcountWordSim: 'chunkLoader:autoLoadOnEnter:wordcount:wordSim'
+} as const
+
+const DEFAULT_PREFERENCE_KEY = 'chunkLoader:autoLoadOnEnter:default'
+
+export interface UseChunkLoaderOptions {
+  /** localStorage 键；不传则用 default（下载页等） */
+  preferenceKey?: string
+}
 
 export interface ChunkLoaderOptions {
   chunkDelay?: number
@@ -19,45 +32,59 @@ export interface ChunkLoaderState {
   totalCount: number
 }
 
-export function useChunkLoader() {
+export function useChunkLoader(options?: UseChunkLoaderOptions) {
+  const preferenceKey = options?.preferenceKey ?? DEFAULT_PREFERENCE_KEY
+
   const isLoading = ref(false)
   const isPaused = ref(false)
   const loadedCount = ref(0)
   const totalCount = ref(0)
   const currentChunkId = ref(0)
   const abortController = ref<AbortController | null>(null)
-  
-  // 自动加载状态（从 localStorage 读取，默认 true）
-  const autoLoadEnabled = ref(true)
-  
-  // 从 localStorage 读取自动加载设置
+
+  /** 进入页面是否自动开始拉取未缓存分块；默认 false，存 localStorage */
+  const autoLoadEnabled = ref(false)
+
   const loadAutoLoadSetting = () => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored !== null) {
+      const stored = localStorage.getItem(preferenceKey)
+      if (stored === null) {
+        autoLoadEnabled.value = false
+        console.log(
+          `[useChunkLoader] preference missing key="${preferenceKey}" → autoLoadOnEnter=false (default)`
+        )
+      } else {
         autoLoadEnabled.value = stored === 'true'
-        console.log('[useChunkLoader] AutoLoad setting loaded:', autoLoadEnabled.value)
+        console.log(
+          `[useChunkLoader] preference loaded key="${preferenceKey}" autoLoadOnEnter=${autoLoadEnabled.value}`
+        )
       }
     } catch (e) {
-      console.warn('[useChunkLoader] Failed to load autoLoad setting:', e)
+      console.warn(`[useChunkLoader] failed to read preference key="${preferenceKey}"`, e)
     }
   }
-  
-  // 保存自动加载设置到 localStorage
-  const saveAutoLoadSetting = (value: boolean) => {
+
+  loadAutoLoadSetting()
+
+  const saveAutoLoadSetting = (value: boolean, source: 'pause' | 'resume' | 'toggle' | 'api' = 'api') => {
     try {
-      localStorage.setItem(STORAGE_KEY, String(value))
+      localStorage.setItem(preferenceKey, String(value))
       autoLoadEnabled.value = value
-      console.log('[useChunkLoader] AutoLoad setting saved:', autoLoadEnabled.value)
+      const via =
+        source === 'pause'
+          ? '用户点击「暂停」'
+          : source === 'resume'
+            ? '用户点击「继续」'
+            : source === 'toggle'
+              ? 'toggle/enable/disable API'
+              : 'saveAutoLoadSetting()'
+      console.log(
+        `[useChunkLoader] ${via} → preference saved key="${preferenceKey}" autoLoadOnEnter=${value}`
+      )
     } catch (e) {
-      console.warn('[useChunkLoader] Failed to save autoLoad setting:', e)
+      console.warn(`[useChunkLoader] failed to save preference key="${preferenceKey}"`, e)
     }
   }
-  
-  // 组件挂载时读取设置
-  onMounted(() => {
-    loadAutoLoadSetting()
-  })
 
   const progress = computed(() => {
     if (totalCount.value === 0) return 0
@@ -104,7 +131,9 @@ export function useChunkLoader() {
     abortController.value = new AbortController()
     
     if (shouldStartPaused) {
-      console.log('[useChunkLoader] Auto-load disabled, waiting for user to resume...')
+      console.log(
+        `[useChunkLoader] autoLoadOnEnter=false (key="${preferenceKey}"), workers idle until resume()`
+      )
     }
 
     const results: (T | null)[] = new Array(chunkIds.length).fill(null)
@@ -200,12 +229,16 @@ export function useChunkLoader() {
     })
   }
 
+  /** 与 ChunkLoader「暂停」联动：写入 localStorage，下次进入默认不自动拉未缓存分块 */
   function pause(): void {
     isPaused.value = true
+    saveAutoLoadSetting(false, 'pause')
   }
 
+  /** 与 ChunkLoader「继续」联动：写入 localStorage，下次进入自动拉未缓存分块 */
   function resume(): void {
     isPaused.value = false
+    saveAutoLoadSetting(true, 'resume')
   }
 
   function stop(): void {
@@ -225,25 +258,16 @@ export function useChunkLoader() {
    * 启用自动加载（保存到 localStorage）
    */
   function enableAutoLoad(): void {
-    saveAutoLoadSetting(true)
-    console.log('[useChunkLoader] Auto-load enabled')
+    saveAutoLoadSetting(true, 'api')
   }
 
-  /**
-   * 禁用自动加载（保存到 localStorage）
-   */
   function disableAutoLoad(): void {
-    saveAutoLoadSetting(false)
-    console.log('[useChunkLoader] Auto-load disabled')
+    saveAutoLoadSetting(false, 'api')
   }
 
-  /**
-   * 切换自动加载状态
-   */
   function toggleAutoLoad(): boolean {
     const newValue = !autoLoadEnabled.value
-    saveAutoLoadSetting(newValue)
-    console.log(`[useChunkLoader] Auto-load ${newValue ? 'enabled' : 'disabled'}`)
+    saveAutoLoadSetting(newValue, 'toggle')
     return newValue
   }
 
@@ -259,15 +283,17 @@ export function useChunkLoader() {
     totalCount,
     currentChunkId,
     state,
-    autoLoadEnabled,  // 暴露自动加载状态
+    autoLoadEnabled,
+    preferenceKey,
     loadChunks,
     loadChunksFast,
     pause,
     resume,
     stop,
     reset,
-    enableAutoLoad,   // 启用自动加载
-    disableAutoLoad,  // 禁用自动加载
-    toggleAutoLoad    // 切换自动加载状态
+    saveAutoLoadSetting,
+    enableAutoLoad,
+    disableAutoLoad,
+    toggleAutoLoad
   }
 }

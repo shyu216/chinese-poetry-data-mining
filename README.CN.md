@@ -9,36 +9,7 @@
 - **诗人分析**：探索5,000+位诗人，包括风格相似度分析和聚类
 - **词频分析**：发现高频词汇和语义关系
 - **数据可视化**：交互式词云和诗人网络图
-- **格律分析**：解析和可视化古典诗词的韵律模式
 - **响应式设计**：移动友好的界面，流畅的动画效果
-
-## 快速开始
-
-### 前端设置
-
-```bash
-# 克隆仓库
-git clone https://github.com/shyu216/chinese-poetry-data-mining.git
-
-# 进入web目录
-cd web
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
-```
-
-### 生产构建
-
-```bash
-# 构建静态文件
-npm run build
-
-# 预览构建结果
-npm run preview
-```
 
 ## 数据规模
 
@@ -101,4 +72,3 @@ MIT许可证 - 详见 [LICENSE](LICENSE) 文件。
 
 [https://shyu216.github.io/chinese-poetry-data-mining](https://shyu216.github.io/chinese-poetry-data-mining)
 
-[English Version](README.md)

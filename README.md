@@ -9,26 +9,7 @@ A modern, data-driven exploration of classical Chinese poetry with over 300,000 
 - **Poet Analysis**: Explore 5,000+ poets with style similarity analysis and clustering
 - **Word Frequency Analysis**: Discover high-frequency words and semantic relationships
 - **Data Visualization**: Interactive word clouds and poet network graphs
-- **Meter Analysis**: Parse and visualize classical poetry rhythm patterns
 - **Responsive Design**: Mobile-friendly interface with smooth animations
-
-## Quick Start
-
-### Frontend Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/shyu216/chinese-poetry-data-mining.git
-
-# Navigate to web directory
-cd web
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
 
 ### Production Build
 
@@ -100,5 +81,3 @@ This project is based on the [chinese-poetry](https://github.com/chinese-poetry/
 ## Live Demo
 
 [https://shyu216.github.io/chinese-poetry-data-mining](https://shyu216.github.io/chinese-poetry-data-mining)
-
-[中文版本](README.CN.md)

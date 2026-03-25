@@ -11,7 +11,7 @@ import {
   ChevronForwardOutline, ShuffleOutline, RefreshOutline
 } from '@vicons/ionicons5'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
-import { useChunkLoader } from '@/composables/useChunkLoader'
+import { useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS } from '@/composables/useChunkLoader'
 import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
 import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
 import { useAuthorSearch } from '@/search'
@@ -45,7 +45,7 @@ const {
   authorNodes 
 } = useAuthorClusters()
 
-const chunkLoader = useChunkLoader()
+const chunkLoader = useChunkLoader({ preferenceKey: CHUNK_LOADER_PREFERENCE_KEYS.authors })
 
 const { search: searchAuthors, isReady: authorSearchReady } = useAuthorSearch()
 const isSearching = ref(false)
@@ -269,7 +269,11 @@ const loadData = async () => {
     console.log('[AuthorsView] 🎨 界面已可交互，开始后台加载剩余数据...')
 
     const remainingStartTime = performance.now()
-    loading.startNonBlocking('补充诗人数据', '正在加载剩余数据...')
+    if (chunkLoader.autoLoadEnabled.value) {
+      loading.startNonBlocking('补充诗人数据', '正在加载剩余数据...')
+    } else {
+      console.log('[AuthorsView] autoLoadOnEnter=false — skip unified non-blocking toast until user resumes chunk load')
+    }
 
     // 先加载剩余缓存分块
     const meta = await getMetadata(AUTHORS_STORAGE)
@@ -303,32 +307,42 @@ const loadData = async () => {
       let loadedCount = allCachedChunkIds.length
       let networkDataCount = 0
 
-      await chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, loadAuthorChunk, {
-        concurrency: 5,
-        chunkDelay: 0,
-        onChunkLoaded: (chunkId, authors) => {
-          const authorsArray = authors as AuthorStats[]
-          loadedAuthors.value.push(...authorsArray)
-          loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
-          networkDataCount += authorsArray.length
+      const runNetworkChunkLoad = () =>
+        chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, loadAuthorChunk, {
+          concurrency: 5,
+          chunkDelay: 0,
+          onChunkLoaded: (chunkId, authors) => {
+            const authorsArray = authors as AuthorStats[]
+            loadedAuthors.value.push(...authorsArray)
+            loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
+            networkDataCount += authorsArray.length
 
-          loadedCount++
-          const progress = Math.round((loadedCount / totalChunksCount) * 100)
+            loadedCount++
+            const progress = Math.round((loadedCount / totalChunksCount) * 100)
 
-          if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-            const phases = ['正在读取诗人数据...', '正在整理诗作数据...', '正在加载诗人信息...', '正在构建诗人列表...']
-            const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
-            loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
-            console.log(`[AuthorsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 位诗人)`)
+            if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
+              const phases = ['正在读取诗人数据...', '正在整理诗作数据...', '正在加载诗人信息...', '正在构建诗人列表...']
+              const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
+              loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
+              console.log(`[AuthorsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 位诗人)`)
+            }
+          },
+          onComplete: () => {
+            const bgDuration = Math.round(performance.now() - remainingStartTime)
+            console.log(`[AuthorsView] ✅ 后台加载完成: 共 ${loadedAuthors.value.length} 位诗人 - ${bgDuration}ms`)
+            hasMoreChunks.value = false
+            loading.finish()
           }
-        },
-        onComplete: () => {
-          const bgDuration = Math.round(performance.now() - remainingStartTime)
-          console.log(`[AuthorsView] ✅ 后台加载完成: 共 ${loadedAuthors.value.length} 位诗人 - ${bgDuration}ms`)
-          hasMoreChunks.value = false
-          loading.finish()
-        }
-      })
+        })
+
+      if (chunkLoader.autoLoadEnabled.value) {
+        await runNetworkChunkLoad()
+      } else {
+        console.log(
+          '[AuthorsView] autoLoadOnEnter=false (localStorage) — network chunk load started paused; not awaiting loadData'
+        )
+        void runNetworkChunkLoad()
+      }
     }
   } catch (error) {
     loading.error('加载失败，请刷新重试')

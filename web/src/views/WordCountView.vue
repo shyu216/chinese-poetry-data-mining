@@ -11,7 +11,7 @@ import {
 } from '@vicons/ionicons5'
 import { useWordcountV2 } from '@/composables/useWordcountV2'
 import { useWordSimilarityV2 } from '@/composables/useWordSimilarityV2'
-import { useChunkLoader } from '@/composables/useChunkLoader'
+import { useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS } from '@/composables/useChunkLoader'
 import { useWordcountMetadata, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
 import { useWordSimilarityMetadata, WORD_SIMILARITY_STORAGE } from '@/composables/useMetadataLoader'
 import { getMetadata, getCache, getVerifiedChunkedCache } from '@/composables/useCacheV2'
@@ -30,8 +30,10 @@ const router = useRouter()
 const route = useRoute()
 const wordcountMeta = useWordcountMetadata()
 const wordSimMeta = useWordSimilarityMetadata()
-const chunkLoader = useChunkLoader()
-const wordSimChunkLoader = useChunkLoader()
+const chunkLoader = useChunkLoader({ preferenceKey: CHUNK_LOADER_PREFERENCE_KEYS.wordcount })
+const wordSimChunkLoader = useChunkLoader({
+  preferenceKey: CHUNK_LOADER_PREFERENCE_KEYS.wordcountWordSim
+})
 
 // 新的词汇搜索模块
 const { search: searchWords, isReady: wordSearchReady } = useWordSearch()
@@ -280,7 +282,13 @@ const loadData = async () => {
 
     console.log('[WordCountView] 🌐 阶段4: 开始后台加载网络数据...')
     const bgStartTime = performance.now()
-    loading.startNonBlocking('补充词频数据', '正在加载剩余数据...')
+    if (chunkLoader.autoLoadEnabled.value) {
+      loading.startNonBlocking('补充词频数据', '正在加载剩余数据...')
+    } else {
+      console.log(
+        '[WordCountView] autoLoadOnEnter=false (wordcount) — skip unified non-blocking toast; chunk load may be paused'
+      )
+    }
 
     let currentLoadedCount = loadedChunkIds.length
     let networkDataCount = 0
@@ -289,49 +297,59 @@ const loadData = async () => {
     const batchWords: WordCountItem[] = []
     let lastSortTime = Date.now()
 
-    await chunkLoader.loadChunks<WordCountItem[]>(unloadedChunkIds, wordcountV2.loadChunk, {
-      concurrency: 5,
-      chunkDelay: 0,
-      onChunkLoaded: (_, words) => {
-        const wordsArray = words as WordCountItem[]
-        batchWords.push(...wordsArray)
-        networkDataCount += wordsArray.length
+    const runWordcountNetworkLoad = () =>
+      chunkLoader.loadChunks<WordCountItem[]>(unloadedChunkIds, wordcountV2.loadChunk, {
+        concurrency: 5,
+        chunkDelay: 0,
+        onChunkLoaded: (_, words) => {
+          const wordsArray = words as WordCountItem[]
+          batchWords.push(...wordsArray)
+          networkDataCount += wordsArray.length
 
-        currentLoadedCount++
-        const progress = Math.round((currentLoadedCount / totalChunksCount) * 100)
+          currentLoadedCount++
+          const progress = Math.round((currentLoadedCount / totalChunksCount) * 100)
 
-        // 每2秒或每10%更新一次UI，避免频繁排序
-        const now = Date.now()
-        const shouldUpdateUI = now - lastSortTime > 2000 ||
-          currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0
+          // 每2秒或每10%更新一次UI，避免频繁排序
+          const now = Date.now()
+          const shouldUpdateUI = now - lastSortTime > 2000 ||
+            currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0
 
-        if (shouldUpdateUI) {
-          loadedWords.value = [...loadedWords.value, ...batchWords].sort((a, b) => a.rank - b.rank)
-          totalWords.value = loadedWords.value.length
-          batchWords.length = 0  // 清空批量缓冲区
-          lastSortTime = now
+          if (shouldUpdateUI) {
+            loadedWords.value = [...loadedWords.value, ...batchWords].sort((a, b) => a.rank - b.rank)
+            totalWords.value = loadedWords.value.length
+            batchWords.length = 0  // 清空批量缓冲区
+            lastSortTime = now
+          }
+
+          // 每加载10%更新一次提示
+          if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
+            const phases = ['正在读取词频数据...', '正在整理词汇数据...', '正在加载词频信息...', '正在构建词频列表...']
+            const phase = phases[Math.floor((currentLoadedCount / totalChunksCount) * phases.length)] || phases[0]
+            loading.updateProgress(currentLoadedCount, totalChunksCount, `${phase} (${currentLoadedCount}/${totalChunksCount})`)
+            console.log(`[WordCountView] 📥 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词汇)`)
+          }
+        },
+        onComplete: () => {
+          // 确保剩余数据被添加
+          if (batchWords.length > 0) {
+            loadedWords.value = [...loadedWords.value, ...batchWords].sort((a, b) => a.rank - b.rank)
+            totalWords.value = loadedWords.value.length
+          }
+          const bgDuration = Math.round(performance.now() - bgStartTime)
+          console.log(`[WordCountView] ✅ 后台加载完成: ${networkDataCount} 个词汇 - ${bgDuration}ms`)
+          hasMoreChunks.value = false
+          loading.finish()
         }
+      })
 
-        // 每加载10%更新一次提示
-        if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-          const phases = ['正在读取词频数据...', '正在整理词汇数据...', '正在加载词频信息...', '正在构建词频列表...']
-          const phase = phases[Math.floor((currentLoadedCount / totalChunksCount) * phases.length)] || phases[0]
-          loading.updateProgress(currentLoadedCount, totalChunksCount, `${phase} (${currentLoadedCount}/${totalChunksCount})`)
-          console.log(`[WordCountView] 📥 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词汇)`)
-        }
-      },
-      onComplete: () => {
-        // 确保剩余数据被添加
-        if (batchWords.length > 0) {
-          loadedWords.value = [...loadedWords.value, ...batchWords].sort((a, b) => a.rank - b.rank)
-          totalWords.value = loadedWords.value.length
-        }
-        const bgDuration = Math.round(performance.now() - bgStartTime)
-        console.log(`[WordCountView] ✅ 后台加载完成: ${networkDataCount} 个词汇 - ${bgDuration}ms`)
-        hasMoreChunks.value = false
-        loading.finish()
-      }
-    })
+    if (chunkLoader.autoLoadEnabled.value) {
+      await runWordcountNetworkLoad()
+    } else {
+      console.log(
+        '[WordCountView] autoLoadOnEnter=false (localStorage, wordcount) — network chunk load started paused; not awaiting loadData'
+      )
+      void runWordcountNetworkLoad()
+    }
   } catch (error) {
     loading.error('加载失败，请刷新重试')
     console.error('[WordCountView] ❌ 词频数据加载失败:', error)
@@ -458,52 +476,62 @@ const loadWordSimData = async () => {
     let networkDataCount = 0
     let currentLoadedCount = loadedChunkIds.length
 
-    await wordSimChunkLoader.loadChunks(unloadedChunkIds, wordSimV2.loadChunk, {
-      chunkDelay: 100,
-      onChunkLoaded: (_, chunk: any) => {
-        networkDataCount++
-        currentLoadedCount++
-        const progress = Math.round((currentLoadedCount / totalChunksCount) * 100)
+    const runWordSimNetworkLoad = () =>
+      wordSimChunkLoader.loadChunks(unloadedChunkIds, wordSimV2.loadChunk, {
+        chunkDelay: 100,
+        onChunkLoaded: (_, chunk: any) => {
+          networkDataCount++
+          currentLoadedCount++
+          const progress = Math.round((currentLoadedCount / totalChunksCount) * 100)
 
-        // 每加载10%更新一次日志
-        if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-          console.log(`[WordCountView] 📥 [词频相似度] 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词频相似度)`)
-        }
-
-        const vocabReverseMap = wordSimV2.getVocabReverseMap()
-        const entries = chunk.entries as Map<number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }>
-
-        // 批量处理，避免频繁触发响应式更新
-        const newWords: typeof loadedWordSimWords.value = []
-        const existingWordIds = new Set(loadedWordSimWords.value.map(w => w.wordId))
-
-        for (const [wordId, entry] of entries) {
-          if (!existingWordIds.has(wordId)) {
-            const word = vocabReverseMap.get(wordId) || ''
-            newWords.push({
-              word,
-              wordId,
-              frequency: entry.frequency,
-              loaded: true,
-              similarWords: entry.similarWords.slice(0, 5).map(sw => ({
-                word: vocabReverseMap.get(sw.wordId) || '',
-                similarity: sw.similarity
-              }))
-            })
+          // 每加载10%更新一次日志
+          if (currentLoadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
+            console.log(`[WordCountView] 📥 [词频相似度] 后台加载进度: ${progress}% (${currentLoadedCount}/${totalChunksCount} 分块, ${networkDataCount} 个词频相似度)`)
           }
-        }
 
-        // 一次性批量添加，减少响应式更新次数
-        if (newWords.length > 0) {
-          loadedWordSimWords.value = [...loadedWordSimWords.value, ...newWords]
+          const vocabReverseMap = wordSimV2.getVocabReverseMap()
+          const entries = chunk.entries as Map<number, { frequency: number; similarWords: Array<{ wordId: number; similarity: number }> }>
+
+          // 批量处理，避免频繁触发响应式更新
+          const newWords: typeof loadedWordSimWords.value = []
+          const existingWordIds = new Set(loadedWordSimWords.value.map(w => w.wordId))
+
+          for (const [wordId, entry] of entries) {
+            if (!existingWordIds.has(wordId)) {
+              const word = vocabReverseMap.get(wordId) || ''
+              newWords.push({
+                word,
+                wordId,
+                frequency: entry.frequency,
+                loaded: true,
+                similarWords: entry.similarWords.slice(0, 5).map(sw => ({
+                  word: vocabReverseMap.get(sw.wordId) || '',
+                  similarity: sw.similarity
+                }))
+              })
+            }
+          }
+
+          // 一次性批量添加，减少响应式更新次数
+          if (newWords.length > 0) {
+            loadedWordSimWords.value = [...loadedWordSimWords.value, ...newWords]
+          }
+        },
+        onComplete: () => {
+          const bgDuration = Math.round(performance.now() - bgStartTime)
+          console.log(`[WordCountView] ✅ [词频相似度] 后台加载完成: ${networkDataCount} 个分块 - ${bgDuration}ms`)
+          wordSimHasMoreChunks.value = false
         }
-      },
-      onComplete: () => {
-        const bgDuration = Math.round(performance.now() - bgStartTime)
-        console.log(`[WordCountView] ✅ [词频相似度] 后台加载完成: ${networkDataCount} 个分块 - ${bgDuration}ms`)
-        wordSimHasMoreChunks.value = false
-      }
-    })
+      })
+
+    if (wordSimChunkLoader.autoLoadEnabled.value) {
+      await runWordSimNetworkLoad()
+    } else {
+      console.log(
+        '[WordCountView] autoLoadOnEnter=false (localStorage, wordSim) — similarity chunk load started paused; not awaiting loadWordSimData'
+      )
+      void runWordSimNetworkLoad()
+    }
   } finally {
     const totalDuration = Math.round(performance.now() - totalStartTime)
     console.log(`[WordCountView] 🏁 [词频相似度] 总加载时间: ${totalDuration}ms`)
@@ -547,6 +575,14 @@ const getSimilarityColor = (similarity: number) => {
 const getSimilarityPercent = (similarity: number) => {
   return Math.round(similarity * 100)
 }
+
+/** 列表卡片用：每个词只算一次相似度信息，避免模板重复调用 */
+const paginatedWordCards = computed(() =>
+  paginatedWords.value.map((w) => ({
+    ...w,
+    sim: getWordSimInfo(w.word)
+  }))
+)
 
 const isLoading = computed(() => (chunkLoader.isLoading.value && loadedWords.value.length === 0))
 
@@ -661,23 +697,55 @@ watch(lengthFilter, () => {
 
     <div v-else-if="displayWords.length > 0" class="wordcount-container">
       <div class="words-grid">
-        <div v-for="word in paginatedWords" :key="word.rank" class="word-card" @click="goToKeyword(word.word)">
-          <div class="rank-badge" :class="{
-            'top-ten': word.rank <= 10,
-            'rank-1': word.rank === 1,
-            'rank-2': word.rank === 2,
-            'rank-3': word.rank === 3
-          }">{{ word.rank }}</div>
-          <h3 class="word-text">{{ word.word }}</h3>
-          <NTag type="primary" size="small" class="count-tag">{{ (word.count ?? 0).toLocaleString() }} 次</NTag>
-          <div class="word-similarity" v-if="getWordSimInfo(word.word).status === 'loading'">
-            <NTag type="default" size="small" class="sim-tag">解析中...</NTag>
+        <div
+          v-for="row in paginatedWordCards"
+          :key="`${row.rank}-${row.word}`"
+          class="word-card word-card--dense"
+          @click="goToKeyword(row.word)"
+        >
+          <div class="word-card__row word-card__row--main">
+            <div
+              class="rank-badge"
+              :class="{
+                'top-ten': row.rank <= 10,
+                'rank-1': row.rank === 1,
+                'rank-2': row.rank === 2,
+                'rank-3': row.rank === 3
+              }"
+              :title="`排名 ${row.rank}`"
+            >
+              {{ row.rank }}
+            </div>
+            <h3 class="word-text">{{ row.word }}</h3>
+            <div class="word-card__stats">
+              <span class="word-card__freq-num">{{ (row.count ?? 0).toLocaleString() }}</span>
+              <span class="word-card__freq-unit">次</span>
+              <span class="word-card__sep" aria-hidden="true">·</span>
+              <span class="word-card__len">{{ row.word.length }}字</span>
+            </div>
           </div>
-          <div class="word-similarity" v-else-if="getWordSimInfo(word.word).status === 'has-data'">
-            <NTag v-for="sw in getWordSimInfo(word.word).similarWords.slice(0, 3)" :key="sw.word"
-              :type="getSimilarityColor(sw.similarity)" size="small" class="sim-tag">{{ sw.word }}</NTag>
+
+          <div
+            v-if="row.sim.status === 'loading' || row.sim.status === 'has-data'"
+            class="word-card__row word-card__row--sim"
+          >
+            <span class="sim-label">近邻</span>
+            <template v-if="row.sim.status === 'loading'">
+              <span class="sim-placeholder">解析中…</span>
+            </template>
+            <div v-else class="sim-chips">
+              <NTag
+                v-for="sw in row.sim.similarWords.slice(0, 3)"
+                :key="sw.word"
+                :type="getSimilarityColor(sw.similarity)"
+                size="tiny"
+                bordered
+                class="sim-tag"
+              >
+                {{ sw.word }}
+              </NTag>
+            </div>
           </div>
-          <div class="word-length">{{ word.word.length }}字</div>
         </div>
       </div>
 
@@ -712,68 +780,101 @@ watch(lengthFilter, () => {
 
 .words-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 8px;
 }
 
 .word-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  border: 1px solid #e9ecef;
-  border-radius: 12px;
-  transition: all 0.3s ease;
   cursor: pointer;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  animation: fadeInUp 0.5s ease-out forwards;
 }
 
-.word-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 4px;
-  height: 100%;
-  background: linear-gradient(180deg, #8b2635 0%, #c41e3a 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.word-card--dense {
+  padding: 8px 10px;
+  min-height: 0;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e8eaed;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  animation: none;
 }
 
-.word-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(139, 38, 53, 0.12);
-  border-color: #8b2635;
+.word-card--dense:hover {
+  transform: none;
+  background: #fafafa;
+  border-color: rgba(139, 38, 53, 0.28);
+  box-shadow: 0 0 0 1px rgba(139, 38, 53, 0.08);
 }
 
-.word-card:hover::before {
-  opacity: 1;
+.word-card--dense::before {
+  display: none;
+}
+
+.word-card__row--main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.word-card__row--sim {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+  min-height: 22px;
+}
+
+.word-card__stats {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.word-card__sep {
+  margin: 0 3px;
+  color: #cbd5e1;
+  font-weight: 400;
+}
+
+.word-card__len {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
 }
 
 .rank-badge {
-  position: absolute;
-  top: 10px;
-  right: 10px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f1f3f4;
-  color: #666;
-  font-weight: 600;
-  font-size: 13px;
-  transition: all 0.3s ease;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition: background 0.15s ease;
 }
 
 .rank-badge.top-ten {
   background: linear-gradient(135deg, #8b2635 0%, #a83246 100%);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(139, 38, 53, 0.3);
+  box-shadow: none;
 }
 
 .rank-badge.rank-1 {
@@ -791,78 +892,69 @@ watch(lengthFilter, () => {
   color: #fff;
 }
 
-.word-card:hover .rank-badge {
-  transform: scale(1.1);
-}
-
 .word-text {
-  margin: 8px 0 10px 0;
-  font-size: 18px;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 1rem;
   font-weight: 700;
-  color: #2c3e50;
-  line-height: 1.3;
-  font-family: 'Noto Serif SC', serif;
+  color: #0f172a;
+  line-height: 1.25;
+  font-family: 'Noto Serif SC', 'Source Han Serif SC', serif;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.count-tag {
-  display: inline-block;
-  margin-bottom: 10px;
-  padding: 4px 12px !important;
-  background: #f1f3f4 !important;
-  border: none !important;
-  border-radius: 16px !important;
-  font-weight: 500 !important;
-  font-size: 13px !important;
-  color: #666 !important;
+.word-card__freq-num {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #8b2635;
 }
 
-.word-similarity {
+.word-card__freq-unit {
+  font-size: 10px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.sim-label {
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #cbd5e1;
+}
+
+.sim-placeholder {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.sim-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
   align-items: center;
-  min-height: 28px;
-  margin-bottom: 8px;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sim-chips :deep(.n-tag) {
+  font-weight: 500;
+  line-height: 1.2;
 }
 
 .sim-tag {
-  padding: 2px 8px !important;
-  border-radius: 12px !important;
-  font-size: 12px !important;
-  transition: all 0.2s ease;
+  padding: 0 5px !important;
+  border-radius: 4px !important;
+  font-size: 10px !important;
 }
 
 .sim-tag:hover {
-  transform: scale(1.05);
+  transform: none;
 }
-
-.word-length {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  font-size: 11px;
-  color: #999;
-  background: rgba(255, 255, 255, 0.8);
-  padding: 2px 6px;
-  border-radius: 8px;
-}
-
-/* 动画效果 */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.word-card:nth-child(1) { animation-delay: 0.05s; }
-.word-card:nth-child(2) { animation-delay: 0.1s; }
-.word-card:nth-child(3) { animation-delay: 0.15s; }
-.word-card:nth-child(4) { animation-delay: 0.2s; }
-.word-card:nth-child(5) { animation-delay: 0.25s; }
-.word-card:nth-child(6) { animation-delay: 0.3s; }
-.word-card:nth-child(7) { animation-delay: 0.35s; }
-.word-card:nth-child(8) { animation-delay: 0.4s; }
-.word-card:nth-child(9) { animation-delay: 0.45s; }
-.word-card:nth-child(10) { animation-delay: 0.5s; }
 
 .pagination-wrapper {
   display: flex;
@@ -879,7 +971,12 @@ watch(lengthFilter, () => {
   }
 
   .words-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 6px;
+  }
+
+  .word-card--dense {
+    padding: 7px 8px;
   }
 }
 </style>
