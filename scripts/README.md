@@ -36,6 +36,7 @@
 
 - `04_fasttext_train.py`
 - `04_fasttext_test.py`
+- `04_fasttext_to_onnx.py`
 - `04_word_sim_v1.py`
 - `04_word_sim_v2.py`
 - `04_word_sim_v3.py`

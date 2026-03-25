@@ -1,13 +1,27 @@
 <!--
-  @overview
-  file: web/src/views/AuthorDetailView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 组合式状态与组件内部状态
-  data_flow: 状态输入 -> 组件渲染(PageHeader, NEmpty, NButton) -> 路由联动
-  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
-  unique: 关键函数: loadAuthorData, loadAuthorPoems, goBack, goToPoem；主渲染组件: PageHeader, NEmpty, NButton
+  文件: web/src/views/AuthorDetailView.vue
+  说明: 作者详情页，展示作者统计信息、代表作品列表与相关检索结果；协调多个 composable（作者、诗文、索引）来拼接页面数据。
+
+  数据管线:
+    - 输入: 路由参数 `name` 触发 `useAuthorsV2.getAuthorByName()` 获取作者元信息。
+    - 聚合: 使用 `usePoemsV2` 按 id 批量获取诗文详情，并用 `useSearchIndexV2` 获取摘要/关键词用于列表展示。
+    - 分页/渲染: 在客户端对作者的诗文做分页（`poemsPage`, `poemsPageSize`），并将子组件（`PoemList` / `StatsCard`）渲染所需数据传下去。
+
+  复杂度:
+    - 数据查询: 获取作者与诗文为常数次数的网络/缓存请求，内部遍历/拼接为 O(n)，n = 作者诗数。
+    - 排序/过滤: 若进行排序为 O(n log n)；分页渲染为 O(k)，k = 单页条数。
+    - 空间: 客户端缓存作者诗文与映射表（`poemChunkMap`）使空间复杂度为 O(n)。
+
+  使用技术/要点:
+    - 组合式 composables (`useAuthorsV2`, `usePoemsV2`, `useSearchIndexV2`) 将数据获取/缓存与 UI 分离。
+    - 分页在客户端执行以减少路由切换请求，但父组件负责追加数据（拉取更多时触发）。
+    - 使用 `Map` 存储 poem_id -> chunk_id 提高查找性能。
+
+  潜在问题/改进建议:
+    - 若作者诗量极大（数千/数万），客户端一次性拉取并缓存会导致内存与渲染压力，建议按需分片加载或服务端分页。
+    - 多个 composable 间的同步/错误处理需统一（重试、幂等、超时），当前实现缺少集中错误策略。
+    - 对大数组的排序/过滤应避免在主线程阻塞，可考虑 Web Worker 分片处理或后端排序。
+    - 图片/资源未懒加载可能影响首屏；需为诗文列表添加占位与懒加载策略。
 -->
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'

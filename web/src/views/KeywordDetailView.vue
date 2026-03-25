@@ -1,13 +1,20 @@
 <!--
-  @overview
-  file: web/src/views/KeywordDetailView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI + Plotly
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 组合式状态与组件内部状态
-  data_flow: 状态输入 -> 组件渲染(NBackTop, NPageHeader) -> 路由联动
-  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
-  unique: 核心导出: newPlot, react, purge；关键函数: loadData, loadRemainingPoems, renderCharts, handlePageChange；主渲染组件: NBackTop, NPageHeader
+  文件: web/src/views/KeywordDetailView.vue
+  说明: 关键词详情页，展示某关键词下的诗词列表、统计（朝代/体裁分布）与可视化（Plotly），并支持批量分片加载诗词内容以提升性能。
+
+  数据管线:
+    - 索引检索: 通过 `useKeywordIndex` / `useSearchIndexV2` 获取匹配诗词 id 列表。
+    - 批量加载: 使用分批策略（`loadPoemsBatch`，batchSize = 50）先从索引获取摘要（包含 chunk_id），再按 chunk 批量加载详情并合并到页面列表。
+    - 可视化: 统计结果计算后使用 Plotly 绘图（`newPlot` / `react` / `purge`）。
+
+  复杂度:
+    - 索引查询与分页为 O(k)，k = 返回条数；批量分片加载总成本为 O(n)，但通过分批减少单次峰值压力。
+    - 可视化库（Plotly）在数据量大时会占用较多内存并降低交互性能。
+
+  注意与建议:
+    - 批量加载采用分批策略以避免一次性请求过多，但仍需限流与并发控制（网络与 IndexedDB 写入）。
+    - Plotly 渲染复杂图表时建议对数据进行降采样或使用轻量级图表库以提升性能。
+    - 建议在长时间或大数据加载时展示进度并支持取消操作；重试与错误回退策略也很重要。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'

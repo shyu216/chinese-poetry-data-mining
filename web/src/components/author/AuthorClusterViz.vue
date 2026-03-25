@@ -1,13 +1,27 @@
 <!--
-  @overview
-  file: web/src/components/author/AuthorClusterViz.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props；组件事件
-  data_flow: 数据/事件输入 -> 组件渲染(NCard) -> 事件回传与路由跳转
-  complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: goToClusterDetail, draw2D, handleMouseMove, handleClick；主渲染组件: NCard
+  文件: web/src/components/author/AuthorClusterViz.vue
+  说明: 聚类可视化组件，提供 2D 散点画布与列表/统计视图，展示基于聚类算法得到的作者分组（流派）。
+
+  数据管线:
+    - 输入: 父组件通过 props 提供 `clusters`（聚类元信息）与 `authors`（含二维坐标 coord_2d、聚类 id 等）。
+    - 处理: 在客户端将坐标缩放/偏移到画布坐标系，绘制聚类中心与散点；交互事件（mousemove/click）在画布上计算最近点并触发回调。
+    - 输出: 通过 `emit('selectAuthor')` / 路由跳转导出用户选择或聚类详情动作。
+
+  复杂度:
+    - 绘制与交互的核心循环为 O(n)，n = authors.length；若在 `mousemove` 频繁触发，将导致每帧 O(n) 计算与重绘。
+    - 空间复杂度 O(n + k)，k = clusters.length，内存用于存放坐标与聚类元信息。
+
+  使用技术/要点:
+    - 直接使用原生 Canvas API 绘制点、中心与文本，避免大量 DOM 节点开销。
+    - 采用预计算的 scale/offset 转换坐标，减少每次计算的重复工作。
+
+  潜在问题与改进建议:
+    - 性能: `handleMouseMove` 对每个鼠标事件遍历所有点 (O(n))，建议使用空间索引（四叉树或 kd-tree）或节流/节省重绘策略以支持大规模点集（数万级）。
+    - 分辨率: 未处理 devicePixelRatio，画布在高 DPI 屏幕上可能模糊，应按 DPR 缩放画布尺寸并放大绘制内容。
+    - 响应式: 画布宽高为固定常量，缺乏容器自适应，移动端/小屏设备需要自适配方案。
+    - 可维护性: 颜色与 alpha 组合直接字符串拼接，需确保 `cluster.color` 为标准 6 位 HEX，否则可能导致无效颜色。
+    - 事件解绑/内存: 目前在组件生命周期中未显式添加全局监听，但若后续添加需保证解绑以防泄露。
+    - 无辅助图层/缩放控制，建议加入缩放、平移和点密度聚合（聚合层）提高大规模数据可视化体验。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'

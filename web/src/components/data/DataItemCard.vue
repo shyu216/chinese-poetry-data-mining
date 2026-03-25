@@ -3,12 +3,21 @@
   file: web/src/components/data/DataItemCard.vue
   category: frontend-component
   tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props
-  data_flow: 状态输入 -> 组件渲染(NCard, NTag, NEmpty)
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 主渲染组件: NCard, NTag, NEmpty
--->
+  summary: 单个数据项卡片，用于展示某类数据的缓存进度（例如诗词/作者/词频分片）的可视化小组件。
+
+  Data pipeline:
+  - 输入: 通过 props 接收统计（cachedCount/totalCount）与可视化条目（bars）
+  - 处理: 计算进度百分比、决定完成状态并渲染微图（bars）
+  - 输出: 纯展示/交互组件，会 emit 事件或由父组件控制操作
+
+  Complexity & notes:
+  - 单卡渲染为 O(1)，若父组件渲染大量卡片（n）总成本为 O(n)
+  - 小图条目超过一定数量时会启用横向滚动（避免 DOM 布局抖动）
+
+  Potential issues & recommendations:
+  - 对大量 `bars` 的渲染使用虚拟化或限制显示项以降低渲染成本
+  - 若 bars 数据非常多，考虑在父级限制传入的数组长度或使用 canvas 渲染
+ -->
 <script setup lang="ts">
 import { computed, ref, onMounted, nextTick } from 'vue'
 import { NCard, NTag, NEmpty } from 'naive-ui'

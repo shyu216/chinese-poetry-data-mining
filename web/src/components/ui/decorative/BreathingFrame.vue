@@ -1,14 +1,21 @@
 <!--
   @overview
   file: web/src/components/ui/decorative/BreathingFrame.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props
-  data_flow: 状态输入 -> 组件渲染(UI 组件)
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 路径特征: web/src/components/ui/decorative/BreathingFrame.vue
--->
+  category: frontend-component / decorative
+  tech: Vue 3 + TypeScript + CSS
+  summary: 页面边框呼吸动画组件，提供简单的边框线条动画以增强视觉层次。
+
+  Data pipeline (conceptual):
+  - 输入: 通过 props 提供边距、动画时长与颜色等配置
+  - 处理: 计算样式并渲染四条边框线，使用 CSS 动画控制透明度/节奏
+  - 输出: 纯表现组件，不参与数据加载
+
+  Complexity & notes:
+  - 渲染与计算成本为 O(1)。若在同一页面大量使用，请审视动画数量对渲染性能的影响
+
+  Recommendations:
+  - 在低性能设备上可禁用动画或降低帧率/样式复杂度
+ -->
 <script setup lang="ts">
 interface Props {
   topOffset?: number

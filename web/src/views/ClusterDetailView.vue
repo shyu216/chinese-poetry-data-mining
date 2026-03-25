@@ -3,11 +3,20 @@
   file: web/src/views/ClusterDetailView.vue
   category: frontend-page
   tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 组合式状态与组件内部状态
-  data_flow: 状态输入 -> 组件渲染(NButton, NIcon, ArrowBackOutline) -> 路由联动
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 关键函数: goBack, goToAuthor；主渲染组件: NButton, NIcon, ArrowBackOutline
+  summary: 显示单个流派（cluster）的详情页面，集成 `useAuthorClusters` 提供的聚类数据并渲染统计、代表作者与关键词。
+
+  Data pipeline:
+  - 数据来源: 通过 `useAuthorClusters()` 从静态 JSON（public/data/author_clusters）加载聚类与作者节点数据
+  - 处理: 读取 composable 的响应式状态 -> 计算当前簇信息（center、color、代表作者）-> 渲染卡片与列表
+  - 交互: 提供路由导航（返回列表、跳转到作者详情）
+
+  Complexity & notes:
+  - 视图本身为渲染与交互层，主成本来自于 `useAuthorClusters` 加载与聚合（O(a) 级别，a = 作者数）
+  - 渲染大量作者标签时考虑使用虚拟列表或分页以降低 DOM 负载
+
+  Potential issues & recommendations:
+  - 在作者/词汇很多时，避免一次性渲染全部子项；对长列表使用懒渲染或分页
+  - 若聚类加载较重，建议在路由守卫或后台 Worker 中预热数据
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'

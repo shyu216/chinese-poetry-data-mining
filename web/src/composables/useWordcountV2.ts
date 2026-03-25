@@ -1,13 +1,18 @@
 /**
- * @overview
- * file: web/src/composables/useWordcountV2.ts
- * category: pipeline
- * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：initLoadedWordCountChunkIds, useWordcountV2, loadChunk）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: useWordcountV2；关键函数: initLoadedWordCountChunkIds, useWordcountV2, loadChunk, getWordCounts
+ * 文件: web/src/composables/useWordcountV2.ts
+ * 说明: 管理词频数据的按块加载、缓存与查询接口，支持按 rank 区间读取与分片加载策略以处理大规模词表。
+ *
+ * 数据管线:
+ *   - 读取元数据（chunks 列表）-> 通过 `getVerifiedChunk` 加载分片 JSON -> 将分片转换为内部 `WordCountItem[]` 并缓存到内存与 IndexedDB。
+ *   - 提供按 rank 范围的分片读取（`getWordCounts`）、热点 topN 获取与按 chunk 访问接口。
+ *
+ * 复杂度:
+ *   - 单片加载为 O(c)，c = 分片大小；按范围读取会加载涉及的若干分片，成本为 O(t * c)，t = 涉及分片数。
+ *   - 空间: 已加载分片缓存将占用 O(k) 内存，k = 已加载条目数。
+ *
+ * 风险与建议:
+ *   - 大型分片 JSON 的解析在主线程会导致 UI 卡顿，建议使用 Web Worker 或将分片细化为更小的 chunk。
+ *   - 当前实现基于分片大小假设（例如每片 1000 条），若数据分布变化需同步更新映射逻辑。
  */
 import { ref, computed, type Ref } from 'vue'
 import type { WordCountItem, WordCountMeta, WordCountQueryResult } from './types'

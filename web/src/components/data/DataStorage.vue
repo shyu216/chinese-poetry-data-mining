@@ -1,14 +1,23 @@
 <!--
   @overview
   file: web/src/components/data/DataStorage.vue
-  category: frontend-component
+  category: frontend-component / data-management
   tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 本地缓存（IndexedDB）；父组件 props
-  data_flow: 状态输入 -> 组件渲染(NCard, NSpin, NProgress)
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: yieldToMain, updateProgress, resetLoadingState, loadStorageDetails；主渲染组件: NCard, NSpin, NProgress, NAlert
--->
+  summary: 数据存储概览组件，负责读取并展示浏览器存储（IndexedDB）与已缓存数据的统计与进度信息。
+
+  Data pipeline:
+  - 读取: 使用 `useCacheV2` 的工具函数读取不同存储键（poems/authors/wordcount/word-similarity/poem-index 等）的元数据与统计
+  - 处理: 聚合各类统计、更新局部加载状态并在 UI 中显示进度（NProgress/NSpin）
+  - 交互: 支持清理缓存、刷新统计、展示单分块详情并触发下载/删除操作
+
+  Complexity & notes:
+  - 大多数统计读取为 O(1) 或 O(#storedChunks)；遍历所有存储统计为 O(m)，m = 存储项种类数
+  - 对于大型存储（大量 chunk）建议逐页或异步加载统计以避免主线程阻塞
+
+  Potential issues & recommendations:
+  - 在读取大量存储项时使用 `requestAnimationFrame` 或 Worker 分片以保持 UI 响应
+  - 对清理/删除操作提供确认与事务性回退（尽可能）以防误删
+ -->
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
 import {

@@ -1,13 +1,29 @@
 /**
  * @overview
  * file: web/src/composables/useSearchIndexV2.ts
- * category: pipeline
+ * category: pipeline / search
  * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：initLoadedPrefixes, useSearchIndexV2, getPrefixFromId）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
- * unique: 核心导出: useSearchIndexV2；关键函数: initLoadedPrefixes, useSearchIndexV2, getPrefixFromId, loadPoemChunk
+ * summary: 基于 poem_index 的二级索引检索层。通过按前缀分片的 index 文件（poem_index/*.json）实现快速按 ID 查询与关键词搜索。
+ *
+ * Data pipeline:
+ *  - 元数据: 通过 `usePoemIndexManifest()` 加载 poem index manifest（包含 prefix -> filename 映射）
+ *  - 分片加载: `loadPoemChunk(prefix)` 使用 `getVerifiedChunk` 加载并缓存每个 prefix 对应的 JSON 映射（id -> PoemSummary）
+ *  - 查询: 通过前缀定位后在内存 Map 中查找（O(1)），或对所有已加载分片顺序扫描进行关键词搜索（O(n)）
+ *  - 输出: 提供按 ID 查询、批量查询、关键词搜索、按作者/朝代分页等方法
+ *
+ * Complexity & cost:
+ *  - 加载单个分片为 O(p)（p = 分片内诗词数量）
+ *  - 按 ID 查询在已加载分片中为 O(1)
+ *  - 全量关键词搜索为 O(total_poems)（避免在主线程频繁触发全量扫描）
+ *  - 空间: 已加载分片占用 O(loaded_poems)，使用 Map 有利于快速查找但占用额外内存
+ *
+ * Exports / responsibilities:
+ *  - `useSearchIndexV2()` -> `loadPoemChunk`, `searchPoemById`, `getPoemSummariesByIds`, `searchByKeyword`, `searchPoems`, `getPoemsByAuthor`, `clearCache`, 等接口
+ *
+ * Potential issues & recommendations:
+ *  - 主线程扫描：关键词搜索在未使用索引时会扫描多个分片，建议对热点字段建立更小的倒排索引或在 Worker 中执行搜索。
+ *  - 并发/节流：避免同时触发大量分片加载，可限制并发数并实现请求合并。
+ *  - 持久化：已加载分片可序列化到 IndexedDB 以加速后续访问，但需注意版本/哈希校验以防过期数据。
  */
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import type { SearchResult, SearchOptions, SearchResultSet, PoemIndexManifest, PoemSummary } from './types'

@@ -1,13 +1,26 @@
 /**
  * @overview
  * file: web/src/composables/useShuffle.ts
- * category: pipeline
+ * category: utility / composable
  * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：random, toggleShuffle, shuffle）
- * data_source: 组合式状态与组件内部状态
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: useShuffle, getRandomItem, getRandomItems；关键函数: random, toggleShuffle, shuffle, unshuffle
+ * summary: 提供可复用的洗牌/随机挑选工具（基于 Fisher-Yates），用于在 UI 中随机展示诗词/作者等集合。
+ *
+ * Data pipeline (conceptual):
+ *  - 输入: 一个数组或 `Ref<T[]>` 以及可选的启用开关
+ *  - 处理: 生成随机种子 -> 使用 Fisher-Yates 进行伪随机重排 -> 返回 `shuffledItems` 供组件渲染
+ *  - 输出: 响应式 `shuffledItems`, 控制函数 `shuffle`, `unshuffle`, `toggleShuffle`
+ *
+ * Complexity & cost:
+ *  - 洗牌算法为 O(n) 时间，O(n) 额外空间（生成副本以保留原数组）
+ *  - 频繁洗牌会导致 GC 压力及短期内大量内存分配，应避免在渲染循环中重复触发
+ *
+ * Exports / responsibilities:
+ *  - `useShuffle<T>(options)` -> `shuffledItems`, `isShuffled`, `seed`, `toggleShuffle`, `shuffle`, `unshuffle`
+ *  - `getRandomItem`, `getRandomItems` 作为独立工具函数
+ *
+ * Potential issues & recommendations:
+ *  - 若数组非常大（成千上万条），在主线程进行完全洗牌可能阻塞渲染；可选择仅对索引数组做随机抽样或在 Web Worker 中执行洗牌。
+ *  - 若需要可复现的顺序（测试或分享），应显式传入/保存 `seed`。
  */
 import { ref, computed, type Ref } from 'vue'
 

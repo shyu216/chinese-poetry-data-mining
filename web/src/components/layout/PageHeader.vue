@@ -1,13 +1,20 @@
 <!--
   @overview
   file: web/src/components/layout/PageHeader.vue
-  category: frontend-component
+  category: frontend-component / layout
   tech: Vue 3 + TypeScript
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props
-  data_flow: 状态输入 -> 组件渲染(UI 组件)
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 路径特征: web/src/components/layout/PageHeader.vue
+  summary: 页面头部组件，负责显示页面标题、可选副标题与图标，作为页面布局的轻量化标题栏。
+
+  Data pipeline (conceptual):
+  - 输入: 通过 `props` 接收 `title`, `subtitle`, `icon`
+  - 处理: 简单渲染，无网络或复杂计算
+  - 输出: 纯展示层供父组件布局使用
+
+  Complexity & notes:
+  - 运行时成本为 O(1)。若在父组件中大量重复渲染（批量列表场景），应避免不必要的 prop 变化以减少重渲染
+
+  Recommendations:
+  - 若需要国际化或可访问性增强，建议在父组件层注入 i18n 文本并补充 ARIA 属性
 -->
 <script setup lang="ts">
 import { h } from 'vue'

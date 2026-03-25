@@ -1,13 +1,18 @@
 <!--
-  @overview
-  file: web/src/components/download/PoemIndexDownloadSection.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 本地缓存（IndexedDB）；组件事件
-  data_flow: props 输入 -> 组件渲染(NCard, NAlert, NProgress) -> emit 回传
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: loadStats, downloadAll；主渲染组件: NCard, NAlert, NProgress, NSpace
+  文件: web/src/components/download/PoemIndexDownloadSection.vue
+  说明: 提供诗词搜索索引（按前缀分块）下载与进度展示，索引用于离线快速检索诗词摘要。
+
+  数据管线:
+    - 使用 `usePoemIndexManifest()` 获取前缀分块映射（prefixMap），并基于该映射逐个加载索引分块到本地缓存。
+    - 为适配 `chunkLoader.loadChunks`（接收 number[]），代码将前缀映射为数字索引进行批量下载与缓存标记。
+
+  复杂度:
+    - 下载与写入成本随分块数量增长为 O(t)，t = 前缀分块数；索引查询一旦加载可近似 O(1) 查找。
+
+  风险与建议:
+    - 前缀到索引的映射在客户端构造时需保证稳定性，否则可能导致重复下载或错位写入。
+    - 索引体积大时应考虑增量加载/按需加载并配合倒排索引减少内存占用。
+    - 解析/写入索引时建议使用批量事务或 Web Worker 避免阻塞 UI。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'

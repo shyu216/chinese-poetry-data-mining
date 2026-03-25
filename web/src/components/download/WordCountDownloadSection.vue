@@ -1,13 +1,16 @@
 <!--
-  @overview
-  file: web/src/components/download/WordCountDownloadSection.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 本地缓存（IndexedDB）；组件事件
-  data_flow: props 输入 -> 组件渲染(NCard, NAlert, NProgress) -> emit 回传
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: loadStats, downloadAll；主渲染组件: NCard, NAlert, NProgress, NSpace
+  文件: web/src/components/download/WordCountDownloadSection.vue
+  说明: 提供词频数据分片下载与进度展示，使用 chunkLoader 将未缓存分片逐个拉取并写入本地缓存（IndexedDB）。
+
+  数据管线:
+    - 读取分片元数据 -> 查询本地 metadata -> 计算未缓存分片 -> 使用 chunkLoader 下载并回写本地缓存。
+
+  复杂度:
+    - 状态计算为 O(1)，下载/写入成本为 O(t)，t = 待下载分片数；合并/索引成本视写入实现而定。
+
+  注意事项:
+    - 需要限制并发请求、实现重试与断点续传策略；大量写入 IndexedDB 时应使用批量事务以提高性能。
+    - 下载与解析过程应避免阻塞主线程（可使用 Web Worker）。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'

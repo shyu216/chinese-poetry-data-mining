@@ -1,13 +1,15 @@
 <!--
-  @overview
-  file: web/src/views/DataView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 组合式状态与组件内部状态
-  data_flow: 状态输入 -> 组件渲染(PageHeader, NTabs, NTabPane) -> 路由联动
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 主渲染组件: PageHeader, NTabs, NTabPane, DataOverviewView
+  文件: web/src/views/DataView.vue
+  说明: 数据管理页的容器视图，提供数据总览、下载与存储详情三个子页的路由与选项卡同步。
+
+  数据管线:
+    - 该视图本身不直接操作数据，而是作为容器协调 `DataOverviewView`, `DataDownloadView`, `DataStorageView` 三个子视图的数据加载与交互。
+
+  复杂度:
+    - 主要为路由与 UI 控制逻辑，复杂度为常数 O(1)，具体数据操作由子视图决定。
+
+  注意:
+    - 选项卡与路由之间的双向同步需避免无限路由更新循环（当前通过 computed getter/setter 实现）。
 -->
 <script setup lang="ts">
 import { computed } from 'vue'

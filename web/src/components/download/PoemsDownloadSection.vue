@@ -1,13 +1,16 @@
 <!--
-  @overview
-  file: web/src/components/download/PoemsDownloadSection.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 本地缓存（IndexedDB）；组件事件
-  data_flow: props 输入 -> 组件渲染(NCard, NAlert, NProgress) -> emit 回传
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: loadStats, downloadAll；主渲染组件: NCard, NAlert, NProgress, NSpace
+  文件: web/src/components/download/PoemsDownloadSection.vue
+  说明: 提供诗词摘要分片下载与进度展示，支持一次性下载所有摘要分片到本地缓存以实现离线浏览。
+
+  数据管线:
+    - 读取诗词元数据（分片数）-> 读取本地 metadata -> 计算未缓存分片 -> 使用 chunkLoader 下载并写入缓存。
+
+  复杂度:
+    - UI 状态为 O(1)，下载/写入成本为 O(t)，t = 待下载的分片数；合并/索引成本依赖写入实现。
+
+  注意事项:
+    - 大量写入 IndexedDB 可能导致性能问题，应采用批量事务或分批写入并结合并发限制与重试策略。
+    - 下载过程应可取消并提供错误反馈与重试机制。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'

@@ -1,13 +1,18 @@
 /**
- * @overview
- * file: web/src/composables/useVerifiedCache.ts
- * category: pipeline
- * tech: Vue 3 + TypeScript + IndexedDB
- * solved: 封装数据加载与状态编排（关键函数：getManifest, clearManifestCache, getFileHash）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: clearManifestCache, useVerifiedCache；关键函数: getManifest, clearManifestCache, getFileHash, isFileUpdated
+ * 文件: web/src/composables/useVerifiedCache.ts
+ * 说明: 提供带 Hash 验证的缓存访问层，基于 `hash-manifest.json` 验证静态数据文件是否发生变化，并读写 IndexedDB 缓存。
+ *
+ * 数据管线:
+ *   - 读取或请求 `hash-manifest.json`（通过 `getManifest` 缓存 manifest）以获取每个数据文件的 hash。
+ *   - 在读取分片或静态文件时，比较本地缓存的 fileHash 与 manifest 中的 hash，从而决定是否使用缓存或重新加载并写回缓存。
+ *
+ * 复杂度:
+ *   - manifest 读取为 O(1)（一次请求并缓存），单个分片的缓存检查为 O(1)；加载与解析成本依赖 loader 的实现。
+ *
+ * 优点与注意:
+ *   - 使用 manifest 可以安全地在客户端缓存大文件并通过 hash 保证一致性，避免不必要的重复下载。
+ *   - 当 manifest 不可用时降级为无验证模式（仍会尝试使用本地缓存或直接加载）。
+ *   - 在高更新频率场景下，需要考虑 manifest 缓存失效策略与热更新机制（`clearManifestCache`）。
  */
 /**
  * 带 Hash 验证的缓存组合式函数

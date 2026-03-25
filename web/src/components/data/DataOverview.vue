@@ -3,12 +3,21 @@
   file: web/src/components/data/DataOverview.vue
   category: frontend-component
   tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 本地缓存（IndexedDB）；父组件 props；组件事件
-  data_flow: props 输入 -> 组件渲染(NSpin, NSpace, NGrid) -> emit 回传
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: loadStats, handleClearCache；主渲染组件: NSpin, NSpace, NGrid, NGridItem
--->
+  summary: 数据概览面板，聚合展示 poems/authors/wordcount/keyword/wordsim 等各类索引与缓存统计，并提供清理与刷新操作。
+
+  Data pipeline:
+  - 通过 `useMetadataLoader` 获取各类 metadata
+  - 读取 IndexedDB 缓存元数据并聚合为可视化条形图与统计数字
+  - 暴露操作（clearStorage 等）供上层调用
+
+  Complexity & notes:
+  - 聚合统计的读取通常为 O(number_of_index_types + total_cached_chunks)
+  - 使用 computed/分页来限制一次性处理的数据量可改善性能
+
+  Recommendations:
+  - 在读取多个大型元数据时使用并行但受限的请求，避免同时触发大量网络或磁盘 I/O
+  - 对耗时操作显示明确 loading 状态并允许用户取消或降级视图
+ -->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import {

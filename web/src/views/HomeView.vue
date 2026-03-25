@@ -1,13 +1,16 @@
 <!--
-  @overview
-  file: web/src/views/HomeView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 组合式状态与组件内部状态
-  data_flow: 状态输入 -> 组件渲染(AnimatedStatCard, RandomPoemCard) -> 路由联动
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 关键函数: loadAllData；主渲染组件: AnimatedStatCard, RandomPoemCard
+  文件: web/src/views/HomeView.vue
+  说明: 应用首页，负责展示汇总统计（AnimatedStatCard）、随机诗推荐与元数据加载的启动入口视图。
+
+  数据管线:
+    - 启动: 页面挂载时调用各 composable（`usePoemsV2`, `useAuthorsV2`, `useWordSimilarityV2`）加载必要的元数据。
+    - 展示: 使用组合式数据驱动统计卡与随机诗卡展示，部分数据通过缓存读取以加速首屏。
+
+  复杂度:
+    - 元数据加载为若干常数次网络/缓存调用（O(1) 次），统计展示为常数渲染成本；具体复杂度由底层 composable 决定。
+
+  注意事项:
+    - 首页启动阶段可能并行触发多项元数据加载，应控制并发与提供可取消或降级策略以提升稳定性。
 -->
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'

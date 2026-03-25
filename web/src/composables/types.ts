@@ -1,13 +1,24 @@
 /**
  * @overview
  * file: web/src/composables/types.ts
- * category: pipeline
+ * category: types
  * tech: TypeScript
- * solved: 封装数据加载与状态编排（关键函数：load/query/update）
- * data_source: 组合式状态与组件内部状态
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
- * unique: 核心导出: PoemSummary, PoemDetail, PoemFilter
+ * summary: 全局 TypeScript 接口与类型定义，供 composables、views 和组件共享。
+ *
+ * Data pipeline (概念性):
+ *  - 此文件仅声明类型，不直接执行数据加载或网络请求。
+ *  - 其他模块遵循这些类型进行数据解析、缓存与展示（例如：poem/chunk 元数据、作者统计、词频、相似词）
+ *
+ * Complexity & cost:
+ *  - 类型声明本身无运行时开销；但对应的运行时数据结构（数组、映射）在使用时会产生 O(n) 的遍历/筛选成本。
+ *  - 设计良好的索引（Map/前缀分片）可把常见查询从 O(n) 降到 O(1)~O(log n)。
+ *
+ * Exports / responsibilities:
+ *  - 导出诗词、作者、词频、相似词、检索返回等核心类型，作为项目的契约（PoemSummary, PoemDetail, PoemsIndex, AuthorStats, WordCountMeta 等）。
+ *
+ * Potential issues & recommendations:
+ *  - 保持类型与后端/构建产物（预处理脚本生成的 JSON/FlatBuffers）同步，避免运行时断言失败。
+ *  - 避免在类型文件中引入大量运行时代码或循环依赖；将实用函数放在单独模块中。
  */
 export interface PoemSummary {
   id: string

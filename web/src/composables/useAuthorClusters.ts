@@ -1,18 +1,30 @@
 /**
  * @overview
  * file: web/src/composables/useAuthorClusters.ts
- * category: pipeline
+ * category: pipeline / composable
  * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：loadClusters, getCluster, useAuthorClusters）
- * data_source: public/data 静态分块文件
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
- * unique: 核心导出: useAuthorClusters；关键函数: loadClusters, getCluster, useAuthorClusters
- */
-/**
- * useAuthorClusters - 诗人流派数据管理
- * 
- * 加载聚类分析数据并转换为可视化组件需要的格式
+ * summary: 管理并加载诗人流派（聚类）数据，提供给可视化组件与视图使用。
+ *
+ * Data pipeline:
+ *  - 输入: 无需外部参数（默认从 `public/data/author_clusters` 加载固定 JSON 文件）
+ *  - 读取: 并行 fetch 两个 JSON 文件（analysis_spectral.json, clusters_data.json）
+ *  - 验证/解析: 解析 JSON -> 归一化为内部类型 (`clustersData`, `authorsData`)
+ *  - 输出: 暴露响应式状态与帮助函数（`loadClusters`, `getClusterColor`, `getClusterName`, `calculateClusterCenter`）供组件消费
+ *
+ * Complexity:
+ *  - 网络/解析: 单次文件解析为 O(n)（n = 文件内记录数）；两文件并行加载总体仍为 O(n)
+ *  - 查询/过滤: 计算簇中心或筛选作者为 O(a)（a = 作者数量）
+ *  - 排序（若使用）为 O(a log a)
+ *  - 空间: 内存占用近似 O(a + k)（a = 作者数, k = 聚类数）
+ *
+ * Exports / responsibilities:
+ *  - `useAuthorClusters()` -> 提供 `loadClusters()`, `clustersData`, `authorsData`, `loading`, `error`, `calculateClusterCenter`, `getClusterColor`, `getClusterName`
+ *
+ * Potential issues & recommendations:
+ *  - 大文件风险: 作者列表较大时 JSON 解析可能阻塞主线程。建议将解析或大型聚合移动到 Web Worker 或使用分块/流式解析。
+ *  - 可用性: getClusterName 依赖文件内字段，缺失字段需有良好回退（已提供基础回退）。
+ *  - 网络鲁棒性: 建议添加重试、超时与后备降级（例如仅加载小型摘要）。
+ *  - 渲染性能: 在列表或可视化中渲染大量作者时使用虚拟列表或分层渲染以避免 DOM 爆炸。
  */
 
 import { ref, computed } from 'vue'

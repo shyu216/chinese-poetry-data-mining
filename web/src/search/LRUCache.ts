@@ -1,17 +1,21 @@
 /**
  * @overview
  * file: web/src/search/LRUCache.ts
- * category: algorithm
- * tech: TypeScript + IndexedDB
- * solved: 实现检索与索引策略（核心导出：LRUCache）
- * data_source: 组合式状态与组件内部状态
- * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
- * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: LRUCache
- */
-/**
- * LRU 内存缓存
- * 用于缓存搜索结果和频繁访问的数据
+ * category: utility / cache
+ * tech: TypeScript
+ * summary: 简单的内存 LRU 缓存实现，支持最大容量与可选 TTL，用于缓存搜索结果与中间计算结果。
+ *
+ * Data pipeline (conceptual):
+ *  - put/get 操作维护 Map 中的条目与访问时间
+ *  - 当容量超过限制时，基于最近最少使用（LRU）策略淘汰最旧条目
+ *
+ * Complexity & notes:
+ *  - get/set 的查找为 O(1)（基于 Map），但当前实现的淘汰算法为 O(n)（扫描寻找最旧），适用于中小容量
+ *  - 若需要在高并发或大容量场景中使用，建议改用双向链表 + 哈希表实现以实现 O(1) 淘汰
+ *
+ * Potential issues & recommendations:
+ *  - 当前实现的 evictLRU 在缓存很大时为 O(n)，可替换为更高效的数据结构
+ *  - 为持久化缓存或跨会话缓存，可结合 IndexedDB，但需处理序列化与 TTL
  */
 
 interface CacheEntry<T> {

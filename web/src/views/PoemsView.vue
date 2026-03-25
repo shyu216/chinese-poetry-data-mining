@@ -1,13 +1,20 @@
 <!--
-  @overview
-  file: web/src/views/PoemsView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 本地缓存（IndexedDB）
-  data_flow: 状态输入 -> 组件渲染(PageHeader, NGrid, NGridItem) -> 路由联动
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: performSearch, loadData, runNetworkChunkLoad, goToPoemDetail；主渲染组件: PageHeader, NGrid, NGridItem, StatsCard
+  文件: web/src/views/PoemsView.vue
+  说明: 诗词列表页，支持按朝代/体裁筛选、搜索与按块（chunk）加载诗文摘要以支持大规模数据集的渐进加载。
+
+  数据管线:
+    - 元数据: 使用 `usePoemsV2().loadMetadata()` 获取分片信息与统计。
+    - 分片加载: `useChunkLoader` 按需加载诗文摘要分片并缓存在 IndexedDB 或内存中，`loadedPoems` 维护当前已加载条目。
+    - 搜索: `usePoemSearch` 提供全文/倒排索引搜索，优先使用索引返回结果并补充分片数据。
+
+  复杂度:
+    - 渲染为 O(k)（k = 当前页或已加载条数）；分片加载为 O(t)，t = 已请求分片数；全量聚合/统计为 O(n)。
+    - 空间: 客户端缓存分片会使空间逐渐增长到 O(n)，取决于已加载的分片数量。
+
+  风险与优化建议:
+    - 大量分片解析应避免在主线程执行，建议使用 Web Worker 或流式解析减少 UI 阻塞。
+    - 渲染长列表应配合虚拟滚动以降低 DOM 压力。
+    - 并发下载控制、后端分页与断点续传机制能提升稳定性。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, shallowRef } from 'vue'

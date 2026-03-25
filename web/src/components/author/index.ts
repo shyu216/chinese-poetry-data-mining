@@ -1,13 +1,16 @@
 /**
- * @overview
- * file: web/src/components/author/index.ts
- * category: frontend-component
- * tech: TypeScript
- * solved: 提供可复用展示组件与局部交互单元
- * data_source: 组合式状态与组件内部状态
- * data_flow: 状态输入 -> 组件渲染(UI 组件)
- * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
- * unique: 路径特征: web/src/components/author/index.ts
+ * 文件: web/src/components/author/index.ts
+ * 说明: author 组件目录的导出入口，统一对外暴露 `AuthorCard`、`AuthorList` 与 `AuthorClusterViz` 及相关类型。
+ *
+ * 角色与数据流:
+ *   - 仅负责导出/类型组织，不包含业务逻辑或数据请求。
+ *   - 上层页面/容器通过导出组件接入呈现与交互逻辑。
+ *
+ * 复杂度:
+ *   - 常数时间导出模块引用 O(1)，实际渲染复杂度由所引用组件决定（如 `AuthorList` 为 O(n)）。
+ *
+ * 建议/注意事项:
+ *   - 保持导出清单与组件文件同步，避免循环依赖。
  */
 export { default as AuthorCard } from './AuthorCard.vue'
 export { default as AuthorList } from './AuthorList.vue'

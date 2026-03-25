@@ -1,13 +1,24 @@
 /**
- * @overview
- * file: web/src/composables/useWordSimilarityV2.ts
- * category: pipeline
- * tech: Vue 3 + TypeScript + FlatBuffers
- * solved: 封装数据加载与状态编排（关键函数：computeVocabHash, initLoadedChunkIds, useWordSimilarityV2）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
- * unique: 核心导出: useWordSimilarityV2；关键函数: computeVocabHash, initLoadedChunkIds, useWordSimilarityV2, loadVocab
+ * 文件: web/src/composables/useWordSimilarityV2.ts
+ * 说明: 管理词相似度数据的加载、缓存、验证与访问接口，基于 FlatBuffers 格式存储分片数据并提供按需加载能力。
+ *
+ * 数据管线:
+ *   - 元数据读取: 通过 `useWordSimilarityMetadata` 获取 vocab 大小与分片信息。
+ *   - 缓存验证: 使用 `getValidatedMetadata` 与 `computeVocabHash` 验证本地 IndexedDB 缓存一致性。
+ *   - 分片加载: 使用 `getVerifiedChunk` / FlatBuffers 解析器读取分片并转换为内存友好的结构（Map/数组）。
+ *   - 索引构建: 构建 `vocabCache`, `vocabReverseCache` 与 `wordToChunkMap`，供查询与相似词计算使用。
+ *
+ * 复杂度:
+ *   - 单词查找/映射为 O(1)（Map），构建映射或遍历词表为 O(n)，加载单个分片为 O(c)（c=分片内元素数）。
+ *   - 空间: 客户端缓存词表与分片导致空间复杂度为 O(n)（n = 词汇总量，或已缓存条目数）。
+ *
+ * 关键技术/“黑科技”:
+ *   - FlatBuffers: 二进制快速访问，减少 JSON 解析开销与内存复制。
+ *   - 验证与版本控制: `getValidatedMetadata` 与 `computeVocabHash` 用于防止缓存不一致。
+ *
+ * 潜在问题/建议:
+ *   - 虽然 FlatBuffers 减少了解析成本，但分片解析仍在主线程执行，面对大型分片应使用 Web Worker 或流式解析以避免 UI 卡顿。
+ *   - 缓存元数据与分片不一致时需要健壮的回退/修复策略（当前实现有 autoClean，但需监控边缘情况）。
  */
 import { ref, computed, type Ref } from 'vue'
 import * as flatbuffers from 'flatbuffers'

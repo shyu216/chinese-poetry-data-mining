@@ -1,13 +1,16 @@
 <!--
-  @overview
-  file: web/src/components/download/AuthorsDownloadSection.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 本地缓存（IndexedDB）；组件事件
-  data_flow: props 输入 -> 组件渲染(NCard, NAlert, NProgress) -> emit 回传
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: loadStats, downloadAll；主渲染组件: NCard, NAlert, NProgress, NSpace
+  文件: web/src/components/download/AuthorsDownloadSection.vue
+  说明: 提供诗人数据分片下载与进度展示，使用 chunkLoader 将未缓存分片逐个拉取并入库（IndexedDB）。
+
+  数据管线:
+    - 读取元数据（分片总数）-> 查询本地 metadata 已缓存分片 -> 计算未缓存分片列表 -> 使用 chunkLoader 下载并回写本地缓存。
+
+  复杂度:
+    - 状态计算为 O(1)，下载与写入成本为 O(t)，t = 待下载分片数；合并/索引成本依赖后端或写入逻辑。
+
+  注意事项:
+    - 下载时应限制并发与处理失败重试；大量写入 IndexedDB 需要考虑事务与批量写入以提升性能。
+    - UI 仅展示下载进度，未包含网络错误自动重试或断点续传策略。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'

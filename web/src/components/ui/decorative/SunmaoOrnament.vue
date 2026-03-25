@@ -1,13 +1,20 @@
 <!--
   @overview
   file: web/src/components/ui/decorative/SunmaoOrnament.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props
-  data_flow: 状态输入 -> 组件渲染(UI 组件)
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 关键函数: getJointXY, getBeamH, getBeamV, getBeamHTransform
+  category: frontend-component / decorative
+  tech: Vue 3 + TypeScript + SVG
+  summary: 装饰性 SVG 元素组件，用于页面角落的装饰（可配置位置、尺寸与动画延迟）。
+
+  Data pipeline (conceptual):
+  - 输入: 通过 props 指定位置、大小与动画延迟
+  - 处理: 计算 SVG 各部位的坐标与动画位移，不访问网络或持久化
+  - 输出: 纯表现层元素，增强页面视觉效果
+
+  Complexity & notes:
+  - 完全为渲染与动画层，运行时复杂度为 O(1)。在大量实例化场景下请注意动画对渲染性能的影响
+
+  Recommendations:
+  - 对重复性的装饰组件使用 CSS 动画或减少复杂 SVG 元素以降低渲染开销
 -->
 <script setup lang="ts">
 import { onMounted } from 'vue'

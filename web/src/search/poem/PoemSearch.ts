@@ -1,22 +1,22 @@
 /**
  * @overview
  * file: web/src/search/poem/PoemSearch.ts
- * category: algorithm
+ * category: search / algorithm
  * tech: TypeScript
- * solved: 实现检索与索引策略（核心导出：poemSearch, PoemSearchResult, PoemSearchOptions）
- * data_source: public/data 静态分块文件
- * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
- * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
- * unique: 核心导出: poemSearch, PoemSearchResult, PoemSearchOptions
- */
-/**
- * PoemSearch - 诗词搜索模块
- * 
- * 职责：
- * 1. 加载 keyword_index 构建倒排索引
- * 2. 缓存诗词摘要数据用于搜索展示
- * 3. 支持关键词、标题、作者、朝代、体裁搜索
- * 4. LRU 缓存搜索结果
+ * summary: 诗词搜索模块，基于倒排关键词索引与若干辅助索引（作者/朝代/体裁）实现高效检索。
+ *
+ * Data pipeline:
+ *  - 索引加载: 并行加载 `keyword_index` 分片与 poem manifest，并合并到内存的倒排索引
+ *  - 辅助索引: 构建 author/dynasty/genre 索引以优化过滤查询
+ *  - 查询: 优先使用倒排索引（O(1)）或最小辅助索引集合做交集操作，最后按需加载诗词摘要返回结果
+ *
+ * Complexity & cost:
+ *  - 倒排索引查找为 O(1)；交集/过滤依赖于候选集大小，最坏为 O(n)
+ *  - 加载所有索引分片和构建内存结构为 O(total_index_size)
+ *
+ * Potential issues & recommendations:
+ *  - 合并大量 index 分片会占用内存并可能阻塞主线程，建议使用 Worker 或逐步加载并保持可序列化的持久化缓存
+ *  - 为长列表结果使用分页/流式返回，避免一次性将过多详细记录加载到内存
  */
 
 import { LRUCache } from '../LRUCache'

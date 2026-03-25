@@ -1,22 +1,28 @@
 /**
  * @overview
  * file: web/src/search/word/WordSearch.ts
- * category: algorithm
+ * category: search / algorithm
  * tech: TypeScript
- * solved: 实现检索与索引策略（核心导出：wordSearch, WordSearchResult, WordSearchOptions）
- * data_source: public/data 静态分块文件
- * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
- * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
- * unique: 核心导出: wordSearch, WordSearchResult, WordSearchOptions
- */
-/**
- * WordSearch - 词汇搜索模块
+ * summary: 基于本地词频词典实现的词汇检索模块，提供按词、按长度及按频次的查询与缓存。
  *
- * 职责：
- * 1. 从 wordcount_v2 加载词频数据
- * 2. 构建词汇索引（支持按词长度、频次筛选）
- * 3. 支持词汇搜索、相似词查找
- * 4. LRU 缓存搜索结果
+ * Data pipeline:
+ *  - 元数据读取: 读取 `data/wordcount_v2/meta.json` 以了解 chunk 分片
+ *  - 分片加载: 逐个加载 `data/wordcount_v2/chunk_####.json`（默认加载少量高频 chunk 作为热数据）
+ *  - 索引构建: 在内存中构建 Map/长度索引与按频次排序的列表
+ *  - 查询: 通过内存索引/模糊搜索/缓存返回结果
+ *
+ * Complexity & cost:
+ *  - 单个 chunk 加载/解析为 O(p)，p = chunk 大小
+ *  - 精确匹配查找为 O(1)，模糊搜索或全量扫描为 O(total_words)
+ *  - 空间: 在内存中保存加载的词条为 O(loaded_words)
+ *
+ * Exports / responsibilities:
+ *  - 单例 `wordSearch` 提供 `initialize()`, `search()`, `searchByLength()`, `getTopWords()` 等方法
+ *
+ * Potential issues & recommendations:
+ *  - 主线程解析大型 chunk 会阻塞渲染；建议将初次索引构建或批量解析移到 Web Worker
+ *  - 内存占用：避免一次性加载所有 chunk，采用按需加载或 LRU 策略
+ *  - 模糊搜索成本高，可考虑构建小型倒排或 n-gram 索引以加速常见查询
  */
 
 import { LRUCache } from '../LRUCache'

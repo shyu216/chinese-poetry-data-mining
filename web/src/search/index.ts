@@ -1,38 +1,16 @@
 /**
  * @overview
  * file: web/src/search/index.ts
- * category: algorithm
+ * category: search
  * tech: TypeScript
- * solved: 实现检索与索引策略（核心导出：search api）
- * data_source: 组合式状态与组件内部状态
- * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
- * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
- * unique: 路径特征: web/src/search/index.ts
- */
-/**
- * Search Modules - 统一搜索模块入口
+ * summary: 项目统一的搜索模块出口，聚合并导出 PoemSearch/AuthorSearch/WordSearch 与相关 composable。
  *
- * 提供三个独立的搜索模块：
- * - PoemSearch: 诗词搜索（关键词、标题、作者、朝代、体裁）
- * - AuthorSearch: 作者搜索（作者名、朝代）
- * - WordSearch: 词汇搜索（词汇、词长度、频次）
+ * Responsibilities:
+ *  - 提供组件层友好的入口（usePoemSearch/useAuthorSearch/useWordSearch），隐藏单例初始化细节
+ *  - 导出基础工具如 `LRUCache` 以供搜索模块使用
  *
- * 使用示例:
- * ```ts
- * import { usePoemSearch, useAuthorSearch, useWordSearch } from '@/search'
- *
- * // 诗词搜索
- * const { search: searchPoems, isReady: poemSearchReady } = usePoemSearch()
- * const result = await searchPoems('李白', { limit: 10, filters: { dynasty: '唐' } })
- *
- * // 作者搜索
- * const { search: searchAuthors, isReady: authorSearchReady } = useAuthorSearch()
- * const authors = await searchAuthors('杜甫')
- *
- * // 词汇搜索
- * const { search: searchWords, isReady: wordSearchReady } = useWordSearch()
- * const words = await searchWords('明月', { filters: { minLength: 2 } })
- * ```
+ * Recommendations:
+ *  - 在应用启动或路由守卫中预热关键索引以改善首屏搜索体验
  */
 
 // 导出各个搜索模块

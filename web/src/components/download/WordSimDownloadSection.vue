@@ -1,13 +1,19 @@
 <!--
-  @overview
-  file: web/src/components/download/WordSimDownloadSection.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 本地缓存（IndexedDB）；组件事件
-  data_flow: props 输入 -> 组件渲染(NCard, NAlert, NProgress) -> emit 回传
-  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
-  unique: 关键函数: loadStats, downloadAll；主渲染组件: NCard, NAlert, NProgress, NSpace
+  文件: web/src/components/download/WordSimDownloadSection.vue
+  说明: 提供词向量/相似度相关数据下载逻辑，展示已缓存分片与下载进度，并支持一次性拉取全部分片。
+
+  数据管线:
+    - 元数据读取: 通过 `useWordSimilarityMetadata()` 获取分片总数与词表规模。
+    - 缓存检测: 尝试读取 IndexedDB/缓存中已存在的词表与分片信息（`getCache`, `getMetadata`）。
+    - 分片下载: 使用 `useChunkLoader.loadChunks` 按需下载未缓存的 chunk，并在回调中进行入库或合并。
+
+  复杂度:
+    - 计算/展示统计为 O(1)，下载与合并成本为 O(t)（t = 未下载的 chunk 数），词表合并为 O(n)（n = 词汇量）。
+
+  风险与改进:
+    - 词表体积大时一次性合并与 JSON.parse 会阻塞主线程，应使用流式解析或 Web Worker。
+    - 下载过程需限制并发与支持重试、断点恢复，以应对网络波动。
+    - 导出/下载大文件时应支持后端生成或分块打包，避免浏览器内存耗尽。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'

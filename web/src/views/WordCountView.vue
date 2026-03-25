@@ -1,13 +1,25 @@
 <!--
-  @overview
-  file: web/src/views/WordCountView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 本地缓存（IndexedDB）
-  data_flow: 状态输入 -> 组件渲染(PageHeader, NGrid, NGridItem) -> 路由联动
-  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
-  unique: 关键函数: performSearch, loadData, runWordcountNetworkLoad, handleSearch；主渲染组件: PageHeader, NGrid, NGridItem, StatsCard
+  文件: web/src/views/WordCountView.vue
+  说明: 词频页面，展示词频统计、词云与相似词功能；使用按块加载（chunked loading）与本地缓存（IndexedDB）来处理大规模词表数据。
+
+  数据管线:
+    - 元数据: 通过 `useWordcountMetadata` / `useWordSimilarityMetadata` 获取索引与分片信息。
+    - 分块加载: 使用 `useChunkLoader` 按需请求 chunk（分片），并将已下载分片缓存在 IndexedDB/Cache（`getCache` / `getVerifiedChunkedCache`）。
+    - 搜索/相似度: `useWordSearch` 提供快速检索，`useWordSimilarityV2` 提供相似词数据，二者配合按需加载词表分片。
+
+  复杂度:
+    - 单次页面展示/搜索主要受已加载项 k 影响，为 O(k)；全量扫描或聚合会随已加载词数增长为 O(n)。
+    - 分片数量 t 决定网络与 I/O 成本，总体空间为 O(n)（所有 chunk 累计）。
+
+  使用技术/要点:
+    - 按块（chunk）分发与本地缓存减少首屏与内存压力，同时允许渐进加载较大数据集。
+    - 组合式 composables 将元数据、缓存和 chunk loader 解耦，便于测试与复用。
+
+  潜在问题/改进建议:
+    - Chunk 解析/JSON.parse 在主线程可能阻塞，建议将解析移到 Web Worker。
+    - 并发下载过多 chunk 会造成网络拥塞，应限制并发数并实现断点续传/重试。
+    - 索引搜索若依赖全量内存索引会占用大量内存，建议采用磁盘索引或倒排索引分片加载策略。
+    - UI 未明显使用虚拟列表，长列表渲染可能造成 DOM 性能问题。
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, shallowRef } from 'vue'

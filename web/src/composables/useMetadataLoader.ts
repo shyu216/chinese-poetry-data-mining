@@ -1,13 +1,28 @@
 /**
  * @overview
  * file: web/src/composables/useMetadataLoader.ts
- * category: pipeline
+ * category: pipeline / metadata
  * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：getOrCreateStates, loadMetadata, clearMetadata）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: useMetadataLoader, usePoemsMetadata, useAuthorsMetadata；关键函数: getOrCreateStates, loadMetadata, clearMetadata, usePoemsMetadata
+ * summary: 通用的 metadata 加载器，按类型（poems/authors/wordcount/wordSimilarity/poemIndex）管理元数据的验证、缓存与暴露。
+ *
+ * Data pipeline:
+ *  - 输入: metadata type（'poems'|'authors'|...）
+ *  - 读取: 优先使用 `getVerifiedCache`（基于 manifest/hash 验证的缓存），回退到普通 IndexedDB 缓存，最后 fetch 远端 JSON
+ *  - 解析: JSON -> 类型断言 -> 写回内存缓存（`metadataCache`）
+ *  - 输出: `metadata` computed、`loading`、`error`、`loadMetadata()`、`clearMetadata()` 用于其他 composables 使用
+ *
+ * Complexity & cost:
+ *  - 缓存命中为 O(1)。首次下载/解析成本为 O(n)（n = 元数据条目数）。
+ *  - 主要空间占用取决于元数据大小（通常远小于完整数据集），在内存中为 O(m)
+ *
+ * Exports / responsibilities:
+ *  - `useMetadataLoader<T>(type)` -> `metadata`, `loading`, `error`, `loadMetadata`, `clearMetadata`
+ *  - 具体快捷函数：`usePoemsMetadata()`, `useAuthorsMetadata()`, `useWordcountMetadata()`, `useWordSimilarityMetadata()`, `usePoemIndexManifest()`
+ *
+ * Potential issues & recommendations:
+ *  - 网络鲁棒性：建议在 `fetch` 中添加超时与有限重试策略，避免在不稳定网络下阻塞 UI。
+ *  - 大文件解析：若元数据变得非常大（过多前缀映射或统计），考虑分块元数据或只加载摘要到内存。
+ *  - 并发控制：多个并发调用 `loadMetadata` 应复用同一请求（当前实现通过 `getVerifiedCache` 可部分缓解）。
  */
 import { ref, shallowRef, computed, type Ref, type ShallowRef } from 'vue'
 import type {

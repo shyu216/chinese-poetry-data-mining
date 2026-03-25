@@ -1,13 +1,25 @@
 /**
  * @overview
  * file: web/src/composables/useLoading.ts
- * category: pipeline
+ * category: utility / ui-state
  * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：getRandomDescription, calculateProgress, useLoading）
- * data_source: 组合式状态与组件内部状态
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
- * unique: 核心导出: useLoading, resetLoading, LoadingKey；关键函数: getRandomDescription, calculateProgress, useLoading, resetLoading
+ * summary: 提供统一的加载/进度状态管理（包含阶段、模式、进度与易用文案），用于页面与长期任务的用户提示。
+ *
+ * Data pipeline (conceptual):
+ *  - 输入: 各视图或服务调用 startBlocking/startNonBlocking/update 等方法
+ *  - 处理: 根据阶段选择文案、计算进度百分比、维护全局单例状态
+ *  - 输出: 只读 `state`、计算属性（`isLoading`, `progressPercent`）以及控制方法
+ *
+ * Complexity & cost:
+ *  - 纯粹的 UI 状态管理，运行时开销为 O(1)；仅在更新状态时触发响应式依赖更新
+ *
+ * Exports / responsibilities:
+ *  - `useLoading()` 返回单例 `UseUnifiedLoadingReturn`，包含 start/update/finish/error 等方法
+ *  - `LoadingKey` 用于注入/提供至组件树
+ *
+ * Potential issues & recommendations:
+ *  - 避免在短时间内频繁更新 progress 导致大量重渲染；对高频更新使用节流。
+ *  - 对于长时间运行的后台任务，提供可取消的执行路径以提升 UX（当前 state 支持 canCancel 标志，但需要业务层实现取消逻辑）。
  */
 import { reactive, readonly, computed } from 'vue'
 import type { InjectionKey, Reactive, ComputedRef } from 'vue'

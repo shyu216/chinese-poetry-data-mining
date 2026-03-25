@@ -3,11 +3,23 @@
   file: web/src/views/AuthorsView.vue
   category: frontend-page
   tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 本地缓存（IndexedDB）
-  data_flow: 状态输入 -> 组件渲染(PageHeader, NGrid, NGridItem) -> 路由联动
-  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
-  unique: 关键函数: performSearch, getTopPoemType, getTypeDistributionData, loadData；主渲染组件: PageHeader, NGrid, NGridItem, StatsCard
+  summary: 作者列表页，负责展示作者统计、分页、搜索与分块加载（使用 `useAuthorsV2`, `useAuthorSearch`, `useChunkLoader` 等 composables）。
+
+  Data pipeline:
+  - 元数据: 使用 `useAuthorsV2().loadMetadata()` 获取 chunk 列表与总数
+  - 分块加载: 通过 `useChunkLoader` 驱动按需或并发加载作者 chunk 到内存（并可写回 IndexedDB 缓存）
+  - 搜索: 当存在查询时使用 `useAuthorSearch()`（倒排/索引）返回分页结果
+  - 展示: 使用 `useShuffle`、聚类可视化与统计卡片组合显示
+
+  Complexity & notes:
+  - 分块加载成本为 O(c * p)（c = 加载的 chunk 数, p = 每 chunk 大小）
+  - 搜索/过滤依赖索引，若落回到全表扫描会成为 O(n)
+  - UI 层渲染成本与分页/虚拟化策略直接相关
+
+  Potential issues & recommendations:
+  - 避免在单次操作中加载大量分块；使用 `useChunkLoader` 的并发限制与进度回调进行背压控制
+  - 对长列表使用虚拟化组件以减少 DOM 节点
+  - 在慢网环境下提供降级视图（只显示摘要）并在后台继续加载详细数据
 -->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'

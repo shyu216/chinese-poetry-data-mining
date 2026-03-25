@@ -1,13 +1,17 @@
 /**
- * @overview
- * file: web/src/composables/useAuthorsV2.ts
- * category: pipeline
- * tech: Vue 3 + TypeScript + FlatBuffers
- * solved: 封装数据加载与状态编排（关键函数：initLoadedAuthorChunkIds, convertWordFreq, convertMeterPattern）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
- * unique: 核心导出: useAuthorsV2；关键函数: initLoadedAuthorChunkIds, convertWordFreq, convertMeterPattern, convertSimilarAuthor
+ * 文件: web/src/composables/useAuthorsV2.ts
+ * 说明: 管理作者相关的 FlatBuffers 分片数据加载与解析，将二进制数据转换为可在 UI 使用的 `AuthorStats` 结构并提供缓存与索引。
+ *
+ * 数据管线:
+ *   - 使用 `getVerifiedChunk` 加载 Author Chunk 的 FlatBuffers 二进制文件（author-chunk-file），并通过生成的访问器解析字段（word frequency、meter patterns、similar authors 等）。
+ *   - 将解析后的数据缓存在内存（`authorsCache`）并记录已加载的 chunk id 到 metadata，以避免重复加载。
+ *
+ * 复杂度:
+ *   - 解析单个作者条目为 O(p)，p = 该作者的子字段集合大小；遍历分片为 O(c)，c = 分片内作者数。
+ *   - 空间: 已加载分片数据使内存按分片线性增长 O(t * c)。
+ *
+ * 性能建议:
+ *   - FlatBuffers 解析相对高效，但如果单个分片包含大量作者，解析过程仍可能阻塞主线程；考虑在 Worker 中解析或减小分片大小。
  */
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import * as flatbuffers from 'flatbuffers'

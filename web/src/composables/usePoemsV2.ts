@@ -1,13 +1,20 @@
 /**
- * @overview
- * file: web/src/composables/usePoemsV2.ts
- * category: pipeline
- * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：initLoadedChunkIds, usePoemsV2, loadChunkSummaries）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
- * unique: 核心导出: usePoemsV2, POEMS_SUMMARY_STORAGE；关键函数: initLoadedChunkIds, usePoemsV2, loadChunkSummaries, loadChunkDetails
+ * 文件: web/src/composables/usePoemsV2.ts
+ * 说明: 管理诗词摘要与详情的分片加载、缓存、索引与暴露查询接口，支持 CSV 分片与 JSON 分片混合存储。
+ *
+ * 数据管线:
+ *   - 元数据: 通过 `usePoemsMetadata` 获取分片数量、统计信息与索引映射（prefixMap）。
+ *   - 摘要加载: `loadChunkSummaries` 读取 CSV 分片（preprocessed/poems_chunk_XXXX.csv），逐行解析并转换为 `PoemSummary`。
+ *   - 详情加载: 通过 `getVerifiedChunk` 读取详情分片并缓存为 `PoemDetail`，并维护 `poemDetailCache` 以便按 id 查找。
+ *   - 缓存验证: 使用 `getValidatedMetadata` 保持已加载分片的元数据一致性（版本校验）。
+ *
+ * 复杂度:
+ *   - 读取单个摘要分片为 O(c)（c = 分片行数），遍历或拼接多分片为 O(t * c)。
+ *   - 空间: 缓存已加载摘要/详情将使内存随已加载量线性增长 O(k)。
+ *
+ * 性能建议:
+ *   - CSV 文本解析会分配大量字符串与数组，面对大型分片应考虑更紧凑的二进制格式或在 Worker 中解析。
+ *   - 对于频繁按 id 访问详情，保持一个轻量索引（id -> chunk_id）可以减少重复网络请求。
  */
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import type {

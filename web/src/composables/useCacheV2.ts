@@ -1,13 +1,18 @@
 /**
- * @overview
- * file: web/src/composables/useCacheV2.ts
- * category: pipeline
- * tech: TypeScript + IndexedDB
- * solved: 封装数据加载与状态编排（关键函数：getDB, makeCacheKey, makeChunkKey）
- * data_source: 本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: getDB, CacheOptions, ChunkCacheOptions；关键函数: getDB, makeCacheKey, makeChunkKey, deleteCache
+ * 文件: web/src/composables/useCacheV2.ts
+ * 说明: 基于 IndexedDB（idb）的通用缓存层，封装键值缓存、分片缓存与元数据存储，用于跨模块持久化静态数据与分片状态。
+ *
+ * 数据管线:
+ *   - 提供 `getCache` / `setCache` 用于普通键值缓存；`getChunkedCache` / `setChunkedCache` 用于按分片存储。
+ *   - 提供 `metadata` 存储以记录已加载分片列表、版本与依赖哈希，用于缓存一致性检查。
+ *
+ * 性能与复杂度:
+ *   - 单次读写为 O(1)（IndexedDB 单键访问）；清理某个 storage 下所有缓存为 O(m)，m = 该 storage 下的条目数（需遍历索引）。
+ *   - 大批量读写时建议使用事务与批处理以减少 IO 开销。
+ *
+ * 注意事项:
+ *   - IndexedDB 在不同浏览器/平台上的性能差异较大，批量写入应做性能测试与分片提交。
+ *   - 元数据版本控制（`version` / `dependencyHash`）用于在数据结构变更时自动清理过期缓存。
  */
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 

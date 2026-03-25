@@ -1,16 +1,16 @@
 /**
  * @overview
  * file: web/src/search/word/index.ts
- * category: algorithm
+ * category: search
  * tech: Vue 3 + TypeScript
- * solved: 实现检索与索引策略（核心导出：useWordSearch）
- * data_source: 组合式状态与组件内部状态
- * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
- * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
- * unique: 核心导出: useWordSearch；关键函数: useWordSearch, search, searchByLength, getTopWords
- */
-/**
- * WordSearch Module - 词汇搜索模块
+ * summary: 词汇搜索模块的统一入口，导出 `wordSearch` 单例与 Vue composable `useWordSearch()`。
+ *
+ * Responsibilities:
+ *  - 封装 `WordSearch` 单例的生命周期（初始化、错误）；为组件提供轻量的 isReady/isLoading/error 包装
+ *  - 将低层的搜索实现暴露为组件友好的 API
+ *
+ * Potential issues & recommendations:
+ *  - 组件不应在渲染路径触发大规模初始化；建议在用户交互或路由守卫中预热索引
  */
 
 export { wordSearch } from './WordSearch'

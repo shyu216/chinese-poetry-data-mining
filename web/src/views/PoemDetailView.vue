@@ -1,13 +1,20 @@
 <!--
-  @overview
-  file: web/src/views/PoemDetailView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 承载页面级交互、筛选、展示与路由联动
-  data_source: 组合式状态与组件内部状态
-  data_flow: 状态输入 -> 组件渲染(PageHeader, NEmpty, NButton) -> 路由联动
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 关键函数: loadPoemData, goBack, goToPoems, goToAuthor；主渲染组件: PageHeader, NEmpty, NButton
+  文件: web/src/views/PoemDetailView.vue
+  说明: 诗词详情页，负责按 `id`（可带 chunk_id）加载单首诗词内容并展示详细信息与相关导航操作。
+
+  数据管线:
+    - 入口: 路由参数 `id` 与可选 `chunk_id` 触发 `usePoemsV2.getPoemById(id, chunkId)`。
+    - 读取: 若提供 chunk_id，则直接从对应分片读取；否则通过索引定位分片后加载并解析分片内容。
+    - 渲染: 成功加载后将 `PoemDetail` 对象填充到页面并展示（复制、跳转关键字/作者等功能）。
+
+  复杂度:
+    - 单首诗加载为常数读取 O(1)（定位并读取单个分片或记录）；若需加载整个分片，其成本为 O(c)（c = 分片大小）。
+    - 页面渲染成本低，主要由诗文句数决定（O(m)，m = 句数）。
+
+  风险/建议:
+    - 若分片较大，单次加载与 JSON 解析会阻塞主线程，建议使用流式解析或 Web Worker。
+    - 当并发访问多首诗时应注意 chunk 加载的并发控制与缓存重用，避免重复下载。
+    - 当前已包含较为详尽的加载阶段日志（console），可扩展为更完整的用户可见错误/重试提示。
 -->
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'

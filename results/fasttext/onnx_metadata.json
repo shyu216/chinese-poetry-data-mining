@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "timestamp": "2026-03-25T18:12:03.876930",
+  "source_model": "results\\fasttext\\poetry.model",
+  "onnx_model": "results\\fasttext\\poetry.onnx",
+  "token_map": "results\\fasttext\\token_to_id.json",
+  "unk_token": "<UNK>",
+  "unk_id": 0,
+  "vocab_size_with_unk": 115256,
+  "vector_size": 100,
+  "opset": 13,
+  "limitations": [
+    "该 ONNX 模型仅支持已分词 token_id 的向量查表。",
+    "不包含 FastText 原始子词 OOV 组合逻辑。"
+  ]
+}

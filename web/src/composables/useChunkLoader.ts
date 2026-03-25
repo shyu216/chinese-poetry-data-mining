@@ -1,13 +1,22 @@
 /**
- * @overview
- * file: web/src/composables/useChunkLoader.ts
- * category: pipeline
- * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：loadAutoLoadSetting, saveAutoLoadSetting, shouldAbort）
- * data_source: 组合式状态与组件内部状态
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS, UseChunkLoaderOptions；关键函数: loadAutoLoadSetting, saveAutoLoadSetting, shouldAbort, waitIfPaused
+ * 文件: web/src/composables/useChunkLoader.ts
+ * 说明: 通用的分片（chunk）加载器，提供并发控制、暂停/恢复、取消以及进度回调功能，用于所有需要按块下载并入本地缓存的数据集。
+ *
+ * 数据管线:
+ *   - 接收待下载的 chunkId 列表与单 chunk 的加载函数 `loadFn`。
+ *   - 使用内部队列与 worker 模式并发执行加载任务，支持 `concurrency`、`chunkDelay` 控制请求速率。
+ *   - 在每个 chunk 加载完成后通过 `onChunkLoaded` 回调将数据回写本地缓存并更新进度。
+ *
+ * 复杂度:
+ *   - 总体为 O(t)（t = 待下载分片数），单个 chunk 加载成本取决于 `loadFn` 的实现（如 JSON/CSV 解析成本）。
+ *
+ * 关键特性:
+ *   - 支持暂停/恢复（`isPaused`）、取消（AbortController）和并发限制。
+ *   - 将下载偏好（autoLoadOnEnter）持久化到 localStorage，便于用户控制自动加载策略。
+ *
+ * 风险与建议:
+ *   - 需要合理设置并发上限与 chunkDelay，避免对服务器造成突发压力或触发限流。
+ *   - 如果 `loadFn` 在主线程进行大量解析，应将解析迁移到 Web Worker，或减少单分片大小以避免 UI 卡顿。
  */
 import { ref, computed, onUnmounted } from 'vue'
 

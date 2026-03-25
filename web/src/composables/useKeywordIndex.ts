@@ -1,13 +1,18 @@
 /**
- * @overview
- * file: web/src/composables/useKeywordIndex.ts
- * category: pipeline
- * tech: Vue 3 + TypeScript
- * solved: 封装数据加载与状态编排（关键函数：initLoadedChunkIds, loadKeywordManifest, useKeywordIndex）
- * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
- * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
- * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
- * unique: 核心导出: useKeywordIndex；关键函数: initLoadedChunkIds, loadKeywordManifest, useKeywordIndex, loadChunk
+ * 文件: web/src/composables/useKeywordIndex.ts
+ * 说明: 管理关键词索引的分片加载、缓存与查询逻辑，优先使用 manifest（前缀/倒排索引）进行 O(1) 查找，若 manifest 缺失则退化为线性扫描。
+ *
+ * 数据管线:
+ *   - 尝试读取 manifest（keyword_manifest.json）以获取分片信息与统计；若可用则按 manifest 定位分片并加载。
+ *   - 使用 `getVerifiedChunk` 与 hash 验证确保分片完整性，并将已加载分片缓存到内存与 IndexedDB。
+ *
+ * 复杂度:
+ *   - 使用 manifest 时查询接近 O(1)；在 manifest 缺失时退化为 O(N) 扫描。
+ *   - 空间: 内存缓存 `keywordCache` 随已加载分片线性增长 O(t * s)，t = 已加载分片数，s = 单片平均大小。
+ *
+ * 风险与建议:
+ *   - 依赖 manifest 的场景较好，但 manifest 缺失时可能导致昂贵的线性扫描，应优先提供 manifest 或服务端查询接口。
+ *   - 大分片 JSON 的解析应避免在主线程阻塞，推荐使用流式解析或 Web Worker。
  */
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import { WORDCOUNT_STORAGE } from './useMetadataLoader'

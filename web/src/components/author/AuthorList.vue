@@ -1,13 +1,25 @@
 <!--
-  @overview
-  file: web/src/components/author/AuthorList.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props；组件事件
-  data_flow: 数据/事件输入 -> 组件渲染(NSpin, NEmpty, NList) -> 事件回传与路由跳转
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 核心导出: AuthorListItem；关键函数: getInitials, goToAuthor, goToDynasty, handleLoadMore；主渲染组件: NSpin, NEmpty, NList, NListItem
+  文件: web/src/components/author/AuthorList.vue
+  说明: 作者列表组件，接收父组件分页/全集作者数据，通过列表渲染卡片项并提供“加载更多”事件。
+
+  数据管线:
+    - 输入: 通过 `props.authors` 接收当前页/当前已加载的作者数组，`props.total` 表示总量。
+    - 处理: 列表渲染（`v-for`），局部计算（`hasMore`），并通过 `emit('loadMore')` 请求更多数据。
+    - 输出: 触发 `loadMore` 事件由父组件处理，请求并追加新数据到 `authors`。
+
+  复杂度:
+    - 渲染为 O(n)（n 为当前 authors.length），每次加载更多会增加渲染成本。
+    - 内存: 客户端持有当前已加载条目，空间复杂度 O(k)，k 为已加载条数。
+
+  关键技术/要点:
+    - 使用 Naive UI 的列表与骨架组件（NList, NSpin, NEmpty）简化加载态与空态处理。
+    - 通过 `encodeURIComponent` 构造路由参数以避免特殊字符问题。
+
+  潜在问题:
+    - 父组件若直接用大数组渲染且无虚拟化，会导致大量 DOM 耗时和内存消耗。
+    - `loadMore` 事件未防抖或幂等控制，重复快速点击可能触发多次请求。
+    - 列表 key 使用 `author.author`，若存在重名会导致渲染复用问题，建议使用稳定唯一 ID。
+    - 无明确错误/空态重试策略，网络失败时用户体验需要补充。
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
