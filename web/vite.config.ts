@@ -64,7 +64,8 @@ export default defineConfig({
       'naive-ui',
       '@vicons/ionicons5',
       'echarts'
-    ]
+    ],
+    exclude: ['onnxruntime-web'] // 构建期不处理 onnxruntime-web，保持运行时加载
   },
   build: {
     rollupOptions: {

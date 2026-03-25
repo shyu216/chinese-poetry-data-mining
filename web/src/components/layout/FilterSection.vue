@@ -1,16 +1,6 @@
 <!--
   @overview
   file: web/src/components/layout/FilterSection.vue
-  category: frontend-component
-  tech: Vue 3 + TypeScript + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props；组件事件
-  data_flow: 状态输入 -> 组件渲染(UI 组件)
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 路径特征: web/src/components/layout/FilterSection.vue
-<!--
-  @overview
-  file: web/src/components/layout/FilterSection.vue
   category: frontend-component / layout
   tech: Vue 3 + TypeScript
   summary: 可复用的筛选区容器，封装筛选控件的布局与基本交互（清空、应用、范围选择等）。
@@ -26,8 +16,13 @@
   Recommendations:
   - 若筛选会触发大规模数据计算，建议在父级对计算操作节流或在 Worker 中执行
 -->
+<script setup lang="ts">
+const props = defineProps<{
+  showClearButton?: boolean
+}>()
+
 const emit = defineEmits<{
-  clear: []
+  (e: 'clear'): void
 }>()
 </script>
 

@@ -73,6 +73,7 @@ const cachedChunksCount = ref(0)
 const totalWords = ref(0)
 const totalChunks = ref(0)
 const lengthFilter = ref<string | null>(null)
+const wordCloudTitle = ref('')
 
 // 词频相似度模块数据
 interface WordSimItem {
@@ -621,6 +622,9 @@ const wordcloudWords = computed(() => {
     }
   }
 
+  const sel = lengthOptions.find(o => o.value === (lengthFilter.value ?? '')) || lengthOptions[0]
+  wordCloudTitle.value = `${sel?.label}高频词云`
+
   return result.slice(0, 100)
 })
 
@@ -690,7 +694,7 @@ watch(lengthFilter, () => {
         { label: '缓存分块', value: wordSimCachedChunksCount.toLocaleString() + ' 个' }
       ]" @pause="wordSimChunkLoader.pause" @resume="wordSimChunkLoader.resume" />
 
-    <WordCloud v-if="isWordCloudReady" :words="wordcloudWords" :max-words="80" :width="700" :height="350"
+    <WordCloud v-if="isWordCloudReady" :words="wordcloudWords" :max-words="80" :width="700" :height="350" :title="wordCloudTitle"
       :loading="chunkLoader.isLoading.value" @click="handleWordCloudClick" />
 
     <SearchContainer v-model="searchQuery" placeholder="搜索" :total="displayTotal" :query-time="searchStats.queryTime"

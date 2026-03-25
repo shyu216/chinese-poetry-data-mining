@@ -3,36 +3,25 @@
   file: web/src/components/author/AuthorCard.vue
   category: frontend-component
   tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  solved: 提供可复用展示组件与局部交互单元
-  data_source: 父组件 props
-  data_flow: 状态输入 -> 组件渲染(NCard, NAvatar, NEllipsis) -> 路由联动
-  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
-  unique: 关键函数: goToDetail, goToAuthors；主渲染组件: NCard, NAvatar, NEllipsis, DynastyBadge
-<!--
-  文件: web/src/components/author/AuthorCard.vue
-  说明: 作者展示卡片组件，接受父组件传入的作者信息（props），负责展示头像、朝代、作品数与标签，并提供跳转到作者详情或按朝代筛选的交互。
+  summary: 作者展示卡片组件，接受父组件传入的作者信息（props），负责展示头像、朝代、作品数与标签，并提供跳转到作者详情或按朝代筛选的交互。
 
-  数据管线:
+  Data pipeline:
     - 输入: 通过 `props` 接收 `author`, `dynasty`, `poemCount`, `avatar`, `rank`, `tags`。
     - 处理: 局部计算（如 `initials`）与路由跳转逻辑；不在组件内发起网络请求。
     - 输出: 通过路由跳转将用户引导到详情页或列表页。
 
-  复杂度:
-    - 渲染成本为 O(1)（单个卡片），当父组件通过 `v-for` 渲染 n 个卡片时为 O(n)。
-    - 空间: 按卡片常数占用，若包含图片资源则依赖浏览器缓存与图片体积。
-
-  使用技术/要点:
-    - Vue 3 组合式语法 + TypeScript，Naive UI 组件（NCard, NAvatar, NTag 等）。
-    - 使用 `NEllipsis` 限制行数，`encodeURIComponent` 安全构造路由参数。
-    - `goToAuthors` 中使用 `e.stopPropagation()` 防止 click 事件冒泡到父容器。
-
-  潜在问题:
-    - 若父组件渲染大量卡片（数千级别），需配合虚拟列表避免 DOM 过多导致卡顿。
-    - 头像图片未做懒加载或占位策略，可能导致首屏加载压力。
-    - props 未做复杂校验（仅 TS 类型），运行时仍需确保数据完整性。
-    - 可访问性(ARIA)与键盘交互未明确处理，需补充以提升无障碍支持。
+  Notes:
+    - 若父组件渲染大量卡片，建议配合虚拟列表。
+    - 头像可考虑懒加载以降低首屏压力。
 -->
-  poemCount: number
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+interface Props {
+  author: string
+  dynasty?: string
+  poemCount?: number
   avatar?: string
   rank?: number
   tags?: string[]
@@ -45,7 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
 const router = useRouter()
 
 const initials = computed(() => {
-  return props.author.slice(0, 2)
+  return props.author ? props.author.slice(0, 2) : ''
 })
 
 const goToDetail = () => {
@@ -54,7 +43,7 @@ const goToDetail = () => {
 
 const goToAuthors = (e: Event) => {
   e.stopPropagation()
-  router.push(`/authors?dynasty=${encodeURIComponent(props.dynasty)}`)
+  router.push(`/authors?dynasty=${encodeURIComponent(props.dynasty ?? '')}`)
 }
 </script>
 

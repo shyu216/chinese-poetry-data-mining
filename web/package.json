@@ -13,6 +13,7 @@
     "build:with-hash": "npm run generate-hash-manifest && npm run build"
   },
   "dependencies": {
+    "onnxruntime-web": "^1.14.0",
     "@vicons/ionicons5": "^0.13.0",
     "@vueuse/core": "^14.2.1",
     "d3": "^7.9.0",

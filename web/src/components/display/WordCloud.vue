@@ -27,6 +27,7 @@ interface CloudWordItem {
 }
 
 interface Props {
+  title?: string
   words: WordCountItem[]
   maxWords?: number
   width?: number
@@ -323,7 +324,7 @@ onUnmounted(() => {
   <NCard class="wordcloud-card" :content-style="{ padding: '16px' }">
     <template #header>
       <div class="wordcloud-header">
-        <span class="title">词云预览</span>
+        <span class="title">{{ title || '词云预览' }}</span>
         <span class="subtitle">Top {{ maxWords }} 词汇</span>
       </div>
     </template>
