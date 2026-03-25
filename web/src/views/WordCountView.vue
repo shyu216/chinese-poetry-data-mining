@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/views/WordCountView.vue
+  category: frontend-page
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 承载页面级交互、筛选、展示与路由联动
+  data_source: 本地缓存（IndexedDB）
+  data_flow: 状态输入 -> 组件渲染(PageHeader, NGrid, NGridItem) -> 路由联动
+  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+  unique: 关键函数: performSearch, loadData, runWordcountNetworkLoad, handleSearch；主渲染组件: PageHeader, NGrid, NGridItem, StatsCard
+-->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, shallowRef } from 'vue'
 import { useRouter, useRoute } from 'vue-router'

@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/search/SearchInputEnhanced.vue
+  category: algorithm
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 实现检索与索引策略（核心导出：search api）
+  data_source: 父组件 props；组件事件
+  data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
+  complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
+  unique: 关键函数: saveHistory, addToHistory, removeHistory, clearHistory；主渲染组件: NInput, SearchOutline
+-->
 <script setup lang="ts">
 /**
  * SearchInputEnhanced - 增强版搜索输入组件

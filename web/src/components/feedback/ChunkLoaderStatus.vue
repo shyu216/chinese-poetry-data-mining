@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/feedback/ChunkLoaderStatus.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props；组件事件
+  data_flow: props 输入 -> 组件渲染(NCard, NBadge, NProgress) -> emit 回传
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 主渲染组件: NCard, NBadge, NProgress, NSpace
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NCard, NProgress, NButton, NSpace, NBadge } from 'naive-ui'

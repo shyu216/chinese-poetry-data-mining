@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/views/PoemsView.vue
+  category: frontend-page
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 承载页面级交互、筛选、展示与路由联动
+  data_source: 本地缓存（IndexedDB）
+  data_flow: 状态输入 -> 组件渲染(PageHeader, NGrid, NGridItem) -> 路由联动
+  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
+  unique: 关键函数: performSearch, loadData, runNetworkChunkLoad, goToPoemDetail；主渲染组件: PageHeader, NGrid, NGridItem, StatsCard
+-->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'

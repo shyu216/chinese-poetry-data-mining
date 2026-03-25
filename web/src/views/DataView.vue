@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/views/DataView.vue
+  category: frontend-page
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 承载页面级交互、筛选、展示与路由联动
+  data_source: 组合式状态与组件内部状态
+  data_flow: 状态输入 -> 组件渲染(PageHeader, NTabs, NTabPane) -> 路由联动
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 主渲染组件: PageHeader, NTabs, NTabPane, DataOverviewView
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'

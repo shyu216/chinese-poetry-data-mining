@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/content/MeterPattern.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props
+  data_flow: 状态输入 -> 组件渲染(MusicalNotesOutline, NTag, NTooltip)
+  complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
+  unique: 主渲染组件: MusicalNotesOutline, NTag, NTooltip
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { NTag, NTooltip } from 'naive-ui'

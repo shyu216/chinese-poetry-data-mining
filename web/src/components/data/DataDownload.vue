@@ -1,5 +1,15 @@
+<!--
+  @overview
+  file: web/src/components/data/DataDownload.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 组件事件
+  data_flow: props 输入 -> 组件渲染(NSpace, PoemsDownloadSection, AuthorsDownloadSection) -> emit 回传
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 关键函数: handleDownloaded；主渲染组件: NSpace, PoemsDownloadSection, AuthorsDownloadSection, WordCountDownloadSection
+-->
 <script setup lang="ts">
-import { ref } from 'vue'
 import { NSpace } from 'naive-ui'
 import {
   PoemsDownloadSection,
@@ -14,13 +24,6 @@ const emit = defineEmits<{
   downloaded: []
 }>()
 
-const poemsDownloadRef = ref()
-const authorsDownloadRef = ref()
-const wordcountDownloadRef = ref()
-const poemIndexDownloadRef = ref()
-const wordSimDownloadRef = ref()
-const keywordIndexDownloadRef = ref()
-
 const handleDownloaded = () => {
   emit('downloaded')
 }
@@ -29,27 +32,21 @@ const handleDownloaded = () => {
 <template>
   <NSpace vertical size="large">
     <PoemsDownloadSection
-      ref="poemsDownloadRef"
       @downloaded="handleDownloaded"
     />
     <AuthorsDownloadSection
-      ref="authorsDownloadRef"
       @downloaded="handleDownloaded"
     />
     <WordCountDownloadSection
-      ref="wordcountDownloadRef"
       @downloaded="handleDownloaded"
     />
     <PoemIndexDownloadSection
-      ref="poemIndexDownloadRef"
       @downloaded="handleDownloaded"
     />
     <WordSimDownloadSection
-      ref="wordSimDownloadRef"
       @downloaded="handleDownloaded"
     />
     <KeywordIndexDownloadSection
-      ref="keywordIndexDownloadRef"
       @downloaded="handleDownloaded"
     />
   </NSpace>

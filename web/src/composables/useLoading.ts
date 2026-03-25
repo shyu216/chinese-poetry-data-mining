@@ -1,3 +1,14 @@
+/**
+ * @overview
+ * file: web/src/composables/useLoading.ts
+ * category: pipeline
+ * tech: Vue 3 + TypeScript
+ * solved: 封装数据加载与状态编排（关键函数：getRandomDescription, calculateProgress, useLoading）
+ * data_source: 组合式状态与组件内部状态
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+ * unique: 核心导出: useLoading, resetLoading, LoadingKey；关键函数: getRandomDescription, calculateProgress, useLoading, resetLoading
+ */
 import { reactive, readonly, computed } from 'vue'
 import type { InjectionKey, Reactive, ComputedRef } from 'vue'
 

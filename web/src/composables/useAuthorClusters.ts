@@ -1,4 +1,15 @@
 /**
+ * @overview
+ * file: web/src/composables/useAuthorClusters.ts
+ * category: pipeline
+ * tech: Vue 3 + TypeScript
+ * solved: 封装数据加载与状态编排（关键函数：loadClusters, getCluster, useAuthorClusters）
+ * data_source: public/data 静态分块文件
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+ * unique: 核心导出: useAuthorClusters；关键函数: loadClusters, getCluster, useAuthorClusters
+ */
+/**
  * useAuthorClusters - 诗人流派数据管理
  * 
  * 加载聚类分析数据并转换为可视化组件需要的格式

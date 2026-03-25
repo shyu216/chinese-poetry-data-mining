@@ -1,3 +1,14 @@
+/**
+ * @overview
+ * file: web/src/composables/useAuthorsV2.ts
+ * category: pipeline
+ * tech: Vue 3 + TypeScript + FlatBuffers
+ * solved: 封装数据加载与状态编排（关键函数：initLoadedAuthorChunkIds, convertWordFreq, convertMeterPattern）
+ * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+ * unique: 核心导出: useAuthorsV2；关键函数: initLoadedAuthorChunkIds, convertWordFreq, convertMeterPattern, convertSimilarAuthor
+ */
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import * as flatbuffers from 'flatbuffers'
 import type { AuthorStats, AuthorFilter, AuthorQueryResult, AuthorsIndex } from './types'

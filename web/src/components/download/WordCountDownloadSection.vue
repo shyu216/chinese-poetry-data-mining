@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/download/WordCountDownloadSection.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 本地缓存（IndexedDB）；组件事件
+  data_flow: props 输入 -> 组件渲染(NCard, NAlert, NProgress) -> emit 回传
+  complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
+  unique: 关键函数: loadStats, downloadAll；主渲染组件: NCard, NAlert, NProgress, NSpace
+-->
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NProgress, NAlert, NSpace, NTag } from 'naive-ui'

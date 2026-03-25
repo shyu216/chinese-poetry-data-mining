@@ -1,7 +1,18 @@
+<!--
+  @overview
+  file: web/src/components/author/AuthorList.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props；组件事件
+  data_flow: 数据/事件输入 -> 组件渲染(NSpin, NEmpty, NList) -> 事件回传与路由跳转
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 核心导出: AuthorListItem；关键函数: getInitials, goToAuthor, goToDynasty, handleLoadMore；主渲染组件: NSpin, NEmpty, NList, NListItem
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { NList, NListItem, NThing, NEmpty, NSpin, NButton, NAvatar, NIcon } from 'naive-ui'
+import { NList, NListItem, NThing, NEmpty, NSpin, NButton, NAvatar } from 'naive-ui'
 import { RefreshOutline, PersonOutline } from '@vicons/ionicons5'
 import { DynastyBadge } from '@/components/ui/badge'
 
@@ -68,7 +79,7 @@ const handleLoadMore = () => {
       
       <NList v-else clickable class="list-container">
         <NListItem 
-          v-for="(author, index) in authors" 
+          v-for="author in authors" 
           :key="author.author"
           class="author-item"
           @click="goToAuthor(author.author)"

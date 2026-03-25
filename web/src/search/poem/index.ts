@@ -1,4 +1,15 @@
 /**
+ * @overview
+ * file: web/src/search/poem/index.ts
+ * category: algorithm
+ * tech: Vue 3 + TypeScript
+ * solved: 实现检索与索引策略（核心导出：usePoemSearch）
+ * data_source: 组合式状态与组件内部状态
+ * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
+ * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+ * unique: 核心导出: usePoemSearch；关键函数: usePoemSearch, ensureInitialized, search, getStats
+ */
+/**
  * PoemSearch Module - 诗词搜索模块
  */
 

@@ -1,3 +1,14 @@
+/**
+ * @overview
+ * file: web/src/composables/useSearchIndexV2.ts
+ * category: pipeline
+ * tech: Vue 3 + TypeScript
+ * solved: 封装数据加载与状态编排（关键函数：initLoadedPrefixes, useSearchIndexV2, getPrefixFromId）
+ * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+ * unique: 核心导出: useSearchIndexV2；关键函数: initLoadedPrefixes, useSearchIndexV2, getPrefixFromId, loadPoemChunk
+ */
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import type { SearchResult, SearchOptions, SearchResultSet, PoemIndexManifest, PoemSummary } from './types'
 import { usePoemIndexManifest, POEM_INDEX_STORAGE } from './useMetadataLoader'

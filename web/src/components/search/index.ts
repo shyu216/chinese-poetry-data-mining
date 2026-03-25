@@ -1,4 +1,15 @@
 /**
+ * @overview
+ * file: web/src/components/search/index.ts
+ * category: algorithm
+ * tech: TypeScript
+ * solved: 实现检索与索引策略（核心导出：search api）
+ * data_source: 组合式状态与组件内部状态
+ * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
+ * complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+ * unique: 路径特征: web/src/components/search/index.ts
+ */
+/**
  * Search Components - 统一搜索UI组件库
  * 
  * 提供三个层次的组件：

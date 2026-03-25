@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/content/RandomPoemCard.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 组合式状态与组件内部状态
+  data_flow: 状态输入 -> 组件渲染(RefreshOutline, NSpin, DynastyBadge) -> 路由联动
+  complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
+  unique: 关键函数: startCountdown, stopCountdown, fetchRandomPoem, refreshRandomPoem；主渲染组件: RefreshOutline, NSpin, DynastyBadge
+-->
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'

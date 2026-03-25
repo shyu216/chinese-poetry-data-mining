@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/views/HomeView.vue
+  category: frontend-page
+  tech: Vue 3 + TypeScript + Vue Router
+  solved: 承载页面级交互、筛选、展示与路由联动
+  data_source: 组合式状态与组件内部状态
+  data_flow: 状态输入 -> 组件渲染(AnimatedStatCard, RandomPoemCard) -> 路由联动
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 关键函数: loadAllData；主渲染组件: AnimatedStatCard, RandomPoemCard
+-->
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'

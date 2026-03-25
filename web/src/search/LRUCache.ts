@@ -1,4 +1,15 @@
 /**
+ * @overview
+ * file: web/src/search/LRUCache.ts
+ * category: algorithm
+ * tech: TypeScript + IndexedDB
+ * solved: 实现检索与索引策略（核心导出：LRUCache）
+ * data_source: 组合式状态与组件内部状态
+ * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
+ * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
+ * unique: 核心导出: LRUCache
+ */
+/**
  * LRU 内存缓存
  * 用于缓存搜索结果和频繁访问的数据
  */

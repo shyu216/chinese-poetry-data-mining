@@ -1,4 +1,15 @@
 /**
+ * @overview
+ * file: web/src/search/poem/PoemSearch.ts
+ * category: algorithm
+ * tech: TypeScript
+ * solved: 实现检索与索引策略（核心导出：poemSearch, PoemSearchResult, PoemSearchOptions）
+ * data_source: public/data 静态分块文件
+ * data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
+ * complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+ * unique: 核心导出: poemSearch, PoemSearchResult, PoemSearchOptions
+ */
+/**
  * PoemSearch - 诗词搜索模块
  * 
  * 职责：

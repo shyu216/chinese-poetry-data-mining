@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/display/TypeDistribution.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props
+  data_flow: 状态输入 -> 组件渲染(UI 组件)
+  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+  unique: 路径特征: web/src/components/display/TypeDistribution.vue
+-->
 <script setup lang="ts">
 interface TypeItem {
   type: string

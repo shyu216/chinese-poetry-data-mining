@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/display/AuthorNetworkGraph.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI + D3
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props；组件事件
+  data_flow: props 输入 -> 组件渲染(NCard, NSwitch) -> emit 回传
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 关键函数: getNodeColor, getNodeRadius, initGraph, resetView；主渲染组件: NCard, NSwitch
+-->
 <script setup lang="ts">
 /**
  * AuthorNetworkGraph - 诗人关系网络图

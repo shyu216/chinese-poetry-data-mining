@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/search/SearchStats.vue
+  category: algorithm
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 实现检索与索引策略（核心导出：search api）
+  data_source: 本地缓存（IndexedDB）；父组件 props
+  data_flow: 加载索引 -> 匹配过滤 -> 排序分页 -> 返回结果集
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 关键函数: getSourceIcon, getSourceText, getSourceType；主渲染组件: NSpace, NTag, TimeOutline
+-->
 <script setup lang="ts">
 /**
  * SearchStats - 搜索统计信息组件

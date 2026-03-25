@@ -1,3 +1,34 @@
+<!--
+  文件: web/src/App.vue
+  说明: 应用根组件，负责顶级布局（侧栏、移动头部、主内容区）、路由过渡动画与主题覆写。
+
+  数据管线 (Data pipeline):
+    - 触发点: 应用挂载时调用 `usePoemsV2().loadMetadata()` 拉取/加载元数据。
+    - 存储: 元数据由组合式 API (`usePoemsV2`) 在客户端缓存（Reactive state）。
+    - 传递: 各页面通过 `RouterView` 和组合式函数读取共享状态并渲染。
+    - 用户交互: 窗口 resize、侧栏折叠与移动菜单开关只影响本地 UI state，不直接修改后端数据。
+
+  复杂度 (Time / Space):
+    - 初始化: 发起元数据请求为 O(1)（单次网络请求），但解析/索引成本取决于返回数据规模 O(m)。
+    - 渲染: 列表页渲染与 DOM 操作随展示条目数 n 线性增长 O(n)。
+    - 内存: 客户端缓存整套元数据时空间复杂度为 O(m)，m = 元数据条目数（项目中 m 可达数万至数十万）。
+
+  使用的关键技术/“黑科技”:
+    - Vue 3 组合式 API + TypeScript：更易组合与测试的逻辑抽离。
+    - Vite + 按需打包：快速开发与较小产物（依赖 tree-shaking）。
+    - Naive UI（n- 组件）与 @vicons 图标库：加速 UI 开发。
+    - 路由懒加载 + 过渡动画：页面体验优化，配合 CSS 动画减少重绘感知。
+    - 客户端缓存（组合式 composable）：减少重复网络请求，提升响应。
+
+  潜在问题 / 风险:
+    - 客户端缓存整表（m 很大）会占用大量内存，低端设备可能 OOM。
+    - 如果 `usePoemsV2.loadMetadata()` 返回大体量数据，解析/JSON.parse 会阻塞主线程，建议分片/后台线程（web worker）处理。
+    - 字体、外部资源通过 CDN 加载会影响首屏时间，需加速或本地打包优化。
+    - 路由动画与大量 DOM 同步渲染时可能出现卡顿，应考虑虚拟列表或按需渲染。
+    - 无 SSR 支持，SEO 与首屏体验依赖于客户端渲染。
+    - 部分断点/交互（如 `isMobile` 的阈值）为硬编码，可能需适配更多设备尺寸。
+    - 事件解绑已处理，但若未来增加全局监听需注意内存泄漏。
+-->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'

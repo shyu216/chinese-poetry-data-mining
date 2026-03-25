@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/content/PoemContent.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props
+  data_flow: 状态输入 -> 组件渲染(NSpace, NButton, NIcon)
+  complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
+  unique: 关键函数: getCharDelay, toggleMode, toggleExpand, getModeLabel；主渲染组件: NSpace, NButton, NIcon
+-->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { NButton, NIcon, NSpace } from 'naive-ui'

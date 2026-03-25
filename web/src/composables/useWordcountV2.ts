@@ -1,3 +1,14 @@
+/**
+ * @overview
+ * file: web/src/composables/useWordcountV2.ts
+ * category: pipeline
+ * tech: Vue 3 + TypeScript
+ * solved: 封装数据加载与状态编排（关键函数：initLoadedWordCountChunkIds, useWordcountV2, loadChunk）
+ * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
+ * unique: 核心导出: useWordcountV2；关键函数: initLoadedWordCountChunkIds, useWordcountV2, loadChunk, getWordCounts
+ */
 import { ref, computed, type Ref } from 'vue'
 import type { WordCountItem, WordCountMeta, WordCountQueryResult } from './types'
 import { useWordcountMetadata, WORDCOUNT_STORAGE } from './useMetadataLoader'

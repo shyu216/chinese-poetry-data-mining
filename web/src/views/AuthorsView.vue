@@ -1,13 +1,24 @@
+<!--
+  @overview
+  file: web/src/views/AuthorsView.vue
+  category: frontend-page
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 承载页面级交互、筛选、展示与路由联动
+  data_source: 本地缓存（IndexedDB）
+  data_flow: 状态输入 -> 组件渲染(PageHeader, NGrid, NGridItem) -> 路由联动
+  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+  unique: 关键函数: performSearch, getTopPoemType, getTypeDistributionData, loadData；主渲染组件: PageHeader, NGrid, NGridItem, StatsCard
+-->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
-  NCard, NEmpty, NInput, NSpace, NTag,
+  NEmpty, NSpace, NTag,
   NButton, NPagination, NGrid, NGridItem, NTooltip
 } from 'naive-ui'
 import {
   TrophyOutline, PersonOutline, BookOutline,
-  SearchOutline, MedalOutline, BarChartOutline,
+  MedalOutline, BarChartOutline,
   ChevronForwardOutline, ShuffleOutline, RefreshOutline
 } from '@vicons/ionicons5'
 import { useAuthorsV2 } from '@/composables/useAuthorsV2'
@@ -17,7 +28,7 @@ import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
 import { useAuthorSearch } from '@/search'
 import { useShuffle } from '@/composables/useShuffle'
 import type { AuthorStats } from '@/types/author'
-import { PageHeader, FilterSection } from '@/components/layout'
+import { PageHeader } from '@/components/layout'
 import { StatsCard } from '@/components/display'
 import { ChunkLoaderStatus } from '@/components/feedback'
 import { SearchContainer } from '@/components/search'
@@ -33,7 +44,6 @@ const loading = useLoading()
 const {
   totalAuthors: totalAuthorsCount,
   totalChunks,
-  loading: metadataLoading,
   loadMetadata,
   loadAuthorChunk
 } = useAuthorsV2()
@@ -55,7 +65,6 @@ const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
 const loadedAuthors = ref<AuthorStats[]>([])
-const hasMoreChunks = ref(true)
 const isInitializing = ref(true)
 const cachedChunksCount = ref(0)
 
@@ -300,7 +309,6 @@ const loadData = async () => {
 
     if (unloadedChunkIds.length === 0) {
       console.log('[AuthorsView] ✨ 所有数据已加载完成')
-      hasMoreChunks.value = false
       loading.finish()
     } else {
       console.log(`[AuthorsView] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
@@ -330,7 +338,6 @@ const loadData = async () => {
           onComplete: () => {
             const bgDuration = Math.round(performance.now() - remainingStartTime)
             console.log(`[AuthorsView] ✅ 后台加载完成: 共 ${loadedAuthors.value.length} 位诗人 - ${bgDuration}ms`)
-            hasMoreChunks.value = false
             loading.finish()
           }
         })

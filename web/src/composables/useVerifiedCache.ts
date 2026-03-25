@@ -1,4 +1,15 @@
 /**
+ * @overview
+ * file: web/src/composables/useVerifiedCache.ts
+ * category: pipeline
+ * tech: Vue 3 + TypeScript + IndexedDB
+ * solved: 封装数据加载与状态编排（关键函数：getManifest, clearManifestCache, getFileHash）
+ * data_source: public/data 静态分块文件；本地缓存（IndexedDB）
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
+ * unique: 核心导出: clearManifestCache, useVerifiedCache；关键函数: getManifest, clearManifestCache, getFileHash, isFileUpdated
+ */
+/**
  * 带 Hash 验证的缓存组合式函数
  * 用于静态数据文件的版本控制和缓存验证
  */

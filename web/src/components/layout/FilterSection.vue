@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/layout/FilterSection.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props；组件事件
+  data_flow: 状态输入 -> 组件渲染(UI 组件)
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 路径特征: web/src/components/layout/FilterSection.vue
+-->
 <script setup lang="ts">
 import { NSpace, NButton } from 'naive-ui'
 import type { Slot, VNode } from 'vue'

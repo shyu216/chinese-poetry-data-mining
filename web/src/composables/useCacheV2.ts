@@ -1,3 +1,14 @@
+/**
+ * @overview
+ * file: web/src/composables/useCacheV2.ts
+ * category: pipeline
+ * tech: TypeScript + IndexedDB
+ * solved: 封装数据加载与状态编排（关键函数：getDB, makeCacheKey, makeChunkKey）
+ * data_source: 本地缓存（IndexedDB）
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 缓存命中常见 O(1)，筛选/聚合常见 O(n)，空间复杂度常见 O(n)
+ * unique: 核心导出: getDB, CacheOptions, ChunkCacheOptions；关键函数: getDB, makeCacheKey, makeChunkKey, deleteCache
+ */
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
 
 interface CacheItem<T = unknown> {

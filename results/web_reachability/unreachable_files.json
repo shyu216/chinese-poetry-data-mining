@@ -1,0 +1,6 @@
+[
+  "web/src/types/d3-cloud.d.ts",
+  "web/src/types/d3.d.ts",
+  "web/src/types/plotly.d.ts",
+  "web/src/types/vue-virtual-scroller.d.ts"
+]

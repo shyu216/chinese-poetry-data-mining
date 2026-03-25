@@ -1,3 +1,14 @@
+/**
+ * @overview
+ * file: web/src/composables/useChunkLoader.ts
+ * category: pipeline
+ * tech: Vue 3 + TypeScript
+ * solved: 封装数据加载与状态编排（关键函数：loadAutoLoadSetting, saveAutoLoadSetting, shouldAbort）
+ * data_source: 组合式状态与组件内部状态
+ * data_flow: 参数输入 -> 读取缓存/远端 -> 数据校验与归一化 -> 输出响应式状态
+ * complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
+ * unique: 核心导出: useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS, UseChunkLoaderOptions；关键函数: loadAutoLoadSetting, saveAutoLoadSetting, shouldAbort, waitIfPaused
+ */
 import { ref, computed, onUnmounted } from 'vue'
 
 /** 各页面独立的 localStorage key，默认「进入页面不自动加载网络分块」 */

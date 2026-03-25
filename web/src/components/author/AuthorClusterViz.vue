@@ -1,8 +1,19 @@
+<!--
+  @overview
+  file: web/src/components/author/AuthorClusterViz.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props；组件事件
+  data_flow: 数据/事件输入 -> 组件渲染(NCard) -> 事件回传与路由跳转
+  complexity: 列表处理常见 O(n)，空间复杂度常见 O(n)
+  unique: 关键函数: goToClusterDetail, draw2D, handleMouseMove, handleClick；主渲染组件: NCard
+-->
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { NCard, NTabs, NTabPane, NSpin, NEmpty, NTag, NSpace, NButton, NTooltip, NIcon, NStatistic, NGrid, NGi } from 'naive-ui'
-import { PeopleOutline, BookOutline, RibbonOutline, GitNetworkOutline } from '@vicons/ionicons5'
+import { NCard, NTabs, NTabPane, NSpin, NEmpty, NTag, NSpace, NButton, NIcon } from 'naive-ui'
+import { PeopleOutline, BookOutline } from '@vicons/ionicons5'
 import type { AuthorCluster, AuthorNode } from '@/types/cluster'
 
 interface Props {
@@ -198,15 +209,6 @@ watch(() => [props.authors, props.clusters, selectedCluster.value], () => {
 
 onMounted(() => {
   draw2D()
-})
-
-// 按聚类分组的诗人
-const authorsByCluster = computed(() => {
-  const grouped: Record<number, AuthorNode[]> = {}
-  props.clusters.forEach(c => {
-    grouped[c.id] = props.authors.filter(a => a.cluster === c.id)
-  })
-  return grouped
 })
 </script>
 

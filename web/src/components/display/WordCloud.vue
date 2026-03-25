@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/display/WordCloud.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI + D3
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props；组件事件
+  data_flow: props 输入 -> 组件渲染(NCard) -> emit 回传
+  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+  unique: 关键函数: renderWordCloud, drawWords, handleCanvasClick, handleCanvasMouseDown；主渲染组件: NCard
+-->
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import cloud from 'd3-cloud'

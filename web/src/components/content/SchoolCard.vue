@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/content/SchoolCard.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props
+  data_flow: 状态输入 -> 组件渲染(NCard, NIcon, RibbonOutline) -> 路由联动
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 关键函数: goToDetail；主渲染组件: NCard, NIcon, RibbonOutline, PeopleOutline
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'

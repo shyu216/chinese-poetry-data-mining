@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/components/ui/animated/AnimatedStatCard.vue
+  category: frontend-component
+  tech: Vue 3 + TypeScript + Naive UI
+  solved: 提供可复用展示组件与局部交互单元
+  data_source: 父组件 props
+  data_flow: 状态输入 -> 组件渲染(AnimatedNumber)
+  complexity: 初始化与轻量交互为主，典型场景近似 O(1)~O(n)
+  unique: 关键函数: startAnimation；主渲染组件: AnimatedNumber
+-->
 <script setup lang="ts">
 import { ref, computed, type Component } from 'vue'
 import { NStatistic } from 'naive-ui'

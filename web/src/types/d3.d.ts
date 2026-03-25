@@ -1,3 +1,14 @@
+/**
+ * @overview
+ * file: web/src/types/d3.d.ts
+ * category: types
+ * tech: TypeScript + D3
+ * solved: 提供领域模型与第三方库类型声明
+ * data_source: TypeScript 声明系统
+ * data_flow: 编译期参与类型推导与约束，不参与运行时数据流
+ * complexity: 仅编译期类型约束，运行时开销 O(0)
+ * unique: 核心导出: forceSimulation, forceLink, forceManyBody
+ */
 declare module 'd3' {
   import { Selection, Event as D3Event, DragBehavior as D3DragBehavior } from 'd3-selection'
   import { ScaleLinear } from 'd3-scale'

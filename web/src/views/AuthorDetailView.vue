@@ -1,3 +1,14 @@
+<!--
+  @overview
+  file: web/src/views/AuthorDetailView.vue
+  category: frontend-page
+  tech: Vue 3 + TypeScript + Vue Router + Naive UI
+  solved: 承载页面级交互、筛选、展示与路由联动
+  data_source: 组合式状态与组件内部状态
+  data_flow: 状态输入 -> 组件渲染(PageHeader, NEmpty, NButton) -> 路由联动
+  complexity: 常见查询/筛选 O(n)，排序 O(n log n)，空间复杂度常见 O(n)
+  unique: 关键函数: loadAuthorData, loadAuthorPoems, goBack, goToPoem；主渲染组件: PageHeader, NEmpty, NButton
+-->
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
