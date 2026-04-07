@@ -98,6 +98,7 @@ export interface AuthorChunkMeta {
   index: number
   filename: string
   authorCount: number
+  names?: string[]
 }
 
 export interface AuthorsIndex {

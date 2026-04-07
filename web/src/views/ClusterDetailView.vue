@@ -25,10 +25,11 @@ import { NCard, NTag, NIcon, NButton, NSpin, NEmpty, NGrid, NGi, NStatistic, NAl
 import { PeopleOutline, BookOutline, RibbonOutline, ArrowBackOutline } from '@vicons/ionicons5'
 
 import { useAuthorClusters } from '@/composables/useAuthorClusters'
+import { WordCloud } from '@/components/display'
 
 const route = useRoute()
 const router = useRouter()
-const { sortedClusters, loading, error, loadClusters } = useAuthorClusters()
+const { sortedClusters, loading, error, loadClusters, authorNodes } = useAuthorClusters()
 
 const clusterId = computed(() => parseInt(route.params.id as string))
 
@@ -44,6 +45,20 @@ const clusterName = computed(() => {
 
 const clusterColor = computed(() => {
   return cluster.value?.color || '#8B2635'
+})
+
+const clusterAuthors = computed(() => {
+  return authorNodes.value.filter(a => a.cluster === clusterId.value)
+})
+
+const authorWordCounts = computed(() => {
+  return clusterAuthors.value
+    .sort((a, b) => b.poem_count - a.poem_count)
+    .map((author, index) => ({
+      word: author.name,
+      count: author.poem_count,
+      rank: index + 1
+    }))
 })
 
 const formatNumber = (num: number): string => {
@@ -62,7 +77,7 @@ const goToAuthor = (authorName: string) => {
 }
 
 onMounted(() => {
-  if (!sortedClusters.value.length) {
+  if (!sortedClusters.value.length || !authorNodes.value.length) {
     loadClusters()
   }
 })
@@ -145,21 +160,16 @@ onMounted(() => {
         </NGrid>
       </NCard>
 
-      <!-- 代表诗人 -->
-      <NCard class="authors-card" :bordered="false" title="代表诗人">
-        <div class="authors-list">
-          <NTag
-            v-for="(author, i) in cluster.representatives"
-            :key="i"
-            size="large"
-            :bordered="false"
-            :color="{ color: clusterColor, textColor: '#fff' }"
-            class="author-tag"
-            @click="goToAuthor(author)"
-          >
-            {{ author }}
-          </NTag>
-        </div>
+      <!-- 全部诗人 -->
+      <NCard class="authors-card" :bordered="false" title="流派诗人">
+        <WordCloud
+          title="流派诗人"
+          :words="authorWordCounts"
+          :max-words="clusterAuthors.length"
+          :width="800"
+          :height="400"
+          @click="(word) => goToAuthor(word.word)"
+        />
       </NCard>
 
       <!-- 特色词汇 -->

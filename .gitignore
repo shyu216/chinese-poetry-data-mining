@@ -5,8 +5,12 @@ results/wordcount/
 results/fasttext/*.npy
 results/word_similarity/
 results/word_similarity_v2/
+results/word_similarity_v3/
 results/author/
 results/author-full/
 results/simplified_title_author/
+results/author_clusters_test/
 
 web/public/data/
+
+log/

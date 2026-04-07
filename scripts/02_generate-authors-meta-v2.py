@@ -16,8 +16,14 @@ last_modified_date: 2026-03-16
 """
 import json
 import os
+import sys
 from pathlib import Path
 from datetime import datetime
+
+# 设置控制台编码
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 def generate_authors_meta_v2():
     """Generate metadata for author chunks (v2 FBS format)."""
     # Find the project root (where this script is located)

@@ -23,7 +23,6 @@ import {
   PoemsDownloadSection,
   AuthorsDownloadSection,
   WordCountDownloadSection,
-  WordSimDownloadSection,
   PoemIndexDownloadSection,
   KeywordIndexDownloadSection
 } from '@/components/download'
@@ -49,9 +48,6 @@ const handleDownloaded = () => {
       @downloaded="handleDownloaded"
     />
     <PoemIndexDownloadSection
-      @downloaded="handleDownloaded"
-    />
-    <WordSimDownloadSection
       @downloaded="handleDownloaded"
     />
     <KeywordIndexDownloadSection

@@ -3,7 +3,7 @@
  * file: web/src/composables/useMetadataLoader.ts
  * category: pipeline / metadata
  * tech: Vue 3 + TypeScript
- * summary: 通用的 metadata 加载器，按类型（poems/authors/wordcount/wordSimilarity/poemIndex）管理元数据的验证、缓存与暴露。
+ * summary: 通用的 metadata 加载器，按类型（poems/authors/wordcount/poemIndex）管理元数据的验证、缓存与暴露。
  *
  * Data pipeline:
  *  - 输入: metadata type（'poems'|'authors'|...）
@@ -17,7 +17,7 @@
  *
  * Exports / responsibilities:
  *  - `useMetadataLoader<T>(type)` -> `metadata`, `loading`, `error`, `loadMetadata`, `clearMetadata`
- *  - 具体快捷函数：`usePoemsMetadata()`, `useAuthorsMetadata()`, `useWordcountMetadata()`, `useWordSimilarityMetadata()`, `usePoemIndexManifest()`
+ *  - 具体快捷函数：`usePoemsMetadata()`, `useAuthorsMetadata()`, `useWordcountMetadata()`, `usePoemIndexManifest()`
  *
  * Potential issues & recommendations:
  *  - 网络鲁棒性：建议在 `fetch` 中添加超时与有限重试策略，避免在不稳定网络下阻塞 UI。
@@ -29,13 +29,12 @@ import type {
   PoemsIndex,
   AuthorsIndex,
   WordCountMeta,
-  WordSimilarityMetadata,
   PoemIndexManifest
 } from './types'
-import { getCache, setCache, getChunkedCache, setChunkedCache } from './useCacheV2'
+import { getCache, setCache, getChunkedCache, setChunkedCache } from './useCache'
 import { getVerifiedCache } from './useVerifiedCache'
 
-export type MetadataType = 'poems' | 'authors' | 'wordcount' | 'wordSimilarity' | 'poemIndex'
+export type MetadataType = 'poems' | 'authors' | 'wordcount' | 'poemIndex'
 
 export interface MetadataConfig {
   type: MetadataType
@@ -57,10 +56,6 @@ const metadataConfigs: Record<MetadataType, Omit<MetadataConfig, 'type'>> = {
     storageName: 'wordcount-meta',
     url: 'data/wordcount_v2/meta.json'
   },
-  wordSimilarity: {
-    storageName: 'word-similarity-meta',
-    url: 'data/word_similarity_v3/metadata.json'
-  },
   poemIndex: {
     storageName: 'poem-index-manifest',
     url: 'data/poem_index/poem_index_manifest.json'
@@ -71,7 +66,6 @@ const metadataCache = ref<Record<MetadataType, unknown>>({
   poems: undefined,
   authors: undefined,
   wordcount: undefined,
-  wordSimilarity: undefined,
   poemIndex: undefined
 })
 const loadingStates: Map<MetadataType, Ref<boolean>> = new Map()
@@ -178,10 +172,6 @@ export function useWordcountMetadata() {
   return useMetadataLoader<WordCountMeta>('wordcount')
 }
 
-export function useWordSimilarityMetadata() {
-  return useMetadataLoader<WordSimilarityMetadata>('wordSimilarity')
-}
-
 export function usePoemIndexManifest() {
   return useMetadataLoader<PoemIndexManifest>('poemIndex')
 }
@@ -189,7 +179,6 @@ export function usePoemIndexManifest() {
 export const POEMS_STORAGE = 'poems-v2'
 export const AUTHORS_STORAGE = 'authors-v2'
 export const WORDCOUNT_STORAGE = 'wordcount-v2'
-export const WORD_SIMILARITY_STORAGE = 'word-similarity-v2'
 export const POEM_INDEX_STORAGE = 'poem-index-v2'
 export const KEYWORD_INDEX_STORAGE = 'keyword-index-v2'
 

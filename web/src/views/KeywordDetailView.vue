@@ -3,7 +3,7 @@
   说明: 关键词详情页，展示某关键词下的诗词列表、统计（朝代/体裁分布）与可视化（Plotly），并支持批量分片加载诗词内容以提升性能。
 
   数据管线:
-    - 索引检索: 通过 `useKeywordIndex` / `useSearchIndexV2` 获取匹配诗词 id 列表。
+    - 索引检索: 通过 `useKeywordIndex` / `useSearchIndex` 获取匹配诗词 id 列表。
     - 批量加载: 使用分批策略（`loadPoemsBatch`，batchSize = 50）先从索引获取摘要（包含 chunk_id），再按 chunk 批量加载详情并合并到页面列表。
     - 可视化: 统计结果计算后使用 Plotly 绘图（`newPlot` / `react` / `purge`）。
 
@@ -20,9 +20,9 @@
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useKeywordIndex } from '@/composables/useKeywordIndex'
-import { usePoemsV2 } from '@/composables/usePoemsV2'
-import { useSearchIndexV2 } from '@/composables/useSearchIndexV2'
-import { useWordcountV2 } from '@/composables/useWordcountV2'
+import { usePoems } from '@/composables/usePoems'
+import { useSearchIndex } from '@/composables/useSearchIndex'
+import { useWordcount } from '@/composables/useWordcount'
 import type { PoemSummary } from '@/composables/types'
 import {
   NCard, NSpin, NEmpty, NTag, NButton, NSpace,
@@ -64,13 +64,13 @@ const route = useRoute()
 const router = useRouter()
 const loading = useLoading()
 const keywordIndex = useKeywordIndex()
-const poemsV2 = usePoemsV2()
-const searchIndexV2 = useSearchIndexV2()
-const wordcountV2 = useWordcountV2()
+const poems = usePoems()
+const searchIndex = useSearchIndex()
+const wordcount = useWordcount()
 
 const keyword = computed(() => route.params.word as string)
 const poemIds = ref<string[]>([])
-const poems = ref<PoemSummary[]>([])
+const poemsList = ref<PoemSummary[]>([])
 const isLoading = ref(true)
 const wordRank = ref<number | null>(null)
 const wordCount = ref<number | null>(null)
@@ -80,10 +80,10 @@ const page = ref(1)
 const pageSize = ref(24)
 const loadingPoems = ref(false)
 
-const totalPoems = computed(() => poemsV2.totalPoems.value)
+const totalPoems = computed(() => poems.totalPoems.value)
 
 const dynastyStats = computed(() => {
-  const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
+  const targetPoems = allPoems.value.length > 0 ? allPoems.value : poemsList.value
   const stats: Record<string, number> = {}
   targetPoems.forEach(p => {
     const d = p.dynasty || '未知'
@@ -95,7 +95,7 @@ const dynastyStats = computed(() => {
 })
 
 const genreStats = computed(() => {
-  const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
+  const targetPoems = allPoems.value.length > 0 ? allPoems.value : poemsList.value
   const stats: Record<string, number> = {}
   targetPoems.forEach(p => {
     const g = p.genre || '未知'
@@ -120,7 +120,7 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
 
     // 1. 先从 poem_index 获取诗词摘要（包含 chunk_id）
     const step1Start = Date.now()
-    const poemSummaries = await searchIndexV2.getPoemSummariesByIds(batch)
+    const poemSummaries = await searchIndex.getPoemSummariesByIds(batch)
     console.log(`[KeywordDetail]   -> Got ${poemSummaries.size} summaries from index in ${Date.now() - step1Start}ms`)
 
     // 2. 提取 chunk_ids 用于批量加载详情
@@ -142,13 +142,13 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
     if (idsWithChunkIds.length === batch.length) {
       // 所有诗词都有 chunk_id，使用优化批量加载
       console.log(`[KeywordDetail]   -> Using optimized batch loading with ${chunkIds.length} chunks`)
-      const poemsWithDetails = await poemsV2.getPoemsByIds(idsWithChunkIds, chunkIds)
+      const poemsWithDetails = await poems.getPoemsByIds(idsWithChunkIds, chunkIds)
       // 保持原始顺序
       batchResults = batch.map(id => poemsWithDetails.find(p => p.id === id) || null)
     } else {
       // 部分诗词没有 chunk_id，回退到逐个加载
       console.warn(`[KeywordDetail] Some poems missing chunk_id (${idsWithChunkIds.length}/${batch.length}), falling back to individual loading`)
-      batchResults = await Promise.all(batch.map(id => poemsV2.getPoemById(id)))
+      batchResults = await Promise.all(batch.map(id => poems.getPoemById(id)))
     }
     console.log(`[KeywordDetail]   -> Loaded ${batchResults.filter(p => p !== null).length} poems in ${Date.now() - step3Start}ms`)
 
@@ -168,7 +168,7 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
     // 只在初始加载时更新UI，避免后台加载时覆盖当前页
     if (updateUI && i === 0 && results.length > 0) {
       console.log(`[KeywordDetail] Updating UI with first ${results.length} poems`)
-      poems.value = results.slice(0, pageSize.value)
+      poemsList.value = results.slice(0, pageSize.value)
     }
   }
 
@@ -184,7 +184,7 @@ const loadData = async () => {
   loading.startBlocking('关键词详情', `查询"${keyword.value}"...`)
   isLoading.value = true
   loadingPoems.value = true
-  poems.value = []
+  poemsList.value = []
   page.value = 1
 
   try {
@@ -214,7 +214,7 @@ const loadData = async () => {
     const firstPageResults = await loadPoemsBatch(firstPageIds, true)
     console.log(`[KeywordDetail] Step 2 DONE: Loaded ${firstPageResults.length} poems in ${Date.now() - step2Start}ms`)
 
-    poems.value = firstPageResults
+    poemsList.value = firstPageResults
 
     // 步骤 4: 立即解除阻塞，展示界面！
     loading.updateProgress(2, 2, '准备就绪...')
@@ -233,11 +233,11 @@ const loadData = async () => {
       console.log(`[KeywordDetail] No remaining poems to load`)
       loadingPoems.value = false
       // 直接使用当前数据作为完整数据
-      allPoems.value = poems.value
+      allPoems.value = poemsList.value
     }
 
     // 后台获取词频统计
-    wordcountV2.getTopWords(10000).then(allWords => {
+    wordcount.getTopWords(10000).then(allWords => {
       const foundWord = allWords.find(w => w.word === keyword.value)
       if (foundWord) {
         wordRank.value = foundWord.rank
@@ -263,7 +263,7 @@ const loadRemainingPoems = async (ids: string[]) => {
   try {
     // 后台加载，不更新UI，避免覆盖当前页
     const remaining = await loadPoemsBatch(ids, false)
-    allPoems.value = [...poems.value, ...remaining]
+    allPoems.value = [...poemsList.value, ...remaining]
     loadingPoems.value = false
     loading.finish()
     console.log(`[KeywordDetail] loadRemainingPoems DONE: ${allPoems.value.length} total poems in ${Date.now() - startTime}ms`)
@@ -287,7 +287,7 @@ const genreChartInstance = ref<any>(null)
 const renderCharts = () => {
   // 渲染朝代分布图表
   if (dynastyChartRef.value) {
-    const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
+    const targetPoems = allPoems.value.length > 0 ? allPoems.value : poemsList.value
     const dynastyData = dynastyStats.value
 
     if (dynastyData.length > 0) {
@@ -341,7 +341,7 @@ const renderCharts = () => {
 
   // 渲染体裁分布图表
   if (genreChartRef.value) {
-    const targetPoems = allPoems.value.length > 0 ? allPoems.value : poems.value
+    const targetPoems = allPoems.value.length > 0 ? allPoems.value : poemsList.value
     const genreData = genreStats.value
 
     if (genreData.length > 0) {
@@ -430,7 +430,7 @@ const handlePageChange = async (newPage: number) => {
 
   // 如果已经加载了所有诗词，直接从缓存取
   if (allPoems.value.length >= poemIds.value.length) {
-    poems.value = allPoems.value.slice(start, end)
+    poemsList.value = allPoems.value.slice(start, end)
     return
   }
 
@@ -438,7 +438,7 @@ const handlePageChange = async (newPage: number) => {
   const pageIds = poemIds.value.slice(start, end)
   const pageResults = await loadPoemsBatch(pageIds, true)
 
-  poems.value = pageResults
+  poemsList.value = pageResults
 }
 
 const handlePageSizeChange = (newSize: number) => {
@@ -452,7 +452,7 @@ const goBack = () => {
 }
 
 const goToPoem = (poemId: string) => {
-  const poem = poems.value.find(p => p.id === poemId)
+  const poem = poemsList.value.find(p => p.id === poemId)
   if (poem?.chunk_id !== undefined) {
     router.push({
       path: `/poems/${poemId}`,
@@ -577,13 +577,28 @@ watch(keyword, () => {
     </NGrid>
 
     <NSpin :show="isLoading" size="large">
-      <NEmpty v-if="!isLoading && poems.length === 0" :description="`未找到包含「${keyword}」的诗词`">
+      <NEmpty v-if="!isLoading && poemsList.length === 0" :description="`未找到包含「${keyword}」的诗词`">
         <template #extra>
           <NButton @click="goToPoems">返回诗词列表</NButton>
         </template>
       </NEmpty>
 
       <template v-else>
+        <NCard title="相似词词云" class="wordcloud-card">
+          <div class="wordcloud-container">
+            <div v-if="cloudLoading" class="status">
+              <NSpin size="small" />
+              <span style="margin-left: 8px">基于 FastText ONNX 模型，正在计算相似词…</span>
+            </div>
+             <NEmpty v-else-if="cloudError === 'Unknown token'" description="词汇出现次数低，无法计算相似词。">
+            </NEmpty>
+            <WordCloud v-else-if="cloudWords.length > 0" :words="cloudWords" :width="700" :height="350"
+              :title="`「${keyword}」的相似词词云`" />
+            <NEmpty v-else description="未加载到相似词">
+            </NEmpty>
+          </div>
+        </NCard>
+
         <NCard v-if="dynastyStats.length > 0 || genreStats.length > 0" title="朝代和体裁分布" class="stats-card">
           <div class="charts-container">
             <div class="chart-item">
@@ -596,20 +611,11 @@ watch(keyword, () => {
         </NCard>
 
         <NCard title="包含该关键词的诗词" class="poems-card">
-          <PoemList :poems="poems" :total="poemIds.length" v-model:page="page" v-model:page-size="pageSize"
+          <PoemList :poems="poemsList" :total="poemIds.length" v-model:page="page" v-model:page-size="pageSize"
             :show-pagination="true" :grid-view="false" @view-poem="(poem) => goToPoem(poem.id)" />
         </NCard>
       </template>
     </NSpin>
-    <div style="margin-top:20px">
-      <div v-if="cloudLoading" class="status">基于 FastText ONNX 模型，正在计算相似词…</div>
-      <div v-else>
-        <WordCloud v-if="cloudWords.length > 0" :words="cloudWords" :width="700" :height="350"
-          :title="`「${keyword}」的相似词词云`" />
-        <div v-else class="hint">未加载到相似词。点击“刷新相似词”以计算。</div>
-      </div>
-      <div v-if="cloudError" class="error" style="margin-top:8px">{{ cloudError }}</div>
-    </div>
   </div>
 </template>
 
@@ -710,6 +716,30 @@ watch(keyword, () => {
 
 .poems-card {
   margin-top: 24px;
+}
+
+.wordcloud-card {
+  margin-bottom: 24px;
+}
+
+.wordcloud-container {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.error-container {
+  text-align: center;
+  padding: 16px;
 }
 
 .charts-container {

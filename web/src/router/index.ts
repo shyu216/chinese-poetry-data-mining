@@ -59,7 +59,7 @@ const router = createRouter({
     {
       path: '/word-count',
       name: 'word-count',
-      component: () => import('@/views/WordCountView.vue')
+      component: () => import('@/views/KeywordView.vue')
     },
     {
       path: '/keyword/:word',

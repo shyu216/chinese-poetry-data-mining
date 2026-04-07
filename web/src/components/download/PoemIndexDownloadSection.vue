@@ -18,17 +18,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NProgress, NAlert, NSpace, NTag } from 'naive-ui'
 import { DownloadOutline, CheckmarkOutline, CloseOutline } from '@vicons/ionicons5'
-import { useSearchIndexV2 } from '@/composables/useSearchIndexV2'
+import { useSearchIndex } from '@/composables/useSearchIndex'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { usePoemIndexManifest, POEM_INDEX_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata } from '@/composables/useCacheV2'
+import { getMetadata } from '@/composables/useCache'
 import type { PoemSummary } from '@/composables/types'
 
 const emit = defineEmits<{
   downloaded: []
 }>()
 
-const searchIndexV2 = useSearchIndexV2()
+const searchIndex = useSearchIndex()
 const poemIndexMeta = usePoemIndexManifest()
 const chunkLoader = useChunkLoader()
 
@@ -76,7 +76,7 @@ const downloadAll = async () => {
 
     await chunkLoader.loadChunks<string>(unloadedIndices, async (index: number) => {
       const prefix = prefixes[index]!
-      await searchIndexV2.loadPoemChunk(prefix)
+      await searchIndex.loadPoemChunk(prefix)
       return prefix
     }, {
       chunkDelay: 50,

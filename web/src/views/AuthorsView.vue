@@ -3,10 +3,10 @@
   file: web/src/views/AuthorsView.vue
   category: frontend-page
   tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  summary: 作者列表页，负责展示作者统计、分页、搜索与分块加载（使用 `useAuthorsV2`, `useAuthorSearch`, `useChunkLoader` 等 composables）。
+  summary: 作者列表页，负责展示作者统计、分页、搜索与分块加载（使用 `useAuthors`, `useAuthorSearch`, `useChunkLoader` 等 composables）。
 
   Data pipeline:
-  - 元数据: 使用 `useAuthorsV2().loadMetadata()` 获取 chunk 列表与总数
+  - 元数据: 使用 `useAuthors().loadMetadata()` 获取 chunk 列表与总数
   - 分块加载: 通过 `useChunkLoader` 驱动按需或并发加载作者 chunk 到内存（并可写回 IndexedDB 缓存）
   - 搜索: 当存在查询时使用 `useAuthorSearch()`（倒排/索引）返回分页结果
   - 展示: 使用 `useShuffle`、聚类可视化与统计卡片组合显示
@@ -33,9 +33,9 @@ import {
   MedalOutline, BarChartOutline,
   ChevronForwardOutline, ShuffleOutline, RefreshOutline
 } from '@vicons/ionicons5'
-import { useAuthorsV2 } from '@/composables/useAuthorsV2'
+import { useAuthors } from '@/composables/useAuthors'
 import { useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS } from '@/composables/useChunkLoader'
-import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
+import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCache'
 import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
 import { useAuthorSearch } from '@/search'
 import { useShuffle } from '@/composables/useShuffle'
@@ -58,7 +58,7 @@ const {
   totalChunks,
   loadMetadata,
   loadAuthorChunk
-} = useAuthorsV2()
+} = useAuthors()
 
 const { 
   loading: clusterLoading, 

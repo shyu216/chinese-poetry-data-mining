@@ -16,17 +16,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NProgress, NAlert, NSpace, NTag } from 'naive-ui'
 import { DownloadOutline, CheckmarkOutline, CloseOutline } from '@vicons/ionicons5'
-import { useAuthorsV2 } from '@/composables/useAuthorsV2'
+import { useAuthors } from '@/composables/useAuthors'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { useAuthorsMetadata, AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata } from '@/composables/useCacheV2'
+import { getMetadata } from '@/composables/useCache'
 import type { AuthorStats } from '@/types/author'
 
 const emit = defineEmits<{
   downloaded: []
 }>()
 
-const authorsV2 = useAuthorsV2()
+const authors = useAuthors()
 const authorsMeta = useAuthorsMetadata()
 const chunkLoader = useChunkLoader()
 
@@ -68,7 +68,7 @@ const downloadAll = async () => {
       return
     }
 
-    await chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, authorsV2.loadAuthorChunk, {
+    await chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, authors.loadAuthorChunk, {
       chunkDelay: 50,
       onChunkLoaded: (chunkId) => {
         if (!cachedChunkIds.value.includes(chunkId)) {

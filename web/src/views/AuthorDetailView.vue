@@ -3,8 +3,8 @@
   说明: 作者详情页，展示作者统计信息、代表作品列表与相关检索结果；协调多个 composable（作者、诗文、索引）来拼接页面数据。
 
   数据管线:
-    - 输入: 路由参数 `name` 触发 `useAuthorsV2.getAuthorByName()` 获取作者元信息。
-    - 聚合: 使用 `usePoemsV2` 按 id 批量获取诗文详情，并用 `useSearchIndexV2` 获取摘要/关键词用于列表展示。
+    - 输入: 路由参数 `name` 触发 `useAuthors.getAuthorByName()` 获取作者元信息。
+    - 聚合: 使用 `usePoems` 按 id 批量获取诗文详情，并用 `useSearchIndex` 获取摘要/关键词用于列表展示。
     - 分页/渲染: 在客户端对作者的诗文做分页（`poemsPage`, `poemsPageSize`），并将子组件（`PoemList` / `StatsCard`）渲染所需数据传下去。
 
   复杂度:
@@ -13,7 +13,7 @@
     - 空间: 客户端缓存作者诗文与映射表（`poemChunkMap`）使空间复杂度为 O(n)。
 
   使用技术/要点:
-    - 组合式 composables (`useAuthorsV2`, `usePoemsV2`, `useSearchIndexV2`) 将数据获取/缓存与 UI 分离。
+    - 组合式 composables (`useAuthors`, `usePoems`, `useSearchIndex`) 将数据获取/缓存与 UI 分离。
     - 分页在客户端执行以减少路由切换请求，但父组件负责追加数据（拉取更多时触发）。
     - 使用 `Map` 存储 poem_id -> chunk_id 提高查找性能。
 
@@ -26,9 +26,9 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuthorsV2 } from '@/composables/useAuthorsV2'
-import { usePoemsV2 } from '@/composables/usePoemsV2'
-import { useSearchIndexV2 } from '@/composables/useSearchIndexV2'
+import { useAuthors } from '@/composables/useAuthors'
+import { usePoems } from '@/composables/usePoems'
+import { useSearchIndex } from '@/composables/useSearchIndex'
 import type { AuthorStats } from '@/composables/types'
 import type { PoemDetail } from '@/composables/types'
 import {
@@ -49,9 +49,9 @@ import { useLoading } from '@/composables/useLoading'
 const loading = useLoading()
 const route = useRoute()
 const router = useRouter()
-const { getAuthorByName } = useAuthorsV2()
-const { getPoemById, getPoemsByIds } = usePoemsV2()
-const { getPoemSummariesByIds } = useSearchIndexV2()
+const { getAuthorByName } = useAuthors()
+const { getPoemById, getPoemsByIds } = usePoems()
+const { getPoemSummariesByIds } = useSearchIndex()
 
 const authorName = computed(() => route.params.name as string)
 const author = ref<AuthorStats | null>(null)

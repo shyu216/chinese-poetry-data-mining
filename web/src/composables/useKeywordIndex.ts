@@ -17,7 +17,7 @@
 import { ref, shallowRef, computed, type Ref } from 'vue'
 import { WORDCOUNT_STORAGE } from './useMetadataLoader'
 import { getVerifiedCache } from './useVerifiedCache'
-import { getMetadata, setMetadata, getValidatedMetadata } from './useCacheV2'
+import { getMetadata, setMetadata, getValidatedMetadata } from './useCache'
 
 interface KeywordManifest {
   version: string
@@ -57,7 +57,7 @@ initLoadedChunkIds()
 
 /**
  * 加载关键词 Manifest（O(1) 查询所需）
- * 借鉴 useWordcountV2 和 useVerifiedCache 的模式
+ * 借鉴 useWordcount 和 useVerifiedCache 的模式
  */
 async function loadKeywordManifest(): Promise<KeywordManifest | null> {
   if (isManifestLoaded.value) return keywordManifest.value
@@ -149,7 +149,7 @@ export function useKeywordIndex() {
 
   /**
    * O(1) 查询关键词所在的 chunk
-   * 借鉴 useSearchIndexV2 的批量加载模式
+   * 借鉴 useSearchIndex 的批量加载模式
    */
   async function searchKeywordOptimized(keyword: string): Promise<string[]> {
     const startTime = performance.now()
@@ -256,7 +256,7 @@ export function useKeywordIndex() {
 
   /**
    * 预加载指定 chunk 范围（用于优化批量查询）
-   * 借鉴 useWordcountV2 的 preloadChunks 模式
+   * 借鉴 useWordcount 的 preloadChunks 模式
    */
   async function preloadChunks(startChunk: number, endChunk: number): Promise<void> {
     const chunksToLoad = []

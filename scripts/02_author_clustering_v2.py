@@ -7,7 +7,7 @@ inputs:
 - results/author
 - results/author_v2
 outputs:
-- results/author_clusters
+- results/author_clusters_test
 depends_on:
 - 02_author_sim_v2.py
 develop_date: 2026-03-22
@@ -36,13 +36,33 @@ import matplotlib
 matplotlib.use('Agg')
 plt.rcParams['font.sans-serif'] = ['SimHei', 'DejaVu Sans', 'Arial Unicode MS']
 plt.rcParams['axes.unicode_minus'] = False
-# 路径配置
+# ========== 宏定义配置 ==========
+# 基础路径
 INPUT_DIR = Path("results/author")
-OUTPUT_DIR = Path("results/author_clusters")
-# 特征配置
-MIN_POEMS = 20  # 最少诗作数量
-TOP_WORDS = 30  # 每位诗人取前N个高频词
-TOP_PATTERNS = 5  # 每位诗人取前N个格律模式
+BASE_OUTPUT_DIR = Path("results/author_clusters_test")
+
+# 聚类参数 - 默认配置
+ALGORITHM = 'hierarchical'          # kmeans / spectral / hierarchical / dbscan
+N_CLUSTERS = 8                 # 聚类数量 (0 = 自动寻优)
+FIND_OPTIMAL_K = False          # 是否自动寻找最优K
+
+# 特征提取参数
+MIN_POEMS = 1                 # 最少诗作数量
+TOP_WORDS = 6                 # 每位诗人取前N个高频词
+TOP_PATTERNS = 2               # 每位诗人取前N个格律模式
+
+# 特征权重 - 默认配置
+FEATURE_WEIGHTS = {
+    'words': 2.0,
+    'types': 1.5,
+    'patterns': 1.0
+}
+
+# PCA降维维度
+PCA_COMPONENTS = 30
+
+# 近邻参数
+N_NEIGHBORS = 15
 class BalancedFeatureExtractor:
     """平衡特征提取器 - 确保不同特征维度贡献均衡"""
     def __init__(self):
@@ -175,17 +195,24 @@ class SimilarityNetworkBuilder:
         return affinity
 class AuthorClusteringV2:
     """诗人聚类分析器 v2"""
-    def __init__(self, algorithm: str = 'spectral', n_clusters: int = 6, 
-                 feature_weights: Dict[str, float] = None):
+    def __init__(self, algorithm: str = ALGORITHM, n_clusters: int = N_CLUSTERS, 
+                 feature_weights: Dict[str, float] = None, find_optimal_k: bool = FIND_OPTIMAL_K):
         self.algorithm = algorithm
         self.n_clusters = n_clusters
-        self.feature_weights = feature_weights or {'words': 1.0, 'types': 1.5, 'patterns': 1.0}
+        self.find_optimal_k = find_optimal_k
+        self.feature_weights = feature_weights or FEATURE_WEIGHTS
         self.extractor = BalancedFeatureExtractor()
         self.scaler = StandardScaler()
         self.authors_data = []
         self.feature_matrix = None
         self.labels = None
         self.network_builder = None
+        
+        # 动态生成输出目录
+        weight_str = f"w{int(self.feature_weights['words']*10)}t{int(self.feature_weights['types']*10)}p{int(self.feature_weights['patterns']*10)}"
+        self.output_dir = BASE_OUTPUT_DIR / f"{algorithm}_k{n_clusters}_min{MIN_POEMS}_{weight_str}"
+        
+        print(f"\n>>> 输出目录: {self.output_dir}")
     def load_data(self) -> List[Dict]:
         """加载诗人数据"""
         print("\n" + "=" * 60)
@@ -399,7 +426,7 @@ class AuthorClusteringV2:
         print("\n" + "=" * 60)
         print("步骤7: 生成可视化")
         print("=" * 60)
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         # 2D投影
         pca_2d = PCA(n_components=2)
         coords = pca_2d.fit_transform(self.feature_matrix)
@@ -446,7 +473,7 @@ class AuthorClusteringV2:
         ax3.set_ylabel('诗人索引')
         plt.colorbar(im, ax=ax3)
         plt.tight_layout()
-        viz_path = OUTPUT_DIR / f'clustering_{self.algorithm}.png'
+        viz_path = self.output_dir / f'clustering_{self.algorithm}.png'
         plt.savefig(viz_path, dpi=150, bbox_inches='tight')
         print(f"可视化保存至: {viz_path}")
         plt.close()
@@ -455,7 +482,7 @@ class AuthorClusteringV2:
         print("\n" + "=" * 60)
         print("步骤8: 保存结果")
         print("=" * 60)
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         # 诗人-聚类映射
         mapping = []
         for i, author in enumerate(self.authors_data):
@@ -465,17 +492,17 @@ class AuthorClusteringV2:
                 'poem_count': author.get('poem_count', 0),
                 'types': list(author.get('poem_type_counts', {}).keys())
             })
-        with open(OUTPUT_DIR / f'clusters_{self.algorithm}.json', 'w', encoding='utf-8') as f:
+        with open(self.output_dir / f'clusters_{self.algorithm}.json', 'w', encoding='utf-8') as f:
             json.dump(mapping, f, ensure_ascii=False, indent=2)
-        with open(OUTPUT_DIR / f'analysis_{self.algorithm}.json', 'w', encoding='utf-8') as f:
+        with open(self.output_dir / f'analysis_{self.algorithm}.json', 'w', encoding='utf-8') as f:
             json.dump(analysis, f, ensure_ascii=False, indent=2)
-        print(f"结果保存至 {OUTPUT_DIR}/")
+        print(f"结果保存至 {self.output_dir}/")
     def run(self):
         """运行完整流程"""
         self.load_data()
         self.build_features()
         self.reduce_dimensions()
-        if self.n_clusters is None or self.n_clusters <= 0:
+        if self.find_optimal_k:
             self.find_optimal_clusters()
         self.cluster()
         analysis = self.analyze_clusters()
@@ -483,27 +510,7 @@ class AuthorClusteringV2:
         self.save_results(analysis)
         return analysis
 def main():
-    parser = argparse.ArgumentParser(description='诗人流派聚类分析 v2')
-    parser.add_argument('--algorithm', choices=['kmeans', 'spectral', 'hierarchical', 'dbscan'],
-                        default='spectral', help='聚类算法')
-    parser.add_argument('--n-clusters', type=int, default=6, help='聚类数量')
-    parser.add_argument('--min-poems', type=int, default=20, help='最少诗作数量')
-    parser.add_argument('--word-weight', type=float, default=1.0, help='词特征权重')
-    parser.add_argument('--type-weight', type=float, default=1.5, help='诗体特征权重')
-    parser.add_argument('--pattern-weight', type=float, default=1.0, help='格律特征权重')
-    args = parser.parse_args()
-    global MIN_POEMS
-    MIN_POEMS = args.min_poems
-    weights = {
-        'words': args.word_weight,
-        'types': args.type_weight,
-        'patterns': args.pattern_weight
-    }
-    clustering = AuthorClusteringV2(
-        algorithm=args.algorithm,
-        n_clusters=args.n_clusters,
-        feature_weights=weights
-    )
+    clustering = AuthorClusteringV2()
     clustering.run()
     print("\n" + "=" * 60)
     print("分析完成!")

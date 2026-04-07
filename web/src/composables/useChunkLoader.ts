@@ -24,8 +24,7 @@ import { ref, computed, onUnmounted } from 'vue'
 export const CHUNK_LOADER_PREFERENCE_KEYS = {
   poems: 'chunkLoader:autoLoadOnEnter:poems',
   authors: 'chunkLoader:autoLoadOnEnter:authors',
-  wordcount: 'chunkLoader:autoLoadOnEnter:wordcount',
-  wordcountWordSim: 'chunkLoader:autoLoadOnEnter:wordcount:wordSim'
+  wordcount: 'chunkLoader:autoLoadOnEnter:wordcount'
 } as const
 
 const DEFAULT_PREFERENCE_KEY = 'chunkLoader:autoLoadOnEnter:default'

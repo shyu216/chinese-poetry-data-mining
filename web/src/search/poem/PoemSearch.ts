@@ -270,7 +270,7 @@ class PoemSearch {
       // 先从内存缓存获取
       let poem = this.poems.get(id)
       
-      // 如果没有，尝试从 usePoemsV2 加载（这里简化处理）
+      // 如果没有，尝试从 usePoems 加载（这里简化处理）
       if (!poem) {
         poem = await this.loadPoemById(id)
       }
@@ -315,7 +315,7 @@ class PoemSearch {
 
   private async loadPoemById(id: string): Promise<PoemSummary | undefined> {
     // 简化实现：从 poem_index 加载
-    // 实际应该调用 usePoemsV2 的方法
+    // 实际应该调用 usePoems 的方法
     return undefined
   }
 

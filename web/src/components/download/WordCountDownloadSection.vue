@@ -16,17 +16,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NProgress, NAlert, NSpace, NTag } from 'naive-ui'
 import { DownloadOutline, CheckmarkOutline, CloseOutline } from '@vicons/ionicons5'
-import { useWordcountV2 } from '@/composables/useWordcountV2'
+import { useWordcount } from '@/composables/useWordcount'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { useWordcountMetadata, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata } from '@/composables/useCacheV2'
+import { getMetadata } from '@/composables/useCache'
 import type { WordCountItem } from '@/composables/types'
 
 const emit = defineEmits<{
   downloaded: []
 }>()
 
-const wordcountV2 = useWordcountV2()
+const wordcount = useWordcount()
 const wordcountMeta = useWordcountMetadata()
 const chunkLoader = useChunkLoader()
 
@@ -68,7 +68,7 @@ const downloadAll = async () => {
       return
     }
 
-    await chunkLoader.loadChunks<WordCountItem[]>(unloadedChunkIds, wordcountV2.loadChunk, {
+    await chunkLoader.loadChunks<WordCountItem[]>(unloadedChunkIds, wordcount.loadChunk, {
       chunkDelay: 50,
       onChunkLoaded: (chunkId) => {
         if (!cachedChunkIds.value.includes(chunkId)) {

@@ -3,8 +3,8 @@
   说明: 应用根组件，负责顶级布局（侧栏、移动头部、主内容区）、路由过渡动画与主题覆写。
 
   数据管线 (Data pipeline):
-    - 触发点: 应用挂载时调用 `usePoemsV2().loadMetadata()` 拉取/加载元数据。
-    - 存储: 元数据由组合式 API (`usePoemsV2`) 在客户端缓存（Reactive state）。
+    - 触发点: 应用挂载时调用 `usePoems().loadMetadata()` 拉取/加载元数据。
+    - 存储: 元数据由组合式 API (`usePoems`) 在客户端缓存（Reactive state）。
     - 传递: 各页面通过 `RouterView` 和组合式函数读取共享状态并渲染。
     - 用户交互: 窗口 resize、侧栏折叠与移动菜单开关只影响本地 UI state，不直接修改后端数据。
 
@@ -22,7 +22,7 @@
 
   潜在问题 / 风险:
     - 客户端缓存整表（m 很大）会占用大量内存，低端设备可能 OOM。
-    - 如果 `usePoemsV2.loadMetadata()` 返回大体量数据，解析/JSON.parse 会阻塞主线程，建议分片/后台线程（web worker）处理。
+    - 如果 `usePoems.loadMetadata()` 返回大体量数据，解析/JSON.parse 会阻塞主线程，建议分片/后台线程（web worker）处理。
     - 字体、外部资源通过 CDN 加载会影响首屏时间，需加速或本地打包优化。
     - 路由动画与大量 DOM 同步渲染时可能出现卡顿，应考虑虚拟列表或按需渲染。
     - 无 SSR 支持，SEO 与首屏体验依赖于客户端渲染。
@@ -43,7 +43,7 @@ import {
   CloseOutline
 } from '@vicons/ionicons5'
 
-import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { usePoems } from '@/composables/usePoems'
 import { UnifiedLoading } from '@/components/feedback'
 
 const collapsed = ref(false)
@@ -51,7 +51,7 @@ const mobileMenuOpen = ref(false)
 const isMobile = ref(false)
 const isTransitioning = ref(false)
 
-const poemsV2 = usePoemsV2()
+const poems = usePoems()
 const route = useRoute()
 
 const formatNumber = (num: number | undefined | null): string => {
@@ -72,7 +72,7 @@ const checkMobile = () => {
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
-  poemsV2.loadMetadata()
+  poems.loadMetadata()
 })
 
 onUnmounted(() => {
@@ -203,7 +203,7 @@ const themeOverrides = {
             <div class="footer-inner">
               <span class="copyright">© 2026 中华诗词数据挖掘</span>
               <span class="divider">|</span>
-              <span class="stats">诗词总数 <em>{{ formatNumber(poemsV2.totalPoems.value) }}</em> 首</span>
+              <span class="stats">诗词总数 <em>{{ formatNumber(poems.totalPoems.value) }}</em> 首</span>
               <span class="divider">|</span>
               <span class="version">v1.0</span>
             </div>

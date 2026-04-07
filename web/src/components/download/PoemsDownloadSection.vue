@@ -16,17 +16,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { NCard, NButton, NProgress, NAlert, NSpace, NTag } from 'naive-ui'
 import { DownloadOutline, CheckmarkOutline, CloseOutline } from '@vicons/ionicons5'
-import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { usePoems } from '@/composables/usePoems'
 import { useChunkLoader } from '@/composables/useChunkLoader'
 import { usePoemsMetadata, POEMS_STORAGE } from '@/composables/useMetadataLoader'
-import { getMetadata } from '@/composables/useCacheV2'
+import { getMetadata } from '@/composables/useCache'
 import type { PoemSummary } from '@/composables/types'
 
 const emit = defineEmits<{
   downloaded: []
 }>()
 
-const poemsV2 = usePoemsV2()
+const poems = usePoems()
 const poemsMeta = usePoemsMetadata()
 const chunkLoader = useChunkLoader()
 
@@ -68,7 +68,7 @@ const downloadAll = async () => {
       return
     }
 
-    await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, poemsV2.loadChunkSummaries, {
+    await chunkLoader.loadChunks<PoemSummary[]>(unloadedChunkIds, poems.loadChunkSummaries, {
       chunkDelay: 50,
       onChunkLoaded: (chunkId) => {
         if (!cachedChunkIds.value.includes(chunkId)) {

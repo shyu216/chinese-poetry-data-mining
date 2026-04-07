@@ -20,7 +20,7 @@
  */
 
 import { ref, computed } from 'vue'
-import { getCache, setCache, getChunkedCache, setChunkedCache, type CacheOptions, type ChunkCacheOptions } from './useCacheV2'
+import { getCache, setCache, getChunkedCache, setChunkedCache, type CacheOptions, type ChunkCacheOptions } from './useCache'
 
 // Hash Manifest 类型
 interface HashManifest {

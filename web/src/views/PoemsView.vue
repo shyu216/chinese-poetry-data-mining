@@ -3,7 +3,7 @@
   说明: 诗词列表页，支持按朝代/体裁筛选、搜索与按块（chunk）加载诗文摘要以支持大规模数据集的渐进加载。
 
   数据管线:
-    - 元数据: 使用 `usePoemsV2().loadMetadata()` 获取分片信息与统计。
+    - 元数据: 使用 `usePoems().loadMetadata()` 获取分片信息与统计。
     - 分片加载: `useChunkLoader` 按需加载诗文摘要分片并缓存在 IndexedDB 或内存中，`loadedPoems` 维护当前已加载条目。
     - 搜索: `usePoemSearch` 提供全文/倒排索引搜索，优先使用索引返回结果并补充分片数据。
 
@@ -19,9 +19,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, shallowRef } from 'vue'
 import { useRouter } from 'vue-router'
-import { usePoemsV2, POEMS_SUMMARY_STORAGE } from '@/composables/usePoemsV2'
+import { usePoems, POEMS_SUMMARY_STORAGE } from '@/composables/usePoems'
 import { useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS } from '@/composables/useChunkLoader'
-import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCacheV2'
+import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCache'
 import { usePoemSearch } from '@/search'
 import { useShuffle } from '@/composables/useShuffle'
 import type { PoemSummary } from '@/composables/types'
@@ -56,7 +56,7 @@ const {
   loadMetadata,
   loadChunkSummaries,
   queryPoems
-} = usePoemsV2()
+} = usePoems()
 
 const chunkLoader = useChunkLoader({ preferenceKey: CHUNK_LOADER_PREFERENCE_KEYS.poems })
 
@@ -192,30 +192,30 @@ const loadingHint = computed(() => {
 
 // 从缓存加载
 const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
-  console.log(`[PoemsViewV2] 🔄 开始加载本地缓存${quickMode ? ' (快速模式)' : ''}...`)
+  console.log(`[PoemsView] 🔄 开始加载本地缓存${quickMode ? ' (快速模式)' : ''}...`)
   const startTime = performance.now()
 
   const meta = await getMetadata(POEMS_SUMMARY_STORAGE)
   const loadedChunkIds = meta?.loadedChunkIds || []
 
-  console.log(`[PoemsViewV2] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
+  console.log(`[PoemsView] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
 
   if (loadedChunkIds.length === 0) {
-    console.log('[PoemsViewV2] ⚠️ 无缓存数据，将从服务器加载')
+    console.log('[PoemsView] ⚠️ 无缓存数据，将从服务器加载')
     return []
   }
 
   // 快速模式：只读取第一个分块
   if (quickMode) {
     const firstChunkId = loadedChunkIds[0]!
-    console.log(`[PoemsViewV2] ⚡ 快速模式：优先加载分块 #${firstChunkId}`)
+    console.log(`[PoemsView] ⚡ 快速模式：优先加载分块 #${firstChunkId}`)
 
     const chunkData = await getVerifiedChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, firstChunkId)
 
     if (chunkData && Array.isArray(chunkData) && chunkData.length > 0) {
       loadedPoems.value = chunkData
       cachedChunksCount.value = 1
-      console.log(`[PoemsViewV2] ✅ 快速加载完成: ${chunkData.length} 首诗词 - ${Math.round(performance.now() - startTime)}ms`)
+      console.log(`[PoemsView] ✅ 快速加载完成: ${chunkData.length} 首诗词 - ${Math.round(performance.now() - startTime)}ms`)
     }
 
     return [firstChunkId]
@@ -224,7 +224,7 @@ const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
   // 完整模式：读取所有缓存分块
   cachedChunksCount.value = loadedChunkIds.length
   const cachedPoems: PoemSummary[] = []
-  console.log(`[PoemsViewV2] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
+  console.log(`[PoemsView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
 
   for (const chunkId of loadedChunkIds) {
     const chunkStartTime = performance.now()
@@ -233,7 +233,7 @@ const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
 
     if (chunkData && Array.isArray(chunkData)) {
       cachedPoems.push(...chunkData)
-      console.log(`[PoemsViewV2]   ├─ 分块 #${chunkId}: ${chunkData.length} 首诗词 (${chunkDuration}ms)`)
+      console.log(`[PoemsView]   ├─ 分块 #${chunkId}: ${chunkData.length} 首诗词 (${chunkDuration}ms)`)
     }
   }
 
@@ -242,14 +242,14 @@ const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
   }
 
   const totalDuration = Math.round(performance.now() - startTime)
-  console.log(`[PoemsViewV2] ✅ 缓存加载完成: ${cachedPoems.length} 首诗词 - ${totalDuration}ms`)
+  console.log(`[PoemsView] ✅ 缓存加载完成: ${cachedPoems.length} 首诗词 - ${totalDuration}ms`)
 
   return loadedChunkIds
 }
 
 // 主加载函数
 const loadData = async () => {
-  console.log('[PoemsViewV2] 🚀 开始加载数据...')
+  console.log('[PoemsView] 🚀 开始加载数据...')
   const totalStartTime = performance.now()
 
   loading.startBlocking('诗词列表', '正在加载诗词数据...')
@@ -257,17 +257,17 @@ const loadData = async () => {
 
   try {
     loading.updatePhase('metadata', '正在加载元数据...')
-    console.log('[PoemsViewV2] 📋 阶段1: 加载元数据...')
+    console.log('[PoemsView] 📋 阶段1: 加载元数据...')
     const metaStartTime = performance.now()
     await loadMetadata()
     const totalChunksCount = totalChunks.value || 0
-    console.log(`[PoemsViewV2] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
+    console.log(`[PoemsView] ✅ 元数据加载完成: ${totalPoems.value} 首诗词, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
 
     loading.updateProgress(1, 3, '正在加载首批数据...')
-    console.log('[PoemsViewV2] ⚡ 阶段2: 快速加载首批数据...')
+    console.log('[PoemsView] ⚡ 阶段2: 快速加载首批数据...')
     const quickStartTime = performance.now()
     const firstChunkIds = await loadCachedChunks(true)
-    console.log(`[PoemsViewV2] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
+    console.log(`[PoemsView] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
 
     loading.updateProgress(2, 3, '准备就绪...')
     loading.updatePhase('complete', '数据加载完成')
@@ -275,13 +275,13 @@ const loadData = async () => {
     setTimeout(() => loading.finish(), 200)
     isInitializing.value = false
 
-    console.log('[PoemsViewV2] 🎨 界面已可交互，开始后台加载剩余数据...')
+    console.log('[PoemsView] 🎨 界面已可交互，开始后台加载剩余数据...')
 
     const remainingStartTime = performance.now()
     if (chunkLoader.autoLoadEnabled.value) {
       loading.startNonBlocking('补充诗词数据', '正在加载剩余数据...')
     } else {
-      console.log('[PoemsViewV2] autoLoadOnEnter=false — skip unified non-blocking toast until user resumes chunk load')
+      console.log('[PoemsView] autoLoadOnEnter=false — skip unified non-blocking toast until user resumes chunk load')
     }
 
     // 加载剩余缓存分块
@@ -290,7 +290,7 @@ const loadData = async () => {
     const remainingCachedIds = allCachedChunkIds.filter(id => !firstChunkIds.includes(id))
 
     if (remainingCachedIds.length > 0) {
-      console.log(`[PoemsViewV2] 💾 后台加载剩余 ${remainingCachedIds.length} 个缓存分块...`)
+      console.log(`[PoemsView] 💾 后台加载剩余 ${remainingCachedIds.length} 个缓存分块...`)
       let loadedCachedCount = 0
       for (const chunkId of remainingCachedIds) {
         const chunkData = await getVerifiedChunkedCache<PoemSummary[]>(POEMS_SUMMARY_STORAGE, chunkId)
@@ -300,11 +300,11 @@ const loadData = async () => {
           loadedCachedCount++
           // 每3个分块输出一次日志
           if (loadedCachedCount % 3 === 0) {
-            console.log(`[PoemsViewV2] 📥 缓存加载进度: ${loadedCachedCount}/${remainingCachedIds.length} 分块`)
+            console.log(`[PoemsView] 📥 缓存加载进度: ${loadedCachedCount}/${remainingCachedIds.length} 分块`)
           }
         }
       }
-      console.log(`[PoemsViewV2] ✅ 剩余缓存加载完成，当前共 ${loadedPoems.value.length} 首诗词`)
+      console.log(`[PoemsView] ✅ 剩余缓存加载完成，当前共 ${loadedPoems.value.length} 首诗词`)
     }
 
     // 加载网络分块
@@ -312,11 +312,11 @@ const loadData = async () => {
     const unloadedChunkIds = allChunkIds.filter(id => !allCachedChunkIds.includes(id))
 
     if (unloadedChunkIds.length === 0) {
-      console.log('[PoemsViewV2] ✨ 所有数据已加载完成')
+      console.log('[PoemsView] ✨ 所有数据已加载完成')
       hasMoreChunks.value = false
       loading.finish()
     } else {
-      console.log(`[PoemsViewV2] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
+      console.log(`[PoemsView] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
       let loadedCount = allCachedChunkIds.length
       let networkDataCount = 0
 
@@ -336,12 +336,12 @@ const loadData = async () => {
               const phases = ['正在读取诗词数据...', '正在整理诗词分类...', '正在加载诗词信息...', '正在构建诗词列表...']
               const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
               loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
-              console.log(`[PoemsViewV2] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
+              console.log(`[PoemsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 首诗词)`)
             }
           },
           onComplete: () => {
             const bgDuration = Math.round(performance.now() - remainingStartTime)
-            console.log(`[PoemsViewV2] ✅ 后台加载完成: 共 ${loadedPoems.value.length} 首诗词 - ${bgDuration}ms`)
+            console.log(`[PoemsView] ✅ 后台加载完成: 共 ${loadedPoems.value.length} 首诗词 - ${bgDuration}ms`)
             hasMoreChunks.value = false
             loading.finish()
           }
@@ -351,18 +351,18 @@ const loadData = async () => {
         await runNetworkChunkLoad()
       } else {
         console.log(
-          '[PoemsViewV2] autoLoadOnEnter=false (localStorage) — network chunk load started paused; not awaiting loadData'
+          '[PoemsView] autoLoadOnEnter=false (localStorage) — network chunk load started paused; not awaiting loadData'
         )
         void runNetworkChunkLoad()
       }
     }
   } catch (error) {
     loading.error('加载失败，请刷新重试')
-    console.error('[PoemsViewV2] ❌ 诗词数据加载失败:', error)
+    console.error('[PoemsView] ❌ 诗词数据加载失败:', error)
     isInitializing.value = false
   } finally {
     const totalDuration = Math.round(performance.now() - totalStartTime)
-    console.log(`[PoemsViewV2] 🏁 总加载时间: ${totalDuration}ms`)
+    console.log(`[PoemsView] 🏁 总加载时间: ${totalDuration}ms`)
   }
 }
 
@@ -406,7 +406,7 @@ watch([dynastyFilter, genreFilter], () => {
 <template>
   <div class="poems-view">
     <PageHeader
-      title="诗词列表 V2"
+      title="诗词列表 "
       :subtitle="`共收录 ${dynamicStats.total.toLocaleString()} 首诗词，支持朝代、体裁筛选`"
       :icon="BookOutline"
     />

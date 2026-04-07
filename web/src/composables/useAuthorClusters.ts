@@ -32,11 +32,12 @@ import type { AuthorCluster, AuthorNode, ClusterWord } from '@/types/cluster'
 
 // 原始数据接口
 interface RawCluster {
+  id: number
+  name: string
   size: number
-  representative_authors: string[]
+  representatives: string[]
   avg_poems: number
-  top_words: string[]
-  distinctive_words: Array<{
+  top_words: Array<{
     word: string
     ratio: number
     count: number
@@ -45,10 +46,13 @@ interface RawCluster {
     type: string
     count: number
   }>
-  patterns: Array<{
+  patterns?: Array<{
     pattern: string
     count: number
   }>
+  center_2d?: [number, number]
+  center_3d?: [number, number, number]
+  color?: string
 }
 
 interface RawClusterData {
@@ -102,20 +106,29 @@ export function useAuthorClusters() {
       const baseUrl = import.meta.env.BASE_URL || '/'
 
       // 并行加载两个数据文件
-      const [analysisResponse, authorsResponse] = await Promise.all([
-        fetch(`${baseUrl}data/author_clusters/analysis_spectral.json`.replace(/\/+/g, '/')),
+      const [featuresResponse, authorsResponse] = await Promise.all([
+        fetch(`${baseUrl}data/author_clusters/cluster_features.json`.replace(/\/+/g, '/')),
         fetch(`${baseUrl}data/author_clusters/clusters_data.json`.replace(/\/+/g, '/'))
       ])
 
-      if (!analysisResponse.ok) {
-        throw new Error('Failed to load cluster analysis')
+      if (!featuresResponse.ok) {
+        throw new Error('Failed to load cluster features')
       }
       if (!authorsResponse.ok) {
         throw new Error('Failed to load cluster authors data')
       }
 
-      clustersData.value = await analysisResponse.json()
+      const featuresData = await featuresResponse.json()
       authorsData.value = await authorsResponse.json()
+
+      // 转换 cluster_features 格式
+      clustersData.value = {
+        algorithm: 'spectral',
+        n_clusters: Object.keys(featuresData).length,
+        total_authors: authorsData.value.length,
+        feature_weights: { words: 1.0, types: 1.5, patterns: 1.0 },
+        clusters: featuresData
+      }
 
       console.log('[useAuthorClusters] Loaded:', {
         clusters: Object.keys(clustersData.value?.clusters || {}).length,
@@ -156,36 +169,31 @@ export function useAuthorClusters() {
     const cluster = clustersData.value?.clusters[strId]
     if (!cluster) return `流派 ${id}`
 
-    // 使用 distinctive_words 前两个关键词组合命名
-    if (cluster.distinctive_words && cluster.distinctive_words.length >= 2) {
-      const word1 = cluster.distinctive_words[0]?.word
-      const word2 = cluster.distinctive_words[1]?.word
+    // 使用 top_words 前两个关键词组合命名
+    if (cluster.top_words && cluster.top_words.length >= 2) {
+      const word1 = cluster.top_words[0]?.word
+      const word2 = cluster.top_words[1]?.word
       if (word1 && word2) {
         return `${word1}·${word2}派`
       }
     }
-    // 回退：使用 top_words
-    if (cluster.top_words && cluster.top_words.length >= 2) {
-      return `${cluster.top_words[0]}·${cluster.top_words[1]}派`
+    // 回退：使用 name
+    if (cluster.name) {
+      return cluster.name
     }
     return `流派 ${id}`
   }
 
   // 转换 top_words 格式
   const convertTopWords = (cluster: RawCluster): ClusterWord[] => {
-    // 使用 distinctive_words 作为词频数据（包含 ratio 和 count）
-    if (cluster.distinctive_words && cluster.distinctive_words.length > 0) {
-      return cluster.distinctive_words.slice(0, 10).map(dw => ({
-        word: dw.word,
-        ratio: dw.ratio,
-        count: dw.count
-      }))
+    if (!cluster) return []
+    if (!cluster.top_words || !Array.isArray(cluster.top_words) || cluster.top_words.length === 0) {
+      return []
     }
-    // 回退：从 top_words 创建虚拟数据
-    return cluster.top_words.slice(0, 10).map(word => ({
-      word,
-      ratio: 1.0,
-      count: 0
+    return cluster.top_words.slice(0, 10).map(tw => ({
+      word: tw.word,
+      ratio: tw.ratio,
+      count: tw.count
     }))
   }
 
@@ -198,33 +206,20 @@ export function useAuthorClusters() {
         const id = parseInt(idStr)
         return {
           id,
-          name: getClusterName(id),
-          size: cluster.size,
-          color: getClusterColor(id),
-          center_2d: calculateClusterCenter(id),
-          center_3d: undefined,
-          representatives: cluster.representative_authors,
-          top_words: convertTopWords(cluster),
-          poem_types: cluster.poem_types,
-          avg_poems: Math.round(cluster.avg_poems)
+          name: cluster.name || getClusterName(id),
+          size: cluster.size || 0,
+          color: cluster.color || getClusterColor(id),
+          center_2d: cluster.center_2d || [0, 0],
+          center_3d: cluster.center_3d || undefined,
+          representatives: cluster.representatives || [],
+          top_words: convertTopWords(cluster) || [],
+          poem_types: cluster.poem_types || [],
+          avg_poems: Math.round(cluster.avg_poems) || 0
         }
       })
       .sort((a, b) => b.size - a.size)
   })
 
-  // 旧版：保持原始格式的聚类数据（用于兼容旧组件，id为字符串）
-  const clusters = computed(() => {
-    if (!clustersData.value) return []
-
-    return Object.entries(clustersData.value.clusters)
-      .map(([id, cluster]) => ({
-        id, // 字符串ID
-        ...cluster,
-        color: getClusterColor(id),
-        name: getClusterName(id)
-      }))
-      .sort((a, b) => b.size - a.size)
-  })
 
   // 转换后的诗人节点数据
   const authorNodes = computed<AuthorNode[]>(() => {
@@ -273,7 +268,6 @@ export function useAuthorClusters() {
     error,
     loadClusters,
     sortedClusters,
-    clusters, // 旧版格式
     authorNodes,
     authorsByCluster,
     getCluster,

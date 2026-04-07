@@ -6,7 +6,7 @@
   summary: 数据存储概览组件，负责读取并展示浏览器存储（IndexedDB）与已缓存数据的统计与进度信息。
 
   Data pipeline:
-  - 读取: 使用 `useCacheV2` 的工具函数读取不同存储键（poems/authors/wordcount/word-similarity/poem-index 等）的元数据与统计
+  - 读取: 使用 `useCache` 的工具函数读取不同存储键（poems/authors/wordcount/word-similarity/poem-index 等）的元数据与统计
   - 处理: 聚合各类统计、更新局部加载状态并在 UI 中显示进度（NProgress/NSpin）
   - 交互: 支持清理缓存、刷新统计、展示单分块详情并触发下载/删除操作
 
@@ -26,8 +26,8 @@ import {
 } from 'naive-ui'
 import { RefreshOutline, TrashOutline } from '@vicons/ionicons5'
 
-import { getAllStorageStats, getBrowserStorageInfo, getStorageStats, getMetadata, getCache, clearStorage, type StorageStats, type BrowserStorageInfo } from '@/composables/useCacheV2'
-import { WORD_SIMILARITY_STORAGE, POEM_INDEX_STORAGE, POEMS_STORAGE, AUTHORS_STORAGE, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
+import { getAllStorageStats, getBrowserStorageInfo, getStorageStats, getMetadata, getCache, clearStorage, type StorageStats, type BrowserStorageInfo } from '@/composables/useCache'
+import { POEM_INDEX_STORAGE, POEMS_STORAGE, AUTHORS_STORAGE, WORDCOUNT_STORAGE } from '@/composables/useMetadataLoader'
 import { useKeywordIndex } from '@/composables/useKeywordIndex'
 
 // 诗词数据存储键
@@ -49,7 +49,6 @@ const loadProgress = ref(0)
 
 const loadingState = reactive({
   browserInfo: false,
-  wordSim: false,
   searchIndex: false,
   keywordIndex: false,
   storageStats: false
@@ -59,13 +58,6 @@ const storageStats = ref<StorageStats[]>([])
 const browserStorageInfo = ref<BrowserStorageInfo | null>(null)
 const selectedStorage = ref<string>('')
 const selectedStorageDetail = ref<StorageStats | null>(null)
-
-const wordSimStats = ref({
-  vocabCached: false,
-  vocabSize: 0,
-  cachedChunks: 0,
-  totalChunks: 0
-})
 
 const searchIndexStats = ref({
   cachedPrefixes: 0,
@@ -99,7 +91,6 @@ const updateProgress = async (step: string, stateKey: keyof typeof loadingState,
 
 const resetLoadingState = () => {
   loadingState.browserInfo = false
-  loadingState.wordSim = false
   loadingState.searchIndex = false
   loadingState.keywordIndex = false
   loadingState.storageStats = false
@@ -127,31 +118,9 @@ const loadStorageDetails = async () => {
   }
 
   try {
-    loadingStep.value = '正在加载词频相似度数据...'
-    const { useWordSimilarityMetadata, usePoemIndexManifest } = await import('@/composables/useMetadataLoader')
-    const wsMeta = useWordSimilarityMetadata()
+    loadingStep.value = '正在加载搜索索引...'
+    const { usePoemIndexManifest } = await import('@/composables/useMetadataLoader')
     const piMeta = usePoemIndexManifest()
-
-    // 并行加载元数据
-    const [wordSimMetaData, wordSimVocab, wordSimMetaStored] = await Promise.all([
-      wsMeta.loadMetadata(),
-      getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab'),
-      getMetadata(WORD_SIMILARITY_STORAGE)
-    ])
-
-    wordSimStats.value.totalChunks = wordSimMetaData?.total_chunks || 0
-    wordSimStats.value.vocabSize = wordSimMetaData?.vocab_size || 0
-    
-    if (wordSimVocab && Object.keys(wordSimVocab).length > 0) {
-      wordSimStats.value.vocabCached = true
-    }
-    
-    if (wordSimMetaStored && wordSimMetaStored.loadedChunkIds) {
-      const validIds = wordSimMetaStored.loadedChunkIds.filter((id: number) => id < (wordSimMetaStored.totalChunks || 0))
-      wordSimStats.value.cachedChunks = validIds.length
-    }
-    
-    await updateProgress('搜索索引加载中...', 'wordSim', 45)
 
     // 并行加载搜索索引
     const [searchIndexMetaData, searchIndexPrefixes] = await Promise.all([
@@ -219,7 +188,6 @@ const handleClearCache = async () => {
       clearStorage(AUTHORS_STORAGE),
       clearStorage(WORDCOUNT_STORAGE),
       clearStorage(POEM_INDEX_STORAGE),
-      clearStorage(WORD_SIMILARITY_STORAGE),
       clearStorage(keywordIndex.storageName)
     ])
     
@@ -254,10 +222,6 @@ const handleClearCache = async () => {
             <div class="loading-state-item" :class="{ done: loadingState.browserInfo }">
               <span class="state-icon">{{ loadingState.browserInfo ? '✓' : '○' }}</span>
               浏览器存储
-            </div>
-            <div class="loading-state-item" :class="{ done: loadingState.wordSim }">
-              <span class="state-icon">{{ loadingState.wordSim ? '✓' : '○' }}</span>
-              词频相似度数据
             </div>
             <div class="loading-state-item" :class="{ done: loadingState.searchIndex }">
               <span class="state-icon">{{ loadingState.searchIndex ? '✓' : '○' }}</span>
@@ -310,14 +274,6 @@ const handleClearCache = async () => {
       <NGridItem>
         <NCard title="数据概览">
           <NSpace vertical>
-            <div class="stat-row">
-              <NTag type="success">词频相似度数据</NTag>
-              <span v-if="wordSimStats.vocabCached">
-                词汇: {{ wordSimStats.vocabSize.toLocaleString() }} |
-                分块: {{ wordSimStats.cachedChunks }}/{{ wordSimStats.totalChunks }}
-              </span>
-              <span v-else>未缓存</span>
-            </div>
             <div class="stat-row">
               <NTag type="info">搜索索引</NTag>
               <span v-if="searchIndexStats.loaded">

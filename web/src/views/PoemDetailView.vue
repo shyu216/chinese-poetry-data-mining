@@ -3,7 +3,7 @@
   说明: 诗词详情页，负责按 `id`（可带 chunk_id）加载单首诗词内容并展示详细信息与相关导航操作。
 
   数据管线:
-    - 入口: 路由参数 `id` 与可选 `chunk_id` 触发 `usePoemsV2.getPoemById(id, chunkId)`。
+    - 入口: 路由参数 `id` 与可选 `chunk_id` 触发 `usePoems.getPoemById(id, chunkId)`。
     - 读取: 若提供 chunk_id，则直接从对应分片读取；否则通过索引定位分片后加载并解析分片内容。
     - 渲染: 成功加载后将 `PoemDetail` 对象填充到页面并展示（复制、跳转关键字/作者等功能）。
 
@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { usePoems } from '@/composables/usePoems'
 import type { PoemDetail } from '@/composables/types'
 import {
   NCard, NSpin, NEmpty, NTag, NButton, NSpace,
@@ -38,7 +38,7 @@ import { PoemContent } from '@/components/content'
 const loading = useLoading()
 const route = useRoute()
 const router = useRouter()
-const { getPoemById } = usePoemsV2()
+const { getPoemById } = usePoems()
 
 const poem = ref<PoemDetail | null>(null)
 const error = ref<string | null>(null)

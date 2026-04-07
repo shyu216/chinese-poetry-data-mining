@@ -15,12 +15,12 @@ import { useRouter } from 'vue-router'
 import { NSpin } from 'naive-ui'
 import { RefreshOutline } from '@vicons/ionicons5'
 import { DynastyBadge } from '@/components/ui/badge'
-import { usePoemsV2 } from '@/composables/usePoemsV2'
+import { usePoems } from '@/composables/usePoems'
 import { getRandomItem } from '@/composables/useShuffle'
 import type { PoemDetail } from '@/composables/types'
 
 const router = useRouter()
-const { loadChunkDetails, totalChunks } = usePoemsV2()
+const { loadChunkDetails, totalChunks } = usePoems()
 
 const randomPoem = ref<PoemDetail | null>(null)
 const displayedSentences = ref<string[]>([])

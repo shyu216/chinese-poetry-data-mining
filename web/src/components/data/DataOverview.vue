@@ -29,9 +29,9 @@ import {
   CloudDownloadOutline, TrashOutline, SpeedometerOutline
 } from '@vicons/ionicons5'
 
-import { usePoemsMetadata, useAuthorsMetadata, useWordcountMetadata, usePoemIndexManifest, useWordSimilarityMetadata, POEMS_STORAGE, AUTHORS_STORAGE, WORDCOUNT_STORAGE, POEM_INDEX_STORAGE, WORD_SIMILARITY_STORAGE } from '@/composables/useMetadataLoader'
+import { usePoemsMetadata, useAuthorsMetadata, useWordcountMetadata, usePoemIndexManifest, POEMS_STORAGE, AUTHORS_STORAGE, WORDCOUNT_STORAGE, POEM_INDEX_STORAGE } from '@/composables/useMetadataLoader'
 import { useKeywordIndex } from '@/composables/useKeywordIndex'
-import { getMetadata, getCache, clearStorage, getAllStorageStats, getBrowserStorageInfo, type StorageStats, type BrowserStorageInfo } from '@/composables/useCacheV2'
+import { getMetadata, getCache, clearStorage, getAllStorageStats, getBrowserStorageInfo, type StorageStats, type BrowserStorageInfo } from '@/composables/useCache'
 import type { PoemsIndex, AuthorsIndex, WordCountMeta } from '@/composables/types'
 import DataItemCard from './DataItemCard.vue'
 
@@ -48,7 +48,6 @@ const poemsMeta = usePoemsMetadata()
 const authorsMeta = useAuthorsMetadata()
 const wordcountMeta = useWordcountMetadata()
 const poemIndexMeta = usePoemIndexManifest()
-const wordSimMeta = useWordSimilarityMetadata()
 
 const poemsIndexData = ref<PoemsIndex | null>(null)
 const authorsIndexData = ref<AuthorsIndex | null>(null)
@@ -76,13 +75,6 @@ const searchIndexStats = ref({
   cachedPrefixes: 0,
   totalPrefixes: 0,
   loaded: false
-})
-
-const wordSimStats = ref({
-  vocabCached: false,
-  vocabSize: 0,
-  cachedChunks: 0,
-  totalChunks: 0
 })
 
 const keywordIndexStats = ref({
@@ -133,32 +125,11 @@ const loadStats = async () => {
     searchIndexStats.value.loaded = true
   }
 
-  const wordSimMetaData = await wordSimMeta.loadMetadata()
-  wordSimStats.value.totalChunks = wordSimMetaData?.total_chunks || 0
-  wordSimStats.value.vocabSize = wordSimMetaData?.vocab_size || 0
-
-  const wordSimVocab = await getCache<Record<string, number>>(WORD_SIMILARITY_STORAGE, 'vocab')
-  if (wordSimVocab && Object.keys(wordSimVocab).length > 0) {
-    wordSimStats.value.vocabCached = true
-  }
-
-  const wordSimMetaStored = await getMetadata(WORD_SIMILARITY_STORAGE)
-  if (wordSimMetaStored && wordSimMetaStored.loadedChunkIds) {
-    const validIds = wordSimMetaStored.loadedChunkIds.filter((id: number) => id < (wordSimMetaStored.totalChunks || 0))
-    wordSimStats.value.cachedChunks = validIds.length
-  }
-
   // 使用 computed 属性获取 keyword index 统计
   keywordIndexStats.value.totalChunks = keywordIndex.totalChunks.value
   keywordIndexStats.value.cachedChunks = keywordIndex.loadedChunkIds.value.length
   keywordIndexStats.value.loaded = keywordIndexStats.value.cachedChunks > 0
 
-  console.log('[DataOverview] wordSimStats:', {
-    totalChunks: wordSimStats.value.totalChunks,
-    vocabSize: wordSimStats.value.vocabSize,
-    vocabCached: wordSimStats.value.vocabCached,
-    cachedChunks: wordSimStats.value.cachedChunks
-  })
   console.log('[DataOverview] searchIndexStats:', {
     totalPrefixes: searchIndexStats.value.totalPrefixes,
     cachedPrefixes: searchIndexStats.value.cachedPrefixes,
@@ -171,15 +142,12 @@ const handleClearCache = async () => {
   await clearStorage(AUTHORS_STORAGE)
   await clearStorage(WORDCOUNT_STORAGE)
   await clearStorage(POEM_INDEX_STORAGE)
-  await clearStorage(WORD_SIMILARITY_STORAGE)
   await clearStorage(keywordIndex.storageName)
 
   poemStats.value.cachedChunkIds = []
   authorStats.value.cachedChunkIds = []
   wordcountStats.value.cachedChunkIds = []
   searchIndexStats.value.cachedPrefixes = 0
-  wordSimStats.value.cachedChunks = 0
-  wordSimStats.value.vocabCached = false
   keywordIndexStats.value.cachedChunks = 0
   keywordIndexStats.value.loaded = false
 
@@ -231,20 +199,6 @@ const maxWordcountCount = computed(() => {
   return Math.max(...wordcountChunkBars.value.map(c => c.count))
 })
 
-const wordSimChunkBars = computed(() => {
-  const total = wordSimStats.value.totalChunks
-  if (total === 0) return []
-  const cachedSet = new Set<number>()
-  for (let i = 0; i < wordSimStats.value.cachedChunks; i++) {
-    cachedSet.add(i)
-  }
-  return Array.from({ length: total }, (_, i) => ({
-    id: i,
-    count: Math.ceil(wordSimStats.value.vocabSize / total),
-    cached: cachedSet.has(i)
-  }))
-})
-
 const searchIndexChunkBars = computed(() => {
   const total = searchIndexStats.value.totalPrefixes
   if (total === 0) return []
@@ -267,11 +221,6 @@ const keywordIndexChunkBars = computed(() => {
     count: Math.ceil(total / 50),
     cached: i / 50 < cachedRatio
   }))
-})
-
-const maxWordSimCount = computed(() => {
-  if (!wordSimChunkBars.value.length) return 0
-  return Math.max(...wordSimChunkBars.value.map(c => c.count))
 })
 
 const maxSearchIndexCount = computed(() => {
@@ -302,11 +251,6 @@ defineExpose({
           <DataItemCard icon="📊" title="词频" description="词频统计数据，支持词频分析和词汇使用统计"
             :cached-count="wordcountStats.cachedChunkIds.length" :total-count="wordcountStats.totalChunks"
             :bars="wordcountChunkBars" :max-count="maxWordcountCount" color-class="wordcount" />
-        </NGridItem>
-        <NGridItem>
-          <DataItemCard icon="🔗" title="词频相似度" description="词频相似度数据库，包含词汇相似度数据，支持词语关联分析"
-            :cached-count="wordSimStats.cachedChunks" :total-count="wordSimStats.totalChunks" :bars="wordSimChunkBars"
-            :max-count="maxWordSimCount" color-class="wordsim" />
         </NGridItem>
         <NGridItem>
           <DataItemCard icon="🔍" title="搜索索引" description="搜索索引包含诗词前缀数据，支持快速诗词搜索"

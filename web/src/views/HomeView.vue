@@ -3,7 +3,7 @@
   说明: 应用首页，负责展示汇总统计（AnimatedStatCard）、随机诗推荐与元数据加载的启动入口视图。
 
   数据管线:
-    - 启动: 页面挂载时调用各 composable（`usePoemsV2`, `useAuthorsV2`, `useWordSimilarityV2`）加载必要的元数据。
+    - 启动: 页面挂载时调用各 composable（`usePoems`, `useAuthors`）加载必要的元数据。
     - 展示: 使用组合式数据驱动统计卡与随机诗卡展示，部分数据通过缓存读取以加速首屏。
 
   复杂度:
@@ -15,11 +15,11 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { BookOutline, PeopleOutline, GitNetworkOutline } from '@vicons/ionicons5'
+import { BookOutline, PeopleOutline, TextOutline } from '@vicons/ionicons5'
 
-import { usePoemsV2 } from '@/composables/usePoemsV2'
-import { useAuthorsV2 } from '@/composables/useAuthorsV2'
-import { useWordSimilarityV2 } from '@/composables/useWordSimilarityV2'
+import { usePoems } from '@/composables/usePoems'
+import { useAuthors } from '@/composables/useAuthors'
+import { useWordcount } from '@/composables/useWordcount'
 import { useLoading } from '@/composables/useLoading'
 
 import { SunmaoOrnament, BreathingFrame } from '@/components/ui/decorative'
@@ -29,9 +29,9 @@ import RandomPoemCard from '@/components/content/RandomPoemCard.vue'
 const router = useRouter()
 const loading = useLoading()
 
-const poemsV2 = usePoemsV2()
-const authorsV2 = useAuthorsV2()
-const wordSimilarityV2 = useWordSimilarityV2()
+const poems = usePoems()
+const authors = useAuthors()
+const wordcount = useWordcount()
 
 const animationStarted = ref(false)
 
@@ -74,13 +74,13 @@ const loadAllData = async () => {
     loading.updatePhase('metadata', loadingCopy.loading)
     loading.updateProgress(0, 3)
     // 强制刷新 metadata，避免使用缓存的空数据
-    await poemsV2.loadMetadata(true)
+    await poems.loadMetadata(true)
 
     loading.updateProgress(1, 3, loadingCopy.loading)
-    await authorsV2.loadMetadata(true)
+    await authors.loadMetadata(true)
 
     loading.updateProgress(2, 3, loadingCopy.loading)
-    await wordSimilarityV2.loadMetadata(true)
+    await wordcount.loadMetadata(true)
 
     loading.updatePhase('complete', loadingCopy.complete)
     loading.updateProgress(3, 3)
@@ -132,9 +132,9 @@ watch(() => animationStarted.value, (started) => {
   if (started) {
     console.log('[HomeView] Triggering stat card animations...')
     console.log('[HomeView] Data values:', {
-      authors: authorsV2.totalAuthors.value,
-      poems: poemsV2.totalPoems.value,
-      vocab: wordSimilarityV2.vocabSize.value
+      authors: authors.totalAuthors.value,
+      poems: poems.totalPoems.value,
+      vocabs: wordcount.totalWords.value
     })
 
     // 直接触发动画
@@ -187,13 +187,12 @@ watch(() => animationStarted.value, (started) => {
 
     <section class="stats-section">
       <div class="stats-grid">
-        <AnimatedStatCard ref="statCard1" label="诗人" :value="authorsV2.totalAuthors.value" :prefix-icon="PeopleOutline"
+        <AnimatedStatCard ref="statCard1" label="诗人" :value="authors.totalAuthors.value" :prefix-icon="PeopleOutline"
           :animation-delay="800" :animation-duration="1500" :formatter="formatNumber" />
-        <AnimatedStatCard ref="statCard2" label="诗词" :value="poemsV2.totalPoems.value" :prefix-icon="BookOutline"
+        <AnimatedStatCard ref="statCard2" label="诗词" :value="poems.totalPoems.value" :prefix-icon="BookOutline"
           :animation-delay="1000" :animation-duration="1800" :formatter="formatNumber" />
-        <AnimatedStatCard ref="statCard3" label="词条" :value="wordSimilarityV2.vocabSize.value"
-          :prefix-icon="GitNetworkOutline" :animation-delay="1200" :animation-duration="1200"
-          :formatter="formatNumber" />
+        <AnimatedStatCard ref="statCard3" label="词汇" :value="wordcount.totalWords.value" :prefix-icon="TextOutline"
+          :animation-delay="1200" :animation-duration="2000" :formatter="formatNumber" />
       </div>
     </section>
 
