@@ -112,6 +112,11 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
   console.log(`[KeywordDetail] loadPoemsBatch START: ${ids.length} poems, updateUI=${updateUI}`)
   const batchStartTime = Date.now()
   const batchSize = 50 // 每批加载50首
+
+  // 统计信息
+  let totalChunksLoaded = 0
+  let totalFromCache = 0
+  const uniqueChunks = new Set<number>()
   const results: PoemSummary[] = []
 
   for (let i = 0; i < ids.length; i += batchSize) {
@@ -139,9 +144,12 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
     let batchResults: (import('@/composables/types').PoemDetail | null)[] = []
     const step3Start = Date.now()
 
+    // 统计chunk使用情况
+    chunkIds.forEach(c => uniqueChunks.add(c))
+
     if (idsWithChunkIds.length === batch.length) {
       // 所有诗词都有 chunk_id，使用优化批量加载
-      console.log(`[KeywordDetail]   -> Using optimized batch loading with ${chunkIds.length} chunks`)
+      console.log(`[KeywordDetail]   -> Using optimized batch loading with ${chunkIds.length} chunks (unique: ${new Set(chunkIds).size})`)
       const poemsWithDetails = await poems.getPoemsByIds(idsWithChunkIds, chunkIds)
       // 保持原始顺序
       batchResults = batch.map(id => poemsWithDetails.find(p => p.id === id) || null)
@@ -150,7 +158,8 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
       console.warn(`[KeywordDetail] Some poems missing chunk_id (${idsWithChunkIds.length}/${batch.length}), falling back to individual loading`)
       batchResults = await Promise.all(batch.map(id => poems.getPoemById(id)))
     }
-    console.log(`[KeywordDetail]   -> Loaded ${batchResults.filter(p => p !== null).length} poems in ${Date.now() - step3Start}ms`)
+    const loadedCount = batchResults.filter(p => p !== null).length
+    console.log(`[KeywordDetail]   -> Loaded ${loadedCount}/${batch.length} poems in ${Date.now() - step3Start}ms`)
 
     for (const poem of batchResults) {
       if (poem) {
@@ -172,13 +181,26 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
     }
   }
 
-  console.log(`[KeywordDetail] loadPoemsBatch DONE: ${results.length} poems in ${Date.now() - batchStartTime}ms`)
+  const duration = Date.now() - batchStartTime
+  const poemsPerSecond = Math.round(results.length / (duration / 1000))
+  console.log(`[KeywordDetail] loadPoemsBatch DONE: ${results.length} poems in ${duration}ms (${poemsPerSecond} poems/s, ${uniqueChunks.size} unique chunks)`)
   return results
 }
 
+let isLoadingData = false
+
 const loadData = async () => {
+  // 防止重复加载
+  if (isLoadingData) {
+    console.log(`[KeywordDetail] loadData SKIP: already loading for "${keyword.value}"`)
+    return
+  }
+  isLoadingData = true
+
   console.log(`[KeywordDetail] loadData START for keyword: "${keyword.value}"`)
   const startTime = Date.now()
+  const memoryBefore = (performance as any).memory?.usedJSHeapSize / 1024 / 1024 || 0
+  console.log(`[KeywordDetail] Memory before: ${memoryBefore.toFixed(2)}MB`)
 
   // 步骤 1: 初始化 - 开始 blocking loading
   loading.startBlocking('关键词详情', `查询"${keyword.value}"...`)
@@ -251,22 +273,40 @@ const loadData = async () => {
     loading.error('加载失败')
     isLoading.value = false
   } finally {
+    const memoryAfter = (performance as any).memory?.usedJSHeapSize / 1024 / 1024 || 0
+    console.log(`[KeywordDetail] Memory after: ${memoryAfter.toFixed(2)}MB (delta: ${(memoryAfter - memoryBefore).toFixed(2)}MB)`)
     console.log(`[KeywordDetail] loadData FINALLY, total time: ${Date.now() - startTime}ms`)
+    isLoadingData = false
   }
 }
 
 // 后台加载剩余诗词
 const allPoems = ref<PoemSummary[]>([])
+let isLoadingRemaining = false
+
 const loadRemainingPoems = async (ids: string[]) => {
+  // 防止重复后台加载
+  if (isLoadingRemaining) {
+    console.log(`[KeywordDetail] loadRemainingPoems SKIP: already loading`)
+    return
+  }
+  isLoadingRemaining = true
+
   console.log(`[KeywordDetail] loadRemainingPoems START: ${ids.length} poems`)
   const startTime = Date.now()
+  const memoryBefore = (performance as any).memory?.usedJSHeapSize / 1024 / 1024 || 0
+
   try {
     // 后台加载，不更新UI，避免覆盖当前页
     const remaining = await loadPoemsBatch(ids, false)
     allPoems.value = [...poemsList.value, ...remaining]
     loadingPoems.value = false
     loading.finish()
+
+    const memoryAfter = (performance as any).memory?.usedJSHeapSize / 1024 / 1024 || 0
     console.log(`[KeywordDetail] loadRemainingPoems DONE: ${allPoems.value.length} total poems in ${Date.now() - startTime}ms`)
+    console.log(`[KeywordDetail] Memory delta: ${(memoryAfter - memoryBefore).toFixed(2)}MB`)
+
     // 数据加载完成后更新图表
     setTimeout(() => {
       renderCharts()
@@ -275,6 +315,8 @@ const loadRemainingPoems = async (ids: string[]) => {
     console.error('[KeywordDetail] ERROR in loadRemainingPoems:', e)
     loadingPoems.value = false
     loading.finish()
+  } finally {
+    isLoadingRemaining = false
   }
 }
 
@@ -611,7 +653,7 @@ watch(keyword, () => {
         </NCard>
 
         <NCard title="包含该关键词的诗词" class="poems-card">
-          <PoemList :poems="poemsList" :total="poemIds.length" v-model:page="page" v-model:page-size="pageSize"
+          <PoemList :poems="allPoems" v-model:page="page" v-model:page-size="pageSize"
             :show-pagination="true" :grid-view="false" @view-poem="(poem) => goToPoem(poem.id)" />
         </NCard>
       </template>

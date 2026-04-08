@@ -345,6 +345,15 @@ export function usePoems() {
   async function getPoemsByIds(poemIds: string[], chunkIds?: number[]): Promise<PoemDetail[]> {
     console.log(`[usePoems] getPoemsByIds START: ${poemIds.length} poems`)
     const startTime = Date.now()
+
+    // 统计信息
+    const stats = {
+      cacheHits: 0,
+      chunksToLoad: 0,
+      chunksFromCache: 0,
+      totalChunks: 0
+    }
+
     const results: PoemDetail[] = []
     const missingIds: string[] = []
     const missingChunkIds: (number | undefined)[] = []
@@ -359,6 +368,7 @@ export function usePoems() {
       for (const [chunkNum, chunkMap] of poemDetailCache.value.entries()) {
         if (chunkMap.has(poemId)) {
           results.push(chunkMap.get(poemId)!)
+          stats.cacheHits++
           found = true
           break
         }
@@ -369,7 +379,7 @@ export function usePoems() {
         missingChunkIds.push(chunkIds?.[i])
       }
     }
-    console.log(`[usePoems] Cache check: ${results.length} cached, ${missingIds.length} missing in ${Date.now() - cacheCheckStart}ms`)
+    console.log(`[usePoems] Cache check: ${stats.cacheHits} cached, ${missingIds.length} missing in ${Date.now() - cacheCheckStart}ms`)
 
     if (missingIds.length === 0) {
       console.log(`[usePoems] All poems in cache, returning ${results.length} poems`)
@@ -445,7 +455,9 @@ export function usePoems() {
       console.log(`[usePoems] Fallback loading done in ${Date.now() - fallbackStart}ms`)
     }
 
-    console.log(`[usePoems] getPoemsByIds DONE: ${results.length} poems in ${Date.now() - startTime}ms`)
+    const duration = Date.now() - startTime
+    const rate = Math.round(results.length / (duration / 1000))
+    console.log(`[usePoems] getPoemsByIds DONE: ${results.length} poems in ${duration}ms (${rate} poems/s, cache hit: ${stats.cacheHits}/${poemIds.length})`)
     return results
   }
 
