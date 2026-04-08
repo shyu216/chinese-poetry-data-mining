@@ -1,6 +1,6 @@
 <!--
   文件: web/src/views/WordCountView.vue
-  说明: 词频页面，展示词频统计、词云功能；使用按块加载（chunked loading）与本地缓存（IndexedDB）来处理大规模词表数据。
+  说明: 词频页面，展示分词数据、词云功能；使用按块加载（chunked loading）与本地缓存（IndexedDB）来处理大规模词表数据。
 
   数据管线:
     - 元数据: 通过 `useWordcountMetadata` 获取索引与分片信息。
@@ -247,7 +247,7 @@ const loadData = async () => {
   const totalStartTime = performance.now()
 
   // 步骤 1: 初始化 - 开始 blocking loading
-  loading.startBlocking('词频统计', '正在加载词频数据...')
+  loading.startBlocking('分词数据', '正在加载词频数据...')
   isInitializing.value = true
 
   try {
@@ -438,7 +438,7 @@ watch(lengthFilter, () => {
 
 <template>
   <div class="wordcount-view">
-    <PageHeader title="词频统计" :subtitle="`共收录 ${loadedWords.length.toLocaleString()} 个高频词汇，按使用频率排序`"
+    <PageHeader title="分词数据" :subtitle="`共收录 ${loadedWords.length.toLocaleString()} 个高频词汇，按使用频率排序`"
       :icon="TextOutline" />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">

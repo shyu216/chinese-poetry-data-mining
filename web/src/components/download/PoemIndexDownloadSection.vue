@@ -1,6 +1,6 @@
 <!--
   文件: web/src/components/download/PoemIndexDownloadSection.vue
-  说明: 提供诗词搜索索引（按前缀分块）下载与进度展示，索引用于离线快速检索诗词摘要。
+  说明: 提供诗词ID索引（按前缀分块）下载与进度展示，索引用于离线快速检索诗词数据。
 
   数据管线:
     - 使用 `usePoemIndexManifest()` 获取前缀分块映射（prefixMap），并基于该映射逐个加载索引分块到本地缓存。
@@ -107,9 +107,9 @@ defineExpose({
 </script>
 
 <template>
-  <NCard title="🔍 搜索索引数据" class="download-section">
+  <NCard title="🔍 诗词ID索引数据" class="download-section">
     <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-      搜索索引包含 {{ totalPrefixes }} 个前缀分块的诗词数据，支持离线搜索。
+      诗词ID索引包含 {{ totalPrefixes }} 个前缀分块的诗词数据，支持离线搜索。
     </NAlert>
 
     <NProgress

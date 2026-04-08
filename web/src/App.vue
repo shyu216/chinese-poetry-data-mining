@@ -1,46 +1,18 @@
-<!--
-  文件: web/src/App.vue
-  说明: 应用根组件，负责顶级布局（侧栏、移动头部、主内容区）、路由过渡动画与主题覆写。
-
-  数据管线 (Data pipeline):
-    - 触发点: 应用挂载时调用 `usePoems().loadMetadata()` 拉取/加载元数据。
-    - 存储: 元数据由组合式 API (`usePoems`) 在客户端缓存（Reactive state）。
-    - 传递: 各页面通过 `RouterView` 和组合式函数读取共享状态并渲染。
-    - 用户交互: 窗口 resize、侧栏折叠与移动菜单开关只影响本地 UI state，不直接修改后端数据。
-
-  复杂度 (Time / Space):
-    - 初始化: 发起元数据请求为 O(1)（单次网络请求），但解析/索引成本取决于返回数据规模 O(m)。
-    - 渲染: 列表页渲染与 DOM 操作随展示条目数 n 线性增长 O(n)。
-    - 内存: 客户端缓存整套元数据时空间复杂度为 O(m)，m = 元数据条目数（项目中 m 可达数万至数十万）。
-
-  使用的关键技术/“黑科技”:
-    - Vue 3 组合式 API + TypeScript：更易组合与测试的逻辑抽离。
-    - Vite + 按需打包：快速开发与较小产物（依赖 tree-shaking）。
-    - Naive UI（n- 组件）与 @vicons 图标库：加速 UI 开发。
-    - 路由懒加载 + 过渡动画：页面体验优化，配合 CSS 动画减少重绘感知。
-    - 客户端缓存（组合式 composable）：减少重复网络请求，提升响应。
-
-  潜在问题 / 风险:
-    - 客户端缓存整表（m 很大）会占用大量内存，低端设备可能 OOM。
-    - 如果 `usePoems.loadMetadata()` 返回大体量数据，解析/JSON.parse 会阻塞主线程，建议分片/后台线程（web worker）处理。
-    - 字体、外部资源通过 CDN 加载会影响首屏时间，需加速或本地打包优化。
-    - 路由动画与大量 DOM 同步渲染时可能出现卡顿，应考虑虚拟列表或按需渲染。
-    - 无 SSR 支持，SEO 与首屏体验依赖于客户端渲染。
-    - 部分断点/交互（如 `isMobile` 的阈值）为硬编码，可能需适配更多设备尺寸。
-    - 事件解绑已处理，但若未来增加全局监听需注意内存泄漏。
--->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import type { RouteLocationNormalized } from 'vue-router'
 import {
-  LibraryOutline as HomeIcon,
-  BookOutline as PoemsIcon,
-  PeopleOutline as AuthorsIcon,
-  BarChartOutline as WordCountIcon,
-  ServerOutline as DataIcon,
+  HomeOutline,
+  BookOutline,
+  PeopleOutline,
+  BarChartOutline,
+  SettingsOutline,
   MenuOutline,
-  CloseOutline
+  CloseOutline,
+  SearchOutline,
+  ShareSocialOutline,
+  PersonOutline
 } from '@vicons/ionicons5'
 
 import { usePoems } from '@/composables/usePoems'
@@ -49,7 +21,9 @@ import { UnifiedLoading } from '@/components/feedback'
 const collapsed = ref(false)
 const mobileMenuOpen = ref(false)
 const isMobile = ref(false)
+const isTablet = ref(false)
 const isTransitioning = ref(false)
+const scrolled = ref(false)
 
 const poems = usePoems()
 const route = useRoute()
@@ -62,42 +36,46 @@ const formatNumber = (num: number | undefined | null): string => {
   return num.toLocaleString()
 }
 
-const checkMobile = () => {
-  isMobile.value = window.innerWidth <= 768
+const checkDevice = () => {
+  const width = window.innerWidth
+  isMobile.value = width < 768
+  isTablet.value = width >= 768 && width < 1024
   if (!isMobile.value) {
     mobileMenuOpen.value = false
   }
 }
 
+const handleScroll = () => {
+  scrolled.value = window.scrollY > 20
+}
+
 onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
+  checkDevice()
+  window.addEventListener('resize', checkDevice)
+  window.addEventListener('scroll', handleScroll)
   poems.loadMetadata()
 })
 
 onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile)
+  window.removeEventListener('resize', checkDevice)
+  window.removeEventListener('scroll', handleScroll)
 })
 
-const menuOptions = [
-  { label: '首页', key: 'home', path: '/', icon: HomeIcon },
-  { label: '诗词', key: 'poems', path: '/poems', icon: PoemsIcon },
-  { label: '作者', key: 'authors', path: '/authors', icon: AuthorsIcon },
-  { label: '词频', key: 'word-count', path: '/word-count', icon: WordCountIcon },
-  { label: '数据', key: 'data', path: '/data', icon: DataIcon },
+const menuItems = [
+  { label: '首页', key: 'home', path: '/', icon: HomeOutline },
+  { label: '诗词', key: 'poems', path: '/poems', icon: BookOutline },
+  { label: '作者', key: 'authors', path: '/authors', icon: PeopleOutline },
+  { label: '词频', key: 'word-count', path: '/word-count', icon: BarChartOutline },
+  { label: '数据', key: 'data', path: '/data', icon: SettingsOutline },
 ]
 
-// 页面过渡动画配置
 const getTransitionName = (route: RouteLocationNormalized) => {
-  // 详情页使用水墨扩散效果
   if (route.path.includes('/poem/') || route.path.includes('/author/')) {
     return 'page-ink-spread'
   }
-  // 列表页使用上滑效果
   if (route.path.includes('/poems') || route.path.includes('/authors')) {
     return 'page-slide-up'
   }
-  // 默认淡入淡出
   return 'page-fade'
 }
 
@@ -107,86 +85,140 @@ const onBeforeLeave = () => {
 
 const onAfterEnter = () => {
   isTransitioning.value = false
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
-
-
 
 const themeOverrides = {
   common: {
-    primaryColor: '#8B2635',
-    primaryColorHover: '#A83246',
-    primaryColorPressed: '#6B1D27',
-    primaryColorSuppl: '#8B2635',
-    borderRadius: '3px',
-    borderRadiusSmall: '2px',
-    fontFamily: '"Noto Serif SC", "Source Han Serif SC", "Songti SC", serif',
-    fontFamilyMono: '"Noto Sans SC", "PingFang SC", sans-serif'
+    primaryColor: '#2D6A6A',
+    primaryColorHover: '#3D8B7A',
+    primaryColorPressed: '#1F4A4A',
+    primaryColorSuppl: '#2D6A6A',
+    borderRadius: '8px',
+    borderRadiusSmall: '6px',
+    fontFamily: '"Noto Sans SC", "PingFang SC", sans-serif',
+    fontFamilyMono: '"SF Mono", "Fira Code", monospace'
   },
-  Card: { borderRadius: '4px' },
-  Button: { borderRadiusMedium: '3px', borderRadiusSmall: '2px' },
-  Input: { borderRadius: '3px' },
-  Tag: { borderRadius: '2px' }
+  Card: { borderRadius: '12px' },
+  Button: { borderRadiusMedium: '8px', borderRadiusSmall: '6px' },
+  Input: { borderRadius: '8px' },
+  Tag: { borderRadius: '6px' }
 }
+
+const currentYear = new Date().getFullYear()
 </script>
 
 <template>
   <n-config-provider :theme-overrides="themeOverrides">
     <n-message-provider>
       <n-dialog-provider>
-        <div class="app-container">
-          <!-- Mobile Header -->
-          <header class="mobile-header" v-if="isMobile">
-            <button class="menu-toggle" @click="mobileMenuOpen = !mobileMenuOpen">
-              <MenuOutline v-if="!mobileMenuOpen" class="menu-icon" />
-              <CloseOutline v-else class="menu-icon" />
-            </button>
-            <div class="mobile-brand">
-              <RouterLink to="/" class="brand-seal" @click="mobileMenuOpen = false">诗词</RouterLink>
-              <RouterLink to="/" class="mobile-title" @click="mobileMenuOpen = false">中华诗词库</RouterLink>
+        <div class="app-container" :class="{ 'is-mobile': isMobile, 'is-scrolled': scrolled }">
+          <!-- Top Navigation Bar -->
+          <header class="top-nav" :class="{ 'nav-scrolled': scrolled }">
+            <div class="nav-inner">
+              <!-- Mobile Menu Toggle -->
+              <button 
+                v-if="isMobile" 
+                class="nav-toggle"
+                @click="mobileMenuOpen = !mobileMenuOpen"
+                aria-label="菜单"
+              >
+                <MenuOutline v-if="!mobileMenuOpen" />
+                <CloseOutline v-else />
+              </button>
+
+              <!-- Brand -->
+              <RouterLink to="/" class="nav-brand" @click="mobileMenuOpen = false">
+                <div class="brand-icon">
+                  <span class="brand-char">诗</span>
+                </div>
+                <span class="brand-name hide-mobile">中华诗词库</span>
+              </RouterLink>
+
+              <!-- Desktop Navigation -->
+              <nav class="nav-links hide-mobile">
+                <RouterLink
+                  v-for="item in menuItems"
+                  :key="item.key"
+                  :to="item.path"
+                  class="nav-link"
+                  :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path + '/') && item.path !== '/') }"
+                >
+                  <component :is="item.icon" class="nav-link-icon" />
+                  <span>{{ item.label }}</span>
+                </RouterLink>
+              </nav>
+
+              <!-- GitHub Link -->
+              <div class="nav-actions">
+                <a 
+                  href="https://github.com/shyu216/chinese-poetry-data-mining" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  class="github-link hide-mobile"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="github-icon">
+                    <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                </a>
+              </div>
             </div>
           </header>
 
-          <!-- Sidebar / Mobile Drawer -->
-          <aside class="sidebar" :class="{ collapsed, 'mobile-open': mobileMenuOpen }">
-            <div class="sidebar-header">
-              <RouterLink to="/" class="brand" v-if="!collapsed">
-                <span class="brand-seal">诗词</span>
-                <div class="brand-text">
-                  <h2>中华诗词库</h2>
-                  <p>三十万首诗词数据挖掘</p>
-                </div>
-              </RouterLink>
-              <RouterLink to="/" class="brand-mini" v-else>
-                <span class="brand-seal">诗</span>
-              </RouterLink>
-            </div>
-
-            <nav class="sidebar-nav">
-              <RouterLink
-                v-for="item in menuOptions"
-                :key="item.key"
-                :to="item.path"
-                class="nav-item"
-                :class="{ active: $route.path === item.path || ($route.path.startsWith(item.path + '/') && item.path !== '/') }"
-                @click="isMobile && (mobileMenuOpen = false)"
-              >
-                <component :is="item.icon" class="nav-icon" />
-                <span class="nav-label" v-if="!collapsed">{{ item.label }}</span>
-              </RouterLink>
-            </nav>
-
-            <button v-if="!isMobile" class="collapse-btn" @click="collapsed = !collapsed">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                <path v-if="collapsed" d="M6 12l4-4-4-4v8z"/>
-                <path v-else d="M10 4l-4 4 4 4V4z"/>
-              </svg>
-            </button>
-          </aside>
+          <!-- Mobile Navigation Drawer -->
+          <transition name="drawer">
+            <aside v-if="isMobile && mobileMenuOpen" class="mobile-drawer">
+              <div class="drawer-header">
+                <RouterLink to="/" class="drawer-brand" @click="mobileMenuOpen = false">
+                  <div class="brand-icon">
+                    <span class="brand-char">诗</span>
+                  </div>
+                  <span class="brand-name">中华诗词库</span>
+                </RouterLink>
+              </div>
+              <nav class="drawer-nav">
+                <RouterLink
+                  v-for="item in menuItems"
+                  :key="item.key"
+                  :to="item.path"
+                  class="drawer-link"
+                  :class="{ active: $route.path === item.path }"
+                  @click="mobileMenuOpen = false"
+                >
+                  <component :is="item.icon" class="drawer-link-icon" />
+                  <span>{{ item.label }}</span>
+                </RouterLink>
+              </nav>
+              <div class="drawer-footer">
+                <p class="drawer-stats">
+                  收录 <strong>{{ formatNumber(poems.totalPoems.value) }}</strong> 首诗词
+                </p>
+                <a 
+                  href="https://github.com/shyu216/chinese-poetry-data-mining" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  class="drawer-github"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="github-icon">
+                    <path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  <span>GitHub</span>
+                </a>
+              </div>
+            </aside>
+          </transition>
 
           <!-- Mobile Overlay -->
-          <div v-if="isMobile && mobileMenuOpen" class="mobile-overlay" @click="mobileMenuOpen = false"></div>
+          <transition name="fade">
+            <div 
+              v-if="isMobile && mobileMenuOpen" 
+              class="mobile-overlay" 
+              @click="mobileMenuOpen = false"
+            ></div>
+          </transition>
 
-          <main class="main-content">
+          <!-- Main Content Area -->
+          <main class="main-wrapper">
             <RouterView v-slot="{ Component, route }">
               <transition 
                 :name="getTransitionName(route)" 
@@ -199,17 +231,21 @@ const themeOverrides = {
             </RouterView>
           </main>
 
-          <footer class="app-footer">
+          <!-- Footer -->
+          <footer class="site-footer">
             <div class="footer-inner">
-              <span class="copyright">© 2026 中华诗词数据挖掘</span>
-              <span class="divider">|</span>
-              <span class="stats">诗词总数 <em>{{ formatNumber(poems.totalPoems.value) }}</em> 首</span>
-              <span class="divider">|</span>
-              <span class="version">v1.0</span>
+              <div class="footer-brand">
+                <div class="brand-icon small">
+                  <span class="brand-char">诗</span>
+                </div>
+                <span>中华诗词数据挖掘</span>
+              </div>
+              <p class="footer-copy">
+                © {{ currentYear }} Chinese Poetry Data Mining
+              </p>
             </div>
           </footer>
 
-          <!-- 统一加载组件 -->
           <UnifiedLoading />
         </div>
       </n-dialog-provider>
@@ -218,279 +254,355 @@ const themeOverrides = {
 </template>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
-
-:root {
-  --color-bg: #FAF8F5;
-  --color-bg-paper: #FDFCFA;
-  --color-ink: #2C2416;
-  --color-ink-light: #5C5244;
-  --color-seal: #8B2635;
-  --color-seal-light: #A83246;
-  --color-border: #E8E4DD;
-  --color-accent: #C9A96E;
-  --shadow-subtle: 0 2px 8px rgba(44, 36, 22, 0.06);
-  --shadow-card: 0 4px 16px rgba(44, 36, 22, 0.08);
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  background: var(--color-bg);
-  font-family: "Noto Sans SC", "PingFang SC", sans-serif;
-  color: var(--color-ink);
-  -webkit-font-smoothing: antialiased;
-}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
 
 .app-container {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background: 
-    radial-gradient(ellipse at 20% 0%, rgba(139, 38, 53, 0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(201, 169, 110, 0.05) 0%, transparent 50%),
-    var(--color-bg);
+  background: var(--bg-primary);
 }
 
-.sidebar {
-  width: 260px;
-  background: var(--color-bg-paper);
-  border-right: 1px solid var(--color-border);
-  display: flex;
-  flex-direction: column;
+/* ═══════════════════════════════════════════════════════════════
+   Top Navigation
+══════════════════════════════════════════════════════════════ */
+.top-nav {
   position: fixed;
-  left: 0;
   top: 0;
-  bottom: 0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: var(--shadow-subtle);
-  z-index: 200;
-}
-
-.sidebar.collapsed { width: 72px; }
-
-.sidebar-header {
-  padding: 24px 20px;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  text-decoration: none;
-  color: inherit;
-  transition: opacity 0.2s ease;
-}
-
-.brand:hover {
-  opacity: 0.85;
-}
-
-.brand-seal {
-  width: 44px;
-  height: 44px;
-  background: var(--color-seal);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: "Noto Serif SC", serif;
-  font-size: 20px;
-  font-weight: 700;
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(139, 38, 53, 0.3);
-}
-
-.brand-mini { display: flex; justify-content: center; }
-
-.brand-mini:hover {
-  opacity: 0.85;
-}
-
-.brand-mini .brand-seal {
-  width: 36px;
-  height: 36px;
-  font-size: 16px;
-}
-
-.brand-text h2 {
-  margin: 0;
-  font-family: "Noto Serif SC", serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-ink);
-  letter-spacing: 2px;
-}
-
-.brand-text p {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--color-ink-light);
-  letter-spacing: 1px;
-}
-
-.sidebar-nav {
-  flex: 1;
-  padding: 16px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 4px;
-  color: var(--color-ink-light);
-  text-decoration: none;
-  font-size: 14px;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.nav-item::before {
-  content: '';
-  position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 0;
-  background: var(--color-seal);
-  border-radius: 0 2px 2px 0;
-  transition: height 0.2s ease;
+  right: 0;
+  z-index: 100;
+  background: rgba(250, 250, 248, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s var(--ease-out-expo);
 }
 
-.nav-item:hover {
-  background: rgba(139, 38, 53, 0.04);
-  color: var(--color-ink);
+.top-nav.nav-scrolled {
+  background: rgba(250, 250, 248, 0.95);
+  border-bottom-color: var(--border-light);
+  box-shadow: var(--shadow-sm);
 }
 
-.nav-item.active {
-  background: rgba(139, 38, 53, 0.08);
-  color: var(--color-seal);
-  font-weight: 500;
+.nav-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-4);
+  height: 60px;
 }
 
-.nav-item.active::before { height: 24px; }
-
-.nav-icon {
-  width: 20px;
-  height: 20px;
-  opacity: 0.8;
+@media (min-width: 768px) {
+  .nav-inner {
+    padding: var(--space-3) var(--space-6);
+  }
 }
 
-.nav-item.active .nav-icon { opacity: 1; }
-
-.collapse-btn {
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
-  background: var(--color-bg-paper);
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  cursor: pointer;
+.nav-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-ink-light);
-  transition: all 0.2s ease;
-  z-index: 10;
-}
-
-.collapse-btn:hover {
-  background: var(--color-seal);
-  color: #fff;
-  border-color: var(--color-seal);
-}
-
-.settings-btn {
-  margin-top: auto;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  width: 40px;
+  height: 40px;
   background: transparent;
   border: none;
-  border-top: 1px solid var(--color-border);
-  color: var(--color-ink-light);
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
+  color: var(--ink-dark);
+  border-radius: var(--radius-md);
+  transition: background 0.2s;
 }
 
-.settings-btn:hover {
-  background: rgba(139, 38, 53, 0.05);
-  color: var(--color-seal);
+.nav-toggle:hover {
+  background: var(--ink-fog);
 }
 
-.sidebar.collapsed .settings-btn {
-  padding: 12px;
-  justify-content: center;
+.nav-toggle svg {
+  width: 24px;
+  height: 24px;
 }
 
-.main-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  margin-left: 260px;
-  padding: 32px 40px;
-  padding-bottom: 80px;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.sidebar.collapsed ~ .main-content {
-  margin-left: 72px;
-}
-
-.app-footer {
-  position: fixed;
-  bottom: 0;
-  left: 260px;
-  right: 0;
-  background: var(--color-bg-paper);
-  border-top: 1px solid var(--color-border);
-  padding: 0 40px;
-  height: 56px;
+.nav-brand {
   display: flex;
   align-items: center;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 100;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--ink-dark);
 }
 
-.sidebar.collapsed ~ .app-footer {
-  left: 72px;
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-dark);
+  border-radius: var(--radius-md);
+  transition: transform 0.3s var(--ease-out-expo);
+}
+
+.brand-icon.small {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+}
+
+.brand-icon:hover {
+  transform: scale(1.05);
+}
+
+.brand-char {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--paper-white);
+}
+
+.brand-icon.small .brand-char {
+  font-size: 12px;
+}
+
+.brand-name {
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-8);
+  flex: 1;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-medium);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s var(--ease-out-quart);
+}
+
+.nav-link:hover {
+  color: var(--ink-dark);
+  background: var(--ink-fog);
+}
+
+.nav-link.active {
+  color: var(--ink-dark);
+  background: var(--ink-fog);
+}
+
+.nav-link-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.github-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--ink-gray);
+  text-decoration: none;
+  border: none;
+  border-radius: var(--radius-full);
+  transition: all 0.2s;
+}
+
+.github-link:hover {
+  color: var(--ink-dark);
+  background: var(--ink-fog);
+}
+
+.github-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Mobile Drawer
+══════════════════════════════════════════════════════════════ */
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: var(--bg-primary);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-float);
+}
+
+.drawer-header {
+  padding: var(--space-6);
+  border-bottom: var(--border-light);
+}
+
+.drawer-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  text-decoration: none;
+  color: var(--ink-dark);
+}
+
+.drawer-nav {
+  flex: 1;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--ink-medium);
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s;
+}
+
+.drawer-link:hover,
+.drawer-link.active {
+  color: var(--ink-dark);
+  background: var(--ink-fog);
+}
+
+.drawer-link-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.drawer-footer {
+  padding: var(--space-6);
+  border-top: var(--border-light);
+}
+
+.drawer-stats {
+  font-size: var(--text-sm);
+  color: var(--ink-gray);
+  margin: 0;
+}
+
+.drawer-stats strong {
+  color: var(--accent-teal);
+  font-weight: 600;
+}
+
+.drawer-github {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--ink-fog);
+  border-radius: var(--radius-lg);
+  color: var(--ink-medium);
+  font-size: var(--text-sm);
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.drawer-github:hover {
+  background: var(--ink-mist);
+  color: var(--ink-dark);
+}
+
+.drawer-github .github-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-overlay);
+  z-index: 150;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Main Content
+══════════════════════════════════════════════════════════════ */
+.main-wrapper {
+  flex: 1;
+  padding-top: 60px;
+  min-height: calc(100vh - 200px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Footer
+══════════════════════════════════════════════════════════════ */
+.site-footer {
+  margin-top: auto;
+  padding: var(--space-12) var(--space-4);
+  background: var(--bg-secondary);
+  border-top: var(--border-light);
 }
 
 .footer-inner {
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-brand {
   display: flex;
   align-items: center;
-  gap: 16px;
-  font-size: 13px;
-  color: var(--color-ink-light);
-}
-
-.footer-inner .divider { opacity: 0.3; }
-
-.footer-inner em {
-  font-style: normal;
-  color: var(--color-seal);
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
   font-weight: 600;
+  color: var(--ink-dark);
+  margin-bottom: var(--space-4);
 }
 
-/* ========== 页面过渡动画 ========== */
+.footer-stats {
+  font-size: var(--text-sm);
+  color: var(--ink-gray);
+  margin: 0 0 var(--space-2);
+}
 
-/* 淡入淡出 */
+.footer-copy {
+  font-size: var(--text-xs);
+  color: var(--ink-light);
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Page Transitions
+══════════════════════════════════════════════════════════════ */
 .page-fade-enter-active,
-.page-fade-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.page-fade-leave-active,
+.page-ink-spread-enter-active,
+.page-ink-spread-leave-active,
+.page-slide-up-enter-active,
+.page-slide-up-leave-active {
+  transition: all 0.4s var(--ease-out-expo);
 }
 
 .page-fade-enter-from,
@@ -498,10 +610,16 @@ body {
   opacity: 0;
 }
 
-/* 上滑入 */
-.page-slide-up-enter-active,
-.page-slide-up-leave-active {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+.page-ink-spread-enter-from {
+  opacity: 0;
+  transform: scale(0.96);
+  filter: blur(4px);
+}
+
+.page-ink-spread-leave-to {
+  opacity: 0;
+  transform: scale(1.02);
+  filter: blur(4px);
 }
 
 .page-slide-up-enter-from {
@@ -511,199 +629,42 @@ body {
 
 .page-slide-up-leave-to {
   opacity: 0;
-  transform: translateY(-20px);
+  transform: translateY(-10px);
 }
 
-/* 水墨扩散 */
-.page-ink-spread-enter-active {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+/* Drawer transitions */
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: transform 0.3s var(--ease-out-expo);
 }
 
-.page-ink-spread-leave-active {
-  transition: all 0.3s ease;
+.drawer-enter-from,
+.drawer-leave-to {
+  transform: translateX(-100%);
 }
 
-.page-ink-spread-enter-from {
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
-  filter: blur(10px);
-  transform: scale(0.98);
 }
 
-.page-ink-spread-leave-to {
-  opacity: 0;
-  filter: blur(5px);
-}
-
-/* 旧版兼容 */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.fade-enter-from, .fade-leave-to { opacity: 0; }
-
-a { color: inherit; text-decoration: none; }
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover { background: var(--color-accent); }
-
-/* Mobile Styles */
-@media (max-width: 768px) {
-  .mobile-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 56px;
-    background: var(--color-bg-paper);
-    border-bottom: 1px solid var(--color-border);
-    display: flex;
-    align-items: center;
-    padding: 0 16px;
-    z-index: 300;
-    gap: 12px;
-  }
-
-  .menu-toggle {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    color: var(--color-ink);
-    cursor: pointer;
-    border-radius: 4px;
-  }
-
-  .menu-toggle:hover {
-    background: rgba(139, 38, 53, 0.08);
-  }
-
-  .menu-icon {
-    width: 24px;
-    height: 24px;
-  }
-
-  .mobile-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.mobile-brand a {
-  text-decoration: none;
-  color: inherit;
-}
-
-.mobile-brand a:hover {
-  opacity: 0.85;
-}
-
-  .mobile-brand .brand-seal {
-    width: 32px;
-    height: 32px;
-    font-size: 14px;
-  }
-
-  .mobile-title {
-    font-family: "Noto Serif SC", serif;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--color-ink);
-  }
-
-  .sidebar {
-    transform: translateX(-100%);
-    width: 280px;
-    top: 56px;
-    height: calc(100vh - 56px);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .sidebar.mobile-open {
-    transform: translateX(0);
-  }
-
-  .mobile-overlay {
-    position: fixed;
-    top: 56px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 150;
-  }
-
-  .main-content {
-    margin-left: 0 !important;
-    margin-top: 56px;
-    padding: 16px;
-    padding-bottom: 80px;
-    min-height: calc(100vh - 56px);
-  }
-
-  .app-footer {
-    left: 0 !important;
-    padding: 0 16px;
-    height: 48px;
-  }
-
-  .footer-inner {
-    font-size: 12px;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .footer-inner .divider {
-    display: none;
-  }
-
-  .footer-inner span:not(.divider) {
-    white-space: nowrap;
+/* ═══════════════════════════════════════════════════════════════
+   Responsive Utilities
+══════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
   }
 }
 
-/* Tablet Styles */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .sidebar {
-    width: 220px;
-  }
-
-  .sidebar.collapsed {
-    width: 64px;
-  }
-
-  .main-content {
-    margin-left: 220px;
-    padding: 24px 32px;
-  }
-
-  .sidebar.collapsed ~ .main-content {
-    margin-left: 64px;
-  }
-
-  .app-footer {
-    left: 220px;
-    padding: 0 32px;
-  }
-
-  .sidebar.collapsed ~ .app-footer {
-    left: 64px;
-  }
-}
-
-/* Hide mobile elements on desktop */
-@media (min-width: 769px) {
-  .mobile-header,
-  .mobile-overlay {
-    display: none;
+@media (min-width: 768px) {
+  .hide-desktop {
+    display: none !important;
   }
 }
 </style>

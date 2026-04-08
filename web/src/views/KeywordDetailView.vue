@@ -118,7 +118,7 @@ const loadPoemsBatch = async (ids: string[], updateUI = false): Promise<PoemSumm
     const batch = ids.slice(i, i + batchSize)
     console.log(`[KeywordDetail] Batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(ids.length / batchSize)}: loading ${batch.length} poems`)
 
-    // 1. 先从 poem_index 获取诗词摘要（包含 chunk_id）
+    // 1. 先从 poem_index 获取诗词数据（包含 chunk_id）
     const step1Start = Date.now()
     const poemSummaries = await searchIndex.getPoemSummariesByIds(batch)
     console.log(`[KeywordDetail]   -> Got ${poemSummaries.size} summaries from index in ${Date.now() - step1Start}ms`)
@@ -236,7 +236,7 @@ const loadData = async () => {
       allPoems.value = poemsList.value
     }
 
-    // 后台获取词频统计
+    // 后台获取分词数据
     wordcount.getTopWords(10000).then(allWords => {
       const foundWord = allWords.find(w => w.word === keyword.value)
       if (foundWord) {

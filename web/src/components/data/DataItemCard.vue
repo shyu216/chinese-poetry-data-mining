@@ -3,23 +3,19 @@
   file: web/src/components/data/DataItemCard.vue
   category: frontend-component
   tech: Vue 3 + TypeScript + Naive UI
-  summary: 单个数据项卡片，用于展示某类数据的缓存进度（例如诗词/作者/词频分片）的可视化小组件。
+  summary: 单个数据项卡片，用于展示某类数据的缓存进度。支持操作按钮和瓦片可视化。
 
   Data pipeline:
   - 输入: 通过 props 接收统计（cachedCount/totalCount）与可视化条目（bars）
-  - 处理: 计算进度百分比、决定完成状态并渲染微图（bars）
-  - 输出: 纯展示/交互组件，会 emit 事件或由父组件控制操作
+  - 处理: 计算进度百分比、决定完成状态并渲染瓦片矩阵
+  - 输出: 纯展示/交互组件，支持 slot 注入操作按钮
 
   Complexity & notes:
-  - 单卡渲染为 O(1)，若父组件渲染大量卡片（n）总成本为 O(n)
-  - 小图条目超过一定数量时会启用横向滚动（避免 DOM 布局抖动）
-
-  Potential issues & recommendations:
-  - 对大量 `bars` 的渲染使用虚拟化或限制显示项以降低渲染成本
-  - 若 bars 数据非常多，考虑在父级限制传入的数组长度或使用 canvas 渲染
- -->
+  - 瓦片渲染使用 CSS Grid，性能良好
+  - 每个分块是一个小方砖，已缓存用彩色，未缓存用轮廓
+-->
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick } from 'vue'
+import { computed } from 'vue'
 import { NCard, NTag, NEmpty } from 'naive-ui'
 
 const props = defineProps<{
@@ -33,6 +29,10 @@ const props = defineProps<{
   colorClass: string
 }>()
 
+defineSlots<{
+  action?: () => void
+}>()
+
 const progressPercent = computed(() => {
   if (props.totalCount === 0) return 0
   return Math.round((props.cachedCount / props.totalCount) * 100)
@@ -40,15 +40,6 @@ const progressPercent = computed(() => {
 
 const isComplete = computed(() => {
   return props.cachedCount > 0 && props.cachedCount === props.totalCount
-})
-
-const chartRef = ref<HTMLElement>()
-
-onMounted(async () => {
-  await nextTick()
-  if (chartRef.value && props.bars.length > 20) {
-    chartRef.value.scrollLeft = chartRef.value.scrollWidth
-  }
 })
 </script>
 
@@ -59,9 +50,12 @@ onMounted(async () => {
         <span class="card-icon">{{ icon }}</span>
         <span class="card-name">{{ title }}</span>
       </div>
-      <NTag size="small" :type="isComplete ? 'success' : 'default'">
-        {{ cachedCount }} / {{ totalCount }}
-      </NTag>
+      <div class="card-header-right">
+        <NTag size="small" :type="isComplete ? 'success' : 'default'">
+          {{ cachedCount }} / {{ totalCount }}
+        </NTag>
+        <slot name="action"></slot>
+      </div>
     </div>
     
     <div class="card-description">{{ description }}</div>
@@ -73,23 +67,22 @@ onMounted(async () => {
       <span class="progress-text">{{ progressPercent }}%</span>
     </div>
     
-    <div class="card-chart" ref="chartRef">
-      <div v-if="bars.length > 0" class="mini-bars" :class="{ 'scrollable': bars.length > 20 }">
+    <div class="card-tiles">
+      <template v-if="bars.length > 0">
         <div
           v-for="bar in bars"
           :key="bar.id"
-          class="mini-bar"
-          :class="{ 'cached': bar.cached, [colorClass]: true }"
-          :style="{ height: maxCount > 0 ? (bar.count / maxCount * 100) + '%' : '0%' }"
-          :title="`${bar.count}${bar.cached ? ' (已缓存)' : ''}`"
+          class="tile"
+          :class="{ 'cached': bar.cached, [colorClass]: bar.cached }"
+          :title="`分块 ${bar.id}: ${bar.count} 首${bar.cached ? ' (已缓存)' : ''}`"
         />
-      </div>
+      </template>
       <NEmpty v-else description="暂无数据" size="small" />
     </div>
     
     <div class="card-legend">
-      <span class="legend-dot" :class="['cached', colorClass]"></span> 已缓存
-      <span class="legend-dot uncached"></span> 未缓存
+      <span class="legend-tile cached" :class="colorClass"></span> 已缓存
+      <span class="legend-tile"></span> 未缓存
     </div>
   </NCard>
 </template>
@@ -104,6 +97,12 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px;
+}
+
+.card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .card-title {
@@ -162,73 +161,67 @@ onMounted(async () => {
   min-width: 36px;
 }
 
-.card-chart {
-  height: 60px;
+.card-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12px, 1fr));
+  gap: 3px;
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 8px;
+  min-height: 80px;
   margin-bottom: 8px;
-  overflow: hidden;
 }
 
-.mini-bars {
-  display: flex;
-  align-items: flex-end;
-  height: 100%;
-  gap: 2px;
-  min-width: 100%;
-}
-
-.mini-bars.scrollable {
-  overflow-x: auto;
-  scroll-behavior: smooth;
-}
-
-.mini-bars.scrollable::-webkit-scrollbar {
-  height: 4px;
-}
-
-.mini-bars.scrollable::-webkit-scrollbar-track {
-  background: #f0f0f0;
+.tile {
+  aspect-ratio: 1;
   border-radius: 2px;
-}
-
-.mini-bars.scrollable::-webkit-scrollbar-thumb {
-  background: #ccc;
-  border-radius: 2px;
-}
-
-.mini-bar {
-  flex: 1;
-  min-width: 4px;
   background: #e8e8e8;
-  border-radius: 2px 2px 0 0;
-  transition: height 0.3s ease;
+  border: 1px solid #d0d0d0;
+  transition: all 0.2s ease;
 }
 
-.mini-bar.cached.poems { background: #4caf50; }
-.mini-bar.cached.authors { background: #2196f3; }
-.mini-bar.cached.wordcount { background: #ff9800; }
-.mini-bar.cached.wordsim { background: #9c27b0; }
-.mini-bar.cached.searchindex { background: #00bcd4; }
-.mini-bar.cached.keywordindex { background: #ff5722; }
+.tile:hover {
+  transform: scale(1.2);
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tile.cached {
+  border-color: transparent;
+}
+
+.tile.cached.poems { background: #4caf50; }
+.tile.cached.authors { background: #2196f3; }
+.tile.cached.wordcount { background: #ff9800; }
+.tile.cached.wordsim { background: #9c27b0; }
+.tile.cached.searchindex { background: #00bcd4; }
+.tile.cached.keywordindex { background: #ff5722; }
 
 .card-legend {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   font-size: 11px;
   color: #999;
 }
 
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+.legend-tile {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  background: #e8e8e8;
+  border: 1px solid #d0d0d0;
+  display: inline-block;
 }
 
-.legend-dot.cached { background: #4caf50; }
-.legend-dot.cached.authors { background: #2196f3; }
-.legend-dot.cached.wordcount { background: #ff9800; }
-.legend-dot.cached.wordsim { background: #9c27b0; }
-.legend-dot.cached.searchindex { background: #00bcd4; }
-.legend-dot.cached.keywordindex { background: #ff5722; }
-.legend-dot.uncached { background: #e8e8e8; }
+.legend-tile.cached {
+  border-color: transparent;
+}
+
+.legend-tile.cached.poems { background: #4caf50; }
+.legend-tile.cached.authors { background: #2196f3; }
+.legend-tile.cached.wordcount { background: #ff9800; }
+.legend-tile.cached.wordsim { background: #9c27b0; }
+.legend-tile.cached.searchindex { background: #00bcd4; }
+.legend-tile.cached.keywordindex { background: #ff5722; }
 </style>

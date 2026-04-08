@@ -74,28 +74,12 @@ const router = createRouter({
     {
       path: '/data',
       name: 'data',
-      component: () => import('@/views/DataView.vue'),
-      children: [
-        {
-          path: '',
-          redirect: '/data/overview'
-        },
-        {
-          path: 'overview',
-          name: 'data-overview',
-          component: () => import('@/views/DataOverviewView.vue')
-        },
-        {
-          path: 'download',
-          name: 'data-download',
-          component: () => import('@/views/DataDownloadView.vue')
-        },
-        {
-          path: 'storage',
-          name: 'data-storage',
-          component: () => import('@/views/DataStorageView.vue')
-        }
-      ]
+      component: () => import('@/views/DataView.vue')
+    },
+    {
+      path: '/design',
+      name: 'design',
+      component: () => import('@/views/DemoDesign.vue')
     },
   ]
 })

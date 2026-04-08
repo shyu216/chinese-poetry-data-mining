@@ -96,9 +96,9 @@ defineExpose({
 </script>
 
 <template>
-  <NCard title="📊 词频统计数据" class="download-section">
+  <NCard title="📊 分词数据数据" class="download-section">
     <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-      词频数据库包含 {{ totalChunks }} 个分块的词频统计数据，支持离线浏览。
+      词频数据库包含 {{ totalChunks }} 个分块的分词数据数据，支持离线浏览。
     </NAlert>
 
     <NProgress

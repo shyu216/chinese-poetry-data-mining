@@ -116,13 +116,13 @@ const loadAuthorPoems = async () => {
   const loadedPoems: PoemDetail[] = []
 
   try {
-    // 使用批量加载优化：先获取诗词摘要（含 chunk_id），再批量加载详情
+    // 使用批量加载优化：先获取诗词数据（含 chunk_id），再批量加载详情
     const batchSize = 50
 
     for (let i = 0; i < author.value.poem_ids.length; i += batchSize) {
       const batchIds = author.value.poem_ids.slice(i, i + batchSize)
 
-      // 1. 从 poem_index 获取诗词摘要（包含 chunk_id）
+      // 1. 从 poem_index 获取诗词数据（包含 chunk_id）
       const poemSummaries = await getPoemSummariesByIds(batchIds)
 
       // 2. 提取 chunk_ids 用于批量加载，并存储到映射表

@@ -74,12 +74,12 @@ const handlePoemClick = (poem: PoemSummary) => {
 }
 
 const handlePageChange = (page: number) => {
-  currentPage.value = page
+  emit('update:page', page)
 }
 
 const handlePageSizeChange = (size: number) => {
-  currentPageSize.value = size
-  currentPage.value = 1
+  emit('update:pageSize', size)
+  emit('update:page', 1)
 }
 
 const getDynastyColor = (dynasty: string): string => {
@@ -164,6 +164,7 @@ const getDynastyColor = (dynasty: string): string => {
         :page-size="currentPageSize"
         show-size-picker
         :page-sizes="[12, 24, 48, 96]"
+        @update:page="handlePageChange"
         @update:page-size="handlePageSizeChange"
       />
     </div>

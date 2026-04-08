@@ -1,6 +1,6 @@
 <!--
   文件: web/src/components/download/PoemsDownloadSection.vue
-  说明: 提供诗词摘要分片下载与进度展示，支持一次性下载所有摘要分片到本地缓存以实现离线浏览。
+  说明: 提供诗词数据分片下载与进度展示，支持一次性下载所有摘要分片到本地缓存以实现离线浏览。
 
   数据管线:
     - 读取诗词元数据（分片数）-> 读取本地 metadata -> 计算未缓存分片 -> 使用 chunkLoader 下载并写入缓存。
@@ -98,7 +98,7 @@ defineExpose({
 <template>
   <NCard title="📚 诗词数据" class="download-section">
     <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-      诗词数据库包含 {{ totalChunks }} 个分块的诗词摘要数据，支持离线浏览。
+      诗词数据库包含 {{ totalChunks }} 个分块的诗词数据数据，支持离线浏览。
     </NAlert>
 
     <NProgress

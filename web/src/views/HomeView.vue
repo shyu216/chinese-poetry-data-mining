@@ -1,28 +1,18 @@
-<!--
-  文件: web/src/views/HomeView.vue
-  说明: 应用首页，负责展示汇总统计（AnimatedStatCard）、随机诗推荐与元数据加载的启动入口视图。
-
-  数据管线:
-    - 启动: 页面挂载时调用各 composable（`usePoems`, `useAuthors`）加载必要的元数据。
-    - 展示: 使用组合式数据驱动统计卡与随机诗卡展示，部分数据通过缓存读取以加速首屏。
-
-  复杂度:
-    - 元数据加载为若干常数次网络/缓存调用（O(1) 次），统计展示为常数渲染成本；具体复杂度由底层 composable 决定。
-
-  注意事项:
-    - 首页启动阶段可能并行触发多项元数据加载，应控制并发与提供可取消或降级策略以提升稳定性。
--->
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { BookOutline, PeopleOutline, TextOutline } from '@vicons/ionicons5'
+import { 
+  BookOutline, 
+  PeopleOutline, 
+  TextOutline,
+  ArrowForwardOutline
+} from '@vicons/ionicons5'
 
 import { usePoems } from '@/composables/usePoems'
 import { useAuthors } from '@/composables/useAuthors'
 import { useWordcount } from '@/composables/useWordcount'
 import { useLoading } from '@/composables/useLoading'
 
-import { SunmaoOrnament, BreathingFrame } from '@/components/ui/decorative'
 import { AnimatedStatCard } from '@/components/ui/animated'
 import RandomPoemCard from '@/components/content/RandomPoemCard.vue'
 
@@ -37,43 +27,22 @@ const animationStarted = ref(false)
 
 const loadingCopy = {
   initializing: '正在启动...',
-  loading:
-    '正在加载元数据...',
-
-  complete:
-    '加载完成',
-
-  error:
-    '加载失败，请刷新重试',
-
+  loading: '正在加载元数据...',
+  complete: '加载完成',
+  error: '加载失败，请刷新重试',
 }
 
-
-const pageTitleCopy = {
-  home: {
-    title: '中华诗词数据',
-    subtitle: '数据分析平台'
-  }
-}
-
-
-// 添加调试日志和组件引用
 const statCard1 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)
 const statCard2 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)
 const statCard3 = ref<InstanceType<typeof AnimatedStatCard> | null>(null)
 
 const loadAllData = async () => {
   animationStarted.value = false
-
-  loading.startBlocking(
-    loadingCopy.initializing,
-    loadingCopy.loading
-  )
+  loading.startBlocking(loadingCopy.initializing, loadingCopy.loading)
 
   try {
     loading.updatePhase('metadata', loadingCopy.loading)
     loading.updateProgress(0, 3)
-    // 强制刷新 metadata，避免使用缓存的空数据
     await poems.loadMetadata(true)
 
     loading.updateProgress(1, 3, loadingCopy.loading)
@@ -98,24 +67,6 @@ const loadAllData = async () => {
 }
 
 onMounted(() => {
-  // 调试日志：检查布局尺寸
-  console.log('[HomeView] onMounted - checking layout dimensions')
-  const heroSection = document.querySelector('.hero-section')
-  const homeView = document.querySelector('.home-view')
-  const mainContent = document.querySelector('.main-content')
-  if (heroSection) {
-    const rect = heroSection.getBoundingClientRect()
-    console.log('[HomeView] hero-section dimensions:', { width: rect.width, height: rect.height })
-  }
-  if (homeView) {
-    const rect = homeView.getBoundingClientRect()
-    console.log('[HomeView] home-view dimensions:', { width: rect.width, height: rect.height })
-  }
-  if (mainContent) {
-    const rect = mainContent.getBoundingClientRect()
-    console.log('[HomeView] main-content dimensions:', { width: rect.width, height: rect.height })
-  }
-
   loadAllData()
 })
 
@@ -127,92 +78,117 @@ const formatNumber = (num: number | undefined | null): string => {
   return num.toLocaleString()
 }
 
-watch(() => animationStarted.value, (started) => {
-  console.log('[HomeView] animationStarted changed:', started)
-  if (started) {
-    console.log('[HomeView] Triggering stat card animations...')
-    console.log('[HomeView] Data values:', {
-      authors: authors.totalAuthors.value,
-      poems: poems.totalPoems.value,
-      vocabs: wordcount.totalWords.value
-    })
-
-    // 直接触发动画
-    setTimeout(() => {
-      statCard1.value?.startAnimation()
-    }, 0)
-    setTimeout(() => {
-      statCard2.value?.startAnimation()
-    }, 200)
-    setTimeout(() => {
-      statCard3.value?.startAnimation()
-    }, 400)
+const features = [
+  {
+    icon: BookOutline,
+    title: '诗词检索',
+    desc: '三十万首诗词，按朝代、体裁、作者智能检索',
+    path: '/poems',
+    color: 'teal'
+  },
+  {
+    icon: PeopleOutline,
+    title: '作者分析',
+    desc: '诗人群体画像，作品风格与成就分析',
+    path: '/authors',
+    color: 'amber'
+  },
+  {
+    icon: TextOutline,
+    title: '分词数据',
+    desc: '高频字词分析，洞悉诗词用字规律',
+    path: '/word-count',
+    color: 'plum'
   }
-})
+]
+
+const navigateTo = (path: string) => {
+  router.push(path)
+}
 </script>
 
 <template>
   <div class="home-view" :class="{ 'animate-in': animationStarted }">
+    <!-- Hero Section -->
     <section class="hero-section">
       <div class="hero-bg">
         <div class="bg-gradient"></div>
-        <div class="bg-texture"></div>
+        <div class="bg-pattern"></div>
       </div>
-
-
-
+      
       <div class="hero-content">
-        <div class="time-greeting">
-          <span class="greeting-text">欢迎使用</span>
-          <span class="greeting-divider"></span>
-          <span class="greeting-sub">诗词数据分析平台</span>
-        </div>
-
-        <div class="title-block">
-          <span class="title-zh" v-for="(char, i) in '诗词数据'.split('')" :key="i"
-            :style="{ animationDelay: `${0.3 + i * 0.12}s` }">
-            {{ char }}
-          </span>
-        </div>
-
         <h1 class="hero-title">
-          <span class="title-main">中华古典诗词数据分析平台</span>
+          中华古典诗词数据挖掘平台
         </h1>
-
-        <p class="hero-subtitle">
-          <span class="subtitle-line">数据驱动的诗词研究平台</span>
+        
+        <p class="hero-desc">
+          基于 chinese-poetry 开源数据库构建<br/>
+          收录全唐诗、全宋诗、全宋词三大诗词库
         </p>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="stat-num">33.3万</span>
+            <span class="stat-label">首诗词</span>
+          </div>
+          <div class="hero-stat">
+            <span class="stat-num">1.3万</span>
+            <span class="stat-label">位诗人</span>
+          </div>
+          <div class="hero-stat">
+            <span class="stat-num">89.4万</span>
+            <span class="stat-label">个词汇</span>
+          </div>
+        </div>
+        
+        <div class="hero-actions">
+          <button class="btn btn-primary" @click="navigateTo('/poems')">
+            <span>开始探索</span>
+            <ArrowForwardOutline />
+          </button>
+        </div>
       </div>
     </section>
 
-    <section class="stats-section">
-      <div class="stats-grid">
-        <AnimatedStatCard ref="statCard1" label="诗人" :value="authors.totalAuthors.value" :prefix-icon="PeopleOutline"
-          :animation-delay="800" :animation-duration="1500" :formatter="formatNumber" />
-        <AnimatedStatCard ref="statCard2" label="诗词" :value="poems.totalPoems.value" :prefix-icon="BookOutline"
-          :animation-delay="1000" :animation-duration="1800" :formatter="formatNumber" />
-        <AnimatedStatCard ref="statCard3" label="词汇" :value="wordcount.totalWords.value" :prefix-icon="TextOutline"
-          :animation-delay="1200" :animation-duration="2000" :formatter="formatNumber" />
+    <!-- Random Poem Section -->
+    <section class="random-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">
+            <SparklesOutline class="title-icon" />
+            今日诗推荐
+          </h2>
+          <p class="section-desc">随机抽取一首，感受诗词之美</p>
+        </div>
+        <RandomPoemCard />
       </div>
     </section>
 
-    <section class="random-poem-section" :style="{ animationDelay: '1.1s' }">
-      <RandomPoemCard />
-    </section>
-
-    <section class="intro-section">
-      <div class="intro-frame" :style="{ animationDelay: '1.3s' }">
-        <div class="frame-corner tl"></div>
-        <div class="frame-corner tr"></div>
-        <div class="frame-corner bl"></div>
-        <div class="frame-corner br"></div>
-        <div class="intro-content">
-          <p class="intro-text">
-            基于 <a href="https://github.com/chinese-poetry/chinese-poetry" target="_blank"
-              class="intro-link">chinese-poetry</a>
-            开源数据库构建，收录<strong>全唐诗</strong>、<strong>全宋诗</strong>、<strong>全宋词</strong>三大诗词库。
-            提供词频分析、相似度分析等数据可视化功能。
-          </p>
+    <!-- Features Section -->
+    <section class="features-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">功能概览</h2>
+          <p class="section-desc">多种方式探索诗词世界</p>
+        </div>
+        
+        <div class="features-grid">
+          <article 
+            v-for="(feature, index) in features" 
+            :key="feature.title"
+            class="feature-card"
+            :style="{ '--delay': `${index * 0.1}s` }"
+            @click="navigateTo(feature.path)"
+          >
+            <div class="feature-icon" :class="feature.color">
+              <component :is="feature.icon" />
+            </div>
+            <h3 class="feature-title">{{ feature.title }}</h3>
+            <p class="feature-desc">{{ feature.desc }}</p>
+            <div class="feature-arrow">
+              <ArrowForwardOutline />
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -221,328 +197,474 @@ watch(() => animationStarted.value, (started) => {
 
 <style scoped>
 .home-view {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px 32px 32px;
-  /* 修复：使用更精确的高度计算，避免页面超出 */
-  min-height: calc(100vh - 64px - 80px);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 16px;
+  min-height: 100vh;
+  background: var(--bg-primary);
 }
 
+.container {
+  max-width: var(--container-xl);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding: 0 var(--space-6);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Hero Section - 水墨意境
+══════════════════════════════════════════════════════════════ */
 .hero-section {
   position: relative;
-  padding: 32px 40px 28px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  /* 修复：改为 visible，让 SunmaoOrnament 可以显示在边缘 */
-  overflow: visible;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-16) var(--space-4);
+  overflow: hidden;
 }
 
 .hero-bg {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 1s ease 0.2s;
-}
-
-.animate-in .hero-bg {
-  opacity: 1;
+  z-index: 0;
 }
 
 .bg-gradient {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(139, 38, 53, 0.04) 0%, transparent 70%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(201, 169, 110, 0.06) 0%, transparent 60%);
+  background: 
+    radial-gradient(ellipse 80% 60% at 50% 120%, rgba(45, 106, 106, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 20% 0%, rgba(45, 106, 106, 0.05) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 30% at 80% 100%, rgba(107, 58, 91, 0.04) 0%, transparent 50%);
 }
 
-.bg-texture {
+.bg-pattern {
   position: absolute;
   inset: 0;
-  background-image:
-    repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(139, 38, 53, 0.015) 60px, rgba(139, 38, 53, 0.015) 61px),
-    repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(139, 38, 53, 0.015) 60px, rgba(139, 38, 53, 0.015) 61px);
-  opacity: 0.5;
+  opacity: 0.4;
+  background-image: 
+    radial-gradient(circle at 25% 25%, var(--ink-fog) 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, var(--ink-fog) 1px, transparent 1px);
+  background-size: 60px 60px;
 }
 
 .hero-content {
   position: relative;
-  z-index: 10;
+  z-index: 1;
   text-align: center;
+  max-width: 720px;
+  animation: fadeInUp 0.8s var(--ease-out-expo) forwards;
 }
 
-.time-greeting {
+.hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  opacity: 0;
-  transform: translateY(-10px);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--ink-fog);
+  border: var(--border-light);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  color: var(--ink-gray);
+  margin-bottom: var(--space-6);
 }
 
-.animate-in .time-greeting {
-  animation: fadeInDown 0.6s ease forwards;
-  animation-delay: 0.1s;
-}
-
-.greeting-text {
-  font-family: "Noto Serif SC", serif;
-  font-size: 14px;
-  color: var(--color-seal);
-  letter-spacing: 3px;
-  font-weight: 600;
-  padding: 6px 14px;
-  background: linear-gradient(135deg, rgba(139, 38, 53, 0.08) 0%, rgba(139, 38, 53, 0.03) 100%);
-  border: 1px solid rgba(139, 38, 53, 0.2);
-  border-radius: 4px;
-}
-
-.greeting-divider {
-  width: 20px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
-}
-
-.greeting-sub {
-  font-size: 13px;
-  color: var(--color-ink-light);
-  letter-spacing: 2px;
-  font-style: italic;
-}
-
-.title-block {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.title-zh {
-  font-family: "Noto Serif SC", serif;
-  font-size: 42px;
-  font-weight: 700;
-  color: var(--color-seal);
-  opacity: 0;
-  transform: translateY(-30px) rotate(-8deg);
-  display: inline-block;
-}
-
-.animate-in .title-zh {
-  animation: titleCharIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-@keyframes titleCharIn {
-  from {
-    opacity: 0;
-    transform: translateY(-30px) rotate(-8deg) scale(0.8);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) rotate(0) scale(1);
-  }
+.badge-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--accent-teal);
 }
 
 .hero-title {
-  margin: 0 0 20px;
-}
-
-.title-main {
-  font-family: "Noto Serif SC", serif;
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--color-ink);
-  letter-spacing: 12px;
-  opacity: 0;
-  display: inline-block;
-}
-
-.animate-in .title-main {
-  animation: fadeInUp 0.7s ease forwards;
-  animation-delay: 0.75s;
-}
-
-.hero-subtitle {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-6);
+}
+
+.title-line {
+  font-family: var(--font-serif);
+  font-size: var(--text-4xl);
+  font-weight: 700;
+  color: var(--ink-dark);
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+}
+
+.title-line.accent {
+  color: var(--accent-teal);
+}
+
+.hero-desc {
+  font-size: var(--text-lg);
+  color: var(--ink-gray);
+  line-height: 1.8;
+  margin: 0 0 var(--space-8);
+}
+
+.hero-actions {
+  display: flex;
   justify-content: center;
-  gap: 16px;
-  font-family: "Noto Serif SC", serif;
-  font-size: 16px;
-  color: var(--color-ink-light);
-  margin: 0;
-  opacity: 0;
+  margin-top: var(--space-6);
 }
 
-.animate-in .hero-subtitle {
-  animation: fadeInUp 0.7s ease forwards;
-  animation-delay: 0.9s;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  font-size: var(--text-base);
+  font-weight: 500;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out-quart);
 }
 
-.subtitle-divider {
-  width: 24px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+.btn-primary {
+  background: var(--ink-dark);
+  color: var(--paper-white);
+  border: none;
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.btn-primary:hover {
+  background: var(--ink-medium);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.btn-primary svg {
+  width: 18px;
+  height: 18px;
 }
 
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-8);
+  margin-top: var(--space-6);
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-num {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  color: var(--accent-teal);
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  color: var(--ink-gray);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Stats Section
+══════════════════════════════════════════════════════════════ */
 .stats-section {
-  padding: 0;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.animate-in .stats-section {
-  animation: fadeInUp 0.6s ease forwards;
-  animation-delay: 0.6s;
+  padding: var(--space-12) 0;
+  background: var(--bg-secondary);
+  border-top: var(--border-light);
+  border-bottom: var(--border-light);
 }
 
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: var(--space-6);
 }
 
-.random-poem-section {
-  padding: 0;
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  opacity: 0;
-  transform: translateY(20px);
+@media (max-width: 640px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
 }
 
-.animate-in .random-poem-section {
-  animation: fadeInUp 0.6s ease forwards;
+/* ═══════════════════════════════════════════════════════════════
+   Random Poem Section
+══════════════════════════════════════════════════════════════ */
+.random-section {
+  padding: var(--space-16) 0;
 }
 
-.intro-section {
-  padding: 0;
-}
-
-.intro-frame {
-  position: relative;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  padding: 28px 32px;
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.animate-in .intro-frame {
-  animation: fadeInUp 0.6s ease forwards;
-}
-
-.frame-corner {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  border-color: var(--color-seal);
-  border-style: solid;
-  opacity: 0.3;
-}
-
-.frame-corner.tl {
-  top: 8px;
-  left: 8px;
-  border-width: 1px 0 0 1px;
-}
-
-.frame-corner.tr {
-  top: 8px;
-  right: 8px;
-  border-width: 1px 1px 0 0;
-}
-
-.frame-corner.bl {
-  bottom: 8px;
-  left: 8px;
-  border-width: 0 0 1px 1px;
-}
-
-.frame-corner.br {
-  bottom: 8px;
-  right: 8px;
-  border-width: 0 1px 1px 0;
-}
-
-.intro-content {
+.section-header {
   text-align: center;
+  margin-bottom: var(--space-10);
 }
 
-.intro-text {
-  font-size: 15px;
-  line-height: 1.8;
-  color: var(--color-ink-light);
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--ink-dark);
+  margin: 0 0 var(--space-2);
+}
+
+.title-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-teal);
+}
+
+.section-desc {
+  font-size: var(--text-base);
+  color: var(--ink-gray);
   margin: 0;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   Features Section
+══════════════════════════════════════════════════════════════ */
+.features-section {
+  padding: var(--space-16) 0;
+  background: var(--bg-secondary);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+}
+
+@media (max-width: 1024px) {
+  .features-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.feature-card {
+  position: relative;
+  padding: var(--space-8);
+  background: var(--bg-card);
+  border: var(--border-light);
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all 0.4s var(--ease-out-expo);
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--ink-fog);
+  transition: background 0.3s;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--ink-mist);
+}
+
+.feature-card:hover::before {
+  background: var(--accent-teal);
+}
+
+.feature-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-5);
+  transition: transform 0.3s var(--ease-out-quart);
+}
+
+.feature-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.feature-icon.teal {
+  background: rgba(45, 106, 106, 0.1);
+  color: var(--accent-teal);
+}
+
+.feature-icon.amber {
+  background: rgba(184, 134, 11, 0.1);
+  color: var(--accent-amber);
+}
+
+.feature-icon.plum {
+  background: rgba(107, 58, 91, 0.1);
+  color: var(--accent-plum);
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+}
+
+.feature-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--ink-dark);
+  margin: 0 0 var(--space-2);
+}
+
+.feature-desc {
+  font-size: var(--text-sm);
+  color: var(--ink-gray);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.feature-arrow {
+  position: absolute;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink-fog);
+  border-radius: var(--radius-full);
+  color: var(--ink-light);
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: all 0.3s var(--ease-out-quart);
+}
+
+.feature-arrow svg {
+  width: 16px;
+  height: 16px;
+}
+
+.feature-card:hover .feature-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Intro Section
+══════════════════════════════════════════════════════════════ */
+.intro-section {
+  padding: var(--space-16) 0;
+}
+
+.intro-card {
+  background: var(--bg-card);
+  border: var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: var(--space-10);
+  text-align: center;
+}
+
+.intro-title {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--ink-dark);
+  margin: 0 0 var(--space-6);
+}
+
+.intro-text {
+  font-size: var(--text-base);
+  color: var(--ink-gray);
+  line-height: 1.8;
+  max-width: 640px;
+  margin: 0 auto var(--space-8);
+}
+
 .intro-link {
-  color: var(--color-seal);
-  text-decoration: none;
-  font-weight: 500;
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.2s;
+  color: var(--accent-teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .intro-link:hover {
-  border-bottom-color: var(--color-seal);
+  color: var(--accent-jade);
 }
 
+.intro-stats {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-10);
+  padding-top: var(--space-6);
+  border-top: var(--border-light);
+}
+
+.intro-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--accent-teal);
+}
+
+.stat-label {
+  font-size: var(--text-sm);
+  color: var(--ink-gray);
+  margin-top: var(--space-1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Responsive
+══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .home-view {
-    padding: 16px;
-    gap: 16px;
-  }
-
   .hero-section {
-    padding: 32px 20px;
+    min-height: 60vh;
+    padding: var(--space-12) var(--space-4);
   }
-
-  .title-zh {
-    font-size: 32px;
+  
+  .title-line {
+    font-size: var(--text-3xl);
+    letter-spacing: 0.05em;
   }
-
-  .title-main {
-    font-size: 20px;
-    letter-spacing: 8px;
+  
+  .hero-desc {
+    font-size: var(--text-base);
   }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  
+  .btn {
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--text-sm);
   }
+  
+  .intro-stats {
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+}
 
-  .intro-frame {
-    padding: 20px;
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 </style>

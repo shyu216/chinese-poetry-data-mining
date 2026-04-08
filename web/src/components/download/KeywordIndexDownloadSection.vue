@@ -1,6 +1,6 @@
 <!--
   文件: web/src/components/download/KeywordIndexDownloadSection.vue
-  说明: 关键词索引下载区块，管理关键词-诗词映射索引的分片下载与本地缓存状态（默认 totalChunks = 201）。
+  说明: 分词索引下载区块，管理关键词-诗词映射索引的分片下载与本地缓存状态（默认 totalChunks = 201）。
 
   数据管线:
     - 触发: 通过 `keywordIndex.searchKeywordOptimized('')` 可触发 manifest 加载以获取 `totalChunks`。
@@ -10,7 +10,7 @@
     - 下载成本随分片数量为 O(t)，索引加载后查询接近 O(1)（基于前缀/倒排索引设计）。
 
   注意:
-    - 加载大量关键词索引可能占用显著内存，建议按需加载或只保留热数据在内存中。
+    - 加载大量分词索引可能占用显著内存，建议按需加载或只保留热数据在内存中。
     - 需保证 manifest 与分片编号的一致性，避免重复或错位加载。
 -->
 <script setup lang="ts">
@@ -97,9 +97,9 @@ defineExpose({
 </script>
 
 <template>
-  <NCard title="🔑 关键词索引数据" class="download-section">
+  <NCard title="🔑 分词索引数据" class="download-section">
     <NAlert type="info" :show-icon="false" style="margin-bottom: 16px;">
-      关键词索引包含 {{ totalChunks }} 个分块的关键词-诗词映射数据，支持按关键词搜索诗词。
+      分词索引包含 {{ totalChunks }} 个分块的关键词-诗词映射数据，支持按关键词搜索诗词。
     </NAlert>
 
     <NProgress
