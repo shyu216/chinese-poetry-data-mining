@@ -60,6 +60,7 @@ def connect_db() -> sqlite3.Connection:
     if DB_PATH.exists():
         DB_PATH.unlink()
     conn = sqlite3.connect(DB_PATH)
+    # 仅用于可重复执行的离线构建，优先写入速度；若中途中断，直接重新生成产物即可。
     conn.execute('PRAGMA journal_mode = OFF')
     conn.execute('PRAGMA synchronous = OFF')
     conn.execute('PRAGMA temp_store = MEMORY')

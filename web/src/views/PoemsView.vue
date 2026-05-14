@@ -81,7 +81,7 @@ async function refreshPage() {
   )
   pagePoems.value = result.poems
   pageTotal.value = result.filteredTotal
-  searchStats.value = { queryTime: 0, source: poemSearchReady.value ? 'memory' : 'memory' }
+  searchStats.value = { queryTime: 0, source: 'memory' }
 }
 
 function goToPoemDetail(poem: PoemSummary) {
