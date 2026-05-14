@@ -13,7 +13,6 @@
     "build:with-hash": "npm run generate-hash-manifest && npm run build"
   },
   "dependencies": {
-    "onnxruntime-web": "^1.14.0",
     "@vicons/ionicons5": "^0.13.0",
     "@vueuse/core": "^14.2.1",
     "d3": "^7.9.0",
@@ -21,7 +20,9 @@
     "flatbuffers": "^25.9.23",
     "idb": "^8.0.3",
     "naive-ui": "^2.44.1",
+    "onnxruntime-web": "^1.14.0",
     "plotly.js-dist-min": "^3.4.0",
+    "sql.js": "^1.14.1",
     "vue": "^3.5.29",
     "vue-router": "^4.6.4",
     "vue-virtual-scroller": "^2.0.0-beta.8"

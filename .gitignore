@@ -12,5 +12,7 @@ results/simplified_title_author/
 results/author_clusters_test/
 
 web/public/data/
-
 log/
+results/sqlite/*.sqlite
+results/sqlite/*.db
+results/sqlite/

@@ -1,442 +1,143 @@
-<!--
-  @overview
-  file: web/src/views/AuthorsView.vue
-  category: frontend-page
-  tech: Vue 3 + TypeScript + Vue Router + Naive UI
-  summary: 作者列表页，负责展示作者统计、分页、搜索与分块加载（使用 `useAuthors`, `useAuthorSearch`, `useChunkLoader` 等 composables）。
-
-  Data pipeline:
-  - 元数据: 使用 `useAuthors().loadMetadata()` 获取 chunk 列表与总数
-  - 分块加载: 通过 `useChunkLoader` 驱动按需或并发加载作者 chunk 到内存（并可写回 IndexedDB 缓存）
-  - 搜索: 当存在查询时使用 `useAuthorSearch()`（倒排/索引）返回分页结果
-  - 展示: 使用 `useShuffle`、聚类可视化与统计卡片组合显示
-
-  Complexity & notes:
-  - 分块加载成本为 O(c * p)（c = 加载的 chunk 数, p = 每 chunk 大小）
-  - 搜索/过滤依赖索引，若落回到全表扫描会成为 O(n)
-  - UI 层渲染成本与分页/虚拟化策略直接相关
-
-  Potential issues & recommendations:
-  - 避免在单次操作中加载大量分块；使用 `useChunkLoader` 的并发限制与进度回调进行背压控制
-  - 对长列表使用虚拟化组件以减少 DOM 节点
-  - 在慢网环境下提供降级视图（只显示摘要）并在后台继续加载详细数据
--->
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { NEmpty, NSpace, NTag, NButton, NPagination, NGrid, NGridItem, NTooltip } from 'naive-ui'
 import {
-  NEmpty, NSpace, NTag,
-  NButton, NPagination, NGrid, NGridItem, NTooltip
-} from 'naive-ui'
-import {
-  TrophyOutline, PersonOutline, BookOutline,
-  MedalOutline, BarChartOutline,
-  ChevronForwardOutline, ShuffleOutline, RefreshOutline
+  TrophyOutline,
+  PersonOutline,
+  BookOutline,
+  MedalOutline,
+  BarChartOutline,
+  ChevronForwardOutline,
+  ShuffleOutline,
+  RefreshOutline
 } from '@vicons/ionicons5'
 import { useAuthors } from '@/composables/useAuthors'
-import { useChunkLoader, CHUNK_LOADER_PREFERENCE_KEYS } from '@/composables/useChunkLoader'
-import { getMetadata, getVerifiedChunkedCache } from '@/composables/useCache'
-import { AUTHORS_STORAGE } from '@/composables/useMetadataLoader'
 import { useAuthorSearch } from '@/search'
 import { useShuffle } from '@/composables/useShuffle'
 import type { AuthorStats } from '@/types/author'
 import { PageHeader } from '@/components/layout'
-import { StatsCard } from '@/components/display'
-import { ChunkLoaderStatus } from '@/components/feedback'
+import { StatsCard, RankBadge, TypeDistribution } from '@/components/display'
 import { SearchContainer } from '@/components/search'
 import { AuthorClusterViz } from '@/components/author'
 import { useAuthorClusters } from '@/composables/useAuthorClusters'
 import type { AuthorNode } from '@/types/cluster'
-import { useLoading } from '@/composables/useLoading'
-
-import { RankBadge, TypeDistribution } from '@/components/display'
 
 const router = useRouter()
-const loading = useLoading()
-const {
-  totalAuthors: totalAuthorsCount,
-  totalChunks,
-  loadMetadata,
-  loadAuthorChunk
-} = useAuthors()
-
-const { 
-  loading: clusterLoading, 
-  loadClusters, 
-  sortedClusters, 
-  authorNodes 
-} = useAuthorClusters()
-
-const chunkLoader = useChunkLoader({ preferenceKey: CHUNK_LOADER_PREFERENCE_KEYS.authors })
-
-const { search: searchAuthors, isReady: authorSearchReady } = useAuthorSearch()
-const isSearching = ref(false)
-const searchStats = ref({ queryTime: 0, source: '' })
+const { totalAuthors: totalAuthorsCount, loadMetadata, queryAuthors } = useAuthors()
+const { search: searchAuthors } = useAuthorSearch()
+const { loading: clusterLoading, loadClusters, sortedClusters, authorNodes } = useAuthorClusters()
 
 const searchQuery = ref('')
 const currentPage = ref(1)
 const pageSize = ref(20)
-const loadedAuthors = ref<AuthorStats[]>([])
+const currentAuthors = ref<AuthorStats[]>([])
+const totalResults = ref(0)
 const isInitializing = ref(true)
-const cachedChunksCount = ref(0)
+const isSearching = ref(false)
+const searchStats = ref({ queryTime: 0, source: 'memory' })
+
+const { isShuffled, shuffledItems, toggleShuffle, shuffle } = useShuffle({ items: computed(() => currentAuthors.value) })
+const isSearchMode = computed(() => searchQuery.value.trim().length > 0)
+const displayAuthors = computed(() => (isSearchMode.value ? currentAuthors.value : shuffledItems.value))
+const displayTotal = computed(() => totalResults.value)
+const totalPages = computed(() => Math.max(1, Math.ceil(displayTotal.value / pageSize.value)))
+const paginatedAuthors = computed(() => displayAuthors.value.map((author, index) => ({
+  ...author,
+  rank: (currentPage.value - 1) * pageSize.value + index + 1
+})))
 
 const dynamicStats = computed(() => {
-  const list = loadedAuthors.value
-  const total = list.length
-  const topAuthor = list[0]?.author || '-'
-  const maxPoems = list[0]?.poem_count || 0
-  const totalPoems = list.reduce((sum, a) => sum + (a.poem_count || 0), 0)
-  const average = total > 0 ? Math.round(totalPoems / total) : 0
-
+  const list = currentAuthors.value
+  const top = list[0]
+  const totalPoems = list.reduce((sum, item) => sum + item.poem_count, 0)
   return {
-    total,
-    topAuthor,
-    maxPoems,
-    totalPoems,
-    average
+    total: displayTotal.value,
+    topAuthor: top?.author || '-',
+    maxPoems: top?.poem_count || 0,
+    average: list.length > 0 ? Math.round(totalPoems / list.length) : 0
   }
 })
 
-const filteredAuthors = computed(() => {
-  if (searchQuery.value.trim() && authorSearchReady.value && isSearching.value) {
-    return []
-  }
-  if (!searchQuery.value.trim()) {
-    return loadedAuthors.value
-  }
-  const query = searchQuery.value.toLowerCase()
-  return loadedAuthors.value.filter(a =>
-    a.author.toLowerCase().includes(query)
-  )
-})
+function getTopPoemType(typeCounts: Record<string, number>) {
+  const entries = Object.entries(typeCounts).sort((a, b) => b[1] - a[1])
+  return entries[0]?.[0] || '-'
+}
 
-// 随机排序功能
-const { isShuffled, shuffledItems: shuffledFilteredAuthors, toggleShuffle, shuffle } = useShuffle({
-  items: filteredAuthors
-})
+function getTypeDistributionData(typeCounts: Record<string, number>) {
+  const total = Math.max(1, Object.values(typeCounts).reduce((sum, value) => sum + value, 0))
+  return Object.entries(typeCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([type, count]) => ({ type, count, percentage: Math.round((count / total) * 100) }))
+}
 
-const searchResults = ref<AuthorStats[]>([])
-const searchTotal = ref(0)
-
-const performSearch = async () => {
-  const query = searchQuery.value.trim()
-  if (!query || !authorSearchReady.value) {
-    searchResults.value = []
-    searchTotal.value = 0
+async function refreshPage() {
+  if (isSearchMode.value) {
+    isSearching.value = true
+    try {
+      const result = await searchAuthors(searchQuery.value.trim(), {
+        limit: pageSize.value,
+        offset: (currentPage.value - 1) * pageSize.value
+      })
+      currentAuthors.value = result.items
+      totalResults.value = result.total
+      searchStats.value = { queryTime: result.queryTime, source: result.source }
+    } finally {
+      isSearching.value = false
+    }
     return
   }
 
-  isSearching.value = true
-  try {
-    const result = await searchAuthors(query, {
-      limit: pageSize.value,
-      offset: (currentPage.value - 1) * pageSize.value
-    })
-    searchResults.value = result.items
-    searchTotal.value = result.total
-    searchStats.value = { queryTime: result.queryTime, source: result.source }
-  } finally {
-    isSearching.value = false
-  }
+  const result = await queryAuthors(undefined, currentPage.value, pageSize.value)
+  currentAuthors.value = result.authors
+  totalResults.value = result.filteredTotal
+  searchStats.value = { queryTime: 0, source: 'memory' }
 }
 
-const displayAuthors = computed(() => {
-  const query = searchQuery.value.trim()
-  if (query && authorSearchReady.value) {
-    return searchResults.value
-  }
-  return shuffledFilteredAuthors.value
-})
-
-const displayTotal = computed(() => {
-  const query = searchQuery.value.trim()
-  if (query && authorSearchReady.value) {
-    return searchTotal.value
-  }
-  return filteredAuthors.value.length
-})
-
-const totalPages = computed(() => {
-  const query = searchQuery.value.trim()
-  if (query && authorSearchReady.value) {
-    return Math.ceil(searchTotal.value / pageSize.value)
-  }
-  return Math.ceil(filteredAuthors.value.length / pageSize.value)
-})
-
-const paginatedAuthors = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return displayAuthors.value.slice(start, end).map((author, index) => ({
-    ...author,
-    rank: start + index + 1
-  }))
-})
-
-const getTopPoemType = (typeCounts: Record<string, number>) => {
-  const entries = Object.entries(typeCounts)
-  if (entries.length === 0) return '-'
-  const sorted = entries.sort((a, b) => b[1] - a[1])
-  return sorted[0]?.[0] || '-'
-}
-
-const getTypeDistributionData = (typeCounts: Record<string, number>) => {
-  const total = Object.values(typeCounts).reduce((a, b) => a + b, 0)
-  const entries = Object.entries(typeCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-
-  return entries.map(([type, count]) => ({
-    type,
-    count,
-    percentage: Math.round((count / total) * 100)
-  }))
-}
-
-const loadingHint = computed(() => {
-  const count = loadedAuthors.value.length
-  if (count === 0) return '正在连接...'
-  if (count === 1) return `已加载：${loadedAuthors.value[0]?.author}`
-  if (count === 2) return `已加载：${loadedAuthors.value[1]?.author}`
-  if (count === 3) return `已加载：${loadedAuthors.value[2]?.author}`
-  return `已加载 ${count.toLocaleString()} 位诗人`
-})
-
-const loadCachedChunks = async (quickMode = false): Promise<number[]> => {
-  console.log(`[AuthorsView] 🔄 开始加载本地缓存${quickMode ? ' (快速模式)' : ''}...`)
-  const startTime = performance.now()
-
-  const meta = await getMetadata(AUTHORS_STORAGE)
-  const loadedChunkIds = meta?.loadedChunkIds || []
-
-  console.log(`[AuthorsView] 📦 发现 ${loadedChunkIds.length} 个缓存分块`)
-
-  if (loadedChunkIds.length === 0) {
-    console.log('[AuthorsView] ⚠️ 无缓存数据，将从服务器加载')
-    return []
-  }
-
-  // 快速模式：只读取第一个分块，立即展示
-  if (quickMode) {
-    const firstChunkId = loadedChunkIds[0]!
-    console.log(`[AuthorsView] ⚡ 快速模式：优先加载分块 #${firstChunkId}`)
-
-    const chunkData = await getVerifiedChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, firstChunkId)
-
-    if (chunkData && Array.isArray(chunkData) && chunkData.length > 0) {
-      loadedAuthors.value = chunkData.sort((a, b) => b.poem_count - a.poem_count)
-      cachedChunksCount.value = 1
-      console.log(`[AuthorsView] ✅ 快速加载完成: ${chunkData.length} 位诗人 - ${Math.round(performance.now() - startTime)}ms`)
-    }
-
-    return [firstChunkId]
-  }
-
-  // 完整模式：读取所有缓存分块
-  cachedChunksCount.value = loadedChunkIds.length
-  const cachedAuthors: AuthorStats[] = []
-  console.log(`[AuthorsView] 📖 开始读取 ${loadedChunkIds.length} 个缓存分块...`)
-  for (const chunkId of loadedChunkIds) {
-    const chunkStartTime = performance.now()
-    const chunkData = await getVerifiedChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
-    const chunkDuration = Math.round(performance.now() - chunkStartTime)
-
-    if (chunkData && Array.isArray(chunkData)) {
-      cachedAuthors.push(...chunkData)
-      console.log(`[AuthorsView]   ├─ 分块 #${chunkId}: ${chunkData.length} 位诗人 (${chunkDuration}ms)`)
-    } else if (chunkData) {
-      console.warn(`[AuthorsView]   ├─ 分块 #${chunkId}: 数据格式异常，已跳过`)
-    }
-  }
-
-  if (cachedAuthors.length > 0) {
-    loadedAuthors.value = cachedAuthors.sort((a, b) => b.poem_count - a.poem_count)
-  }
-
-  const totalDuration = Math.round(performance.now() - startTime)
-  console.log(`[AuthorsView] ✅ 缓存加载完成: ${cachedAuthors.length} 位诗人 - ${totalDuration}ms`)
-
-  return loadedChunkIds
-}
-
-const loadData = async () => {
-  console.log('[AuthorsView] 🚀 开始加载数据...')
-  const totalStartTime = performance.now()
-
-  loading.startBlocking('诗人名录', '正在加载诗人数据...')
-  isInitializing.value = true
-
-  try {
-    loading.updatePhase('metadata', '正在加载元数据...')
-    loading.updateProgress(0, 3)
-    console.log('[AuthorsView] 📋 阶段1: 加载元数据...')
-    const metaStartTime = performance.now()
-    await loadMetadata()
-    const totalChunksCount = totalChunks.value || 0
-    console.log(`[AuthorsView] ✅ 元数据加载完成: ${totalAuthorsCount.value} 位诗人, ${totalChunksCount} 个分块 - ${Math.round(performance.now() - metaStartTime)}ms`)
-
-    loading.updateProgress(1, 3, '正在加载首批数据...')
-    console.log('[AuthorsView] ⚡ 阶段2: 快速加载首批数据...')
-    const quickStartTime = performance.now()
-    const firstChunkIds = await loadCachedChunks(true) // true = 快速模式
-    console.log(`[AuthorsView] ✅ 首批数据加载完成 - ${Math.round(performance.now() - quickStartTime)}ms`)
-
-    loading.updateProgress(2, 3, '准备就绪...')
-    loading.updatePhase('complete', '数据加载完成')
-    loading.updateProgress(3, 3)
-    setTimeout(() => loading.finish(), 200)
-    isInitializing.value = false
-
-    console.log('[AuthorsView] 🎨 界面已可交互，开始后台加载剩余数据...')
-
-    const remainingStartTime = performance.now()
-    if (chunkLoader.autoLoadEnabled.value) {
-      loading.startNonBlocking('补充诗人数据', '正在加载剩余数据...')
-    } else {
-      console.log('[AuthorsView] autoLoadOnEnter=false — skip unified non-blocking toast until user resumes chunk load')
-    }
-
-    // 先加载剩余缓存分块
-    const meta = await getMetadata(AUTHORS_STORAGE)
-    const allCachedChunkIds = meta?.loadedChunkIds || []
-    const remainingCachedIds = allCachedChunkIds.filter(id => !firstChunkIds.includes(id))
-
-    if (remainingCachedIds.length > 0) {
-      console.log(`[AuthorsView] � 后台加载剩余 ${remainingCachedIds.length} 个缓存分块...`)
-      for (const chunkId of remainingCachedIds) {
-        const chunkData = await getVerifiedChunkedCache<AuthorStats[]>(AUTHORS_STORAGE, chunkId)
-        if (chunkData && Array.isArray(chunkData)) {
-          loadedAuthors.value.push(...chunkData)
-          cachedChunksCount.value++
-        }
-      }
-      // 重新排序
-      loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
-      console.log(`[AuthorsView] ✅ 剩余缓存加载完成，当前共 ${loadedAuthors.value.length} 位诗人`)
-    }
-
-    // 加载网络分块
-    const allChunkIds = Array.from({ length: totalChunksCount }, (_, i) => i)
-    const unloadedChunkIds = allChunkIds.filter(id => !allCachedChunkIds.includes(id))
-
-    if (unloadedChunkIds.length === 0) {
-      console.log('[AuthorsView] ✨ 所有数据已加载完成')
-      loading.finish()
-    } else {
-      console.log(`[AuthorsView] 🌐 开始加载 ${unloadedChunkIds.length} 个网络分块...`)
-      let loadedCount = allCachedChunkIds.length
-      let networkDataCount = 0
-
-      const runNetworkChunkLoad = () =>
-        chunkLoader.loadChunks<AuthorStats[]>(unloadedChunkIds, loadAuthorChunk, {
-          concurrency: 5,
-          chunkDelay: 0,
-          onChunkLoaded: (chunkId, authors) => {
-            const authorsArray = authors as AuthorStats[]
-            loadedAuthors.value.push(...authorsArray)
-            loadedAuthors.value.sort((a, b) => b.poem_count - a.poem_count)
-            networkDataCount += authorsArray.length
-
-            loadedCount++
-            const progress = Math.round((loadedCount / totalChunksCount) * 100)
-
-            if (loadedCount % Math.max(1, Math.floor(totalChunksCount / 10)) === 0) {
-              const phases = ['正在读取诗人数据...', '正在整理诗作数据...', '正在加载诗人信息...', '正在构建诗人列表...']
-              const phase = phases[Math.floor((loadedCount / totalChunksCount) * phases.length)] || phases[0]
-              loading.updateProgress(loadedCount, totalChunksCount, `${phase} (${loadedCount}/${totalChunksCount})`)
-              console.log(`[AuthorsView] 📥 后台加载进度: ${progress}% (${loadedCount}/${totalChunksCount} 分块, +${networkDataCount} 位诗人)`)
-            }
-          },
-          onComplete: () => {
-            const bgDuration = Math.round(performance.now() - remainingStartTime)
-            console.log(`[AuthorsView] ✅ 后台加载完成: 共 ${loadedAuthors.value.length} 位诗人 - ${bgDuration}ms`)
-            loading.finish()
-          }
-        })
-
-      if (chunkLoader.autoLoadEnabled.value) {
-        await runNetworkChunkLoad()
-      } else {
-        console.log(
-          '[AuthorsView] autoLoadOnEnter=false (localStorage) — network chunk load started paused; not awaiting loadData'
-        )
-        void runNetworkChunkLoad()
-      }
-    }
-  } catch (error) {
-    loading.error('加载失败，请刷新重试')
-    console.error('[AuthorsView] ❌ 诗人数据加载失败:', error)
-    isInitializing.value = false
-  } finally {
-    const totalDuration = Math.round(performance.now() - totalStartTime)
-    console.log(`[AuthorsView] 🏁 总加载时间: ${totalDuration}ms`)
-  }
-}
-
-const goToAuthorDetail = (author: AuthorStats) => {
+function goToAuthorDetail(author: AuthorStats) {
   router.push(`/authors/${encodeURIComponent(author.author)}`)
 }
 
-const onSelectClusterAuthor = (author: AuthorNode) => {
+function onSelectClusterAuthor(author: AuthorNode) {
   router.push(`/authors/${encodeURIComponent(author.name)}`)
 }
 
-const onSelectCluster = (clusterId: number) => {
+function onSelectCluster(clusterId: number) {
   console.log('Selected cluster:', clusterId)
 }
 
-onMounted(() => {
-  loadData()
-  loadClusters() // 加载诗人流派数据
+onMounted(async () => {
+  try {
+    await loadMetadata()
+    await Promise.all([refreshPage(), loadClusters()])
+  } finally {
+    isInitializing.value = false
+  }
 })
 
-watch(searchQuery, () => {
+watch(searchQuery, async () => {
   currentPage.value = 1
-  performSearch()
+  await refreshPage()
+})
+
+watch([currentPage, pageSize], async () => {
+  if (isInitializing.value) return
+  await refreshPage()
 })
 </script>
 
 <template>
   <div class="authors-view">
-    <PageHeader
-      title="诗人列表"
-      :subtitle="`共 ${dynamicStats.total} 位诗人`"
-      :icon="TrophyOutline"
-    />
+    <PageHeader title="诗人列表" :subtitle="`共 ${totalAuthorsCount.toLocaleString()} 位诗人，当前结果 ${displayTotal.toLocaleString()} 位`" :icon="TrophyOutline" />
 
     <NGrid :cols="4" :x-gap="16" :y-gap="16" class="stats-grid">
-        <NGridItem>
-          <StatsCard
-            label="诗人数量"
-            :value="dynamicStats.total"
-            :prefix-icon="PersonOutline"
-          />
-        </NGridItem>
-        <NGridItem>
-          <StatsCard
-            label="作品最多"
-            :value="dynamicStats.topAuthor"
-            :prefix-icon="MedalOutline"
-          />
-        </NGridItem>
-        <NGridItem>
-          <StatsCard
-            label="最多作品"
-            :value="dynamicStats.maxPoems"
-            suffix="首"
-            :prefix-icon="BookOutline"
-          />
-        </NGridItem>
-        <NGridItem>
-          <StatsCard
-            label="平均作品"
-            :value="dynamicStats.average"
-            suffix="首"
-            :prefix-icon="BarChartOutline"
-          />
-        </NGridItem>
-      </NGrid>
-    
+      <NGridItem><StatsCard label="诗人数量" :value="displayTotal.toLocaleString()" :prefix-icon="PersonOutline" /></NGridItem>
+      <NGridItem><StatsCard label="作品最多" :value="dynamicStats.topAuthor" :prefix-icon="MedalOutline" /></NGridItem>
+      <NGridItem><StatsCard label="最多作品" :value="dynamicStats.maxPoems" suffix="首" :prefix-icon="BookOutline" /></NGridItem>
+      <NGridItem><StatsCard label="当前页平均" :value="dynamicStats.average" suffix="首" :prefix-icon="BarChartOutline" /></NGridItem>
+    </NGrid>
+
     <AuthorClusterViz
       :clusters="sortedClusters"
       :authors="authorNodes"
@@ -445,28 +146,9 @@ watch(searchQuery, () => {
       @select-cluster="onSelectCluster"
     />
 
-    <ChunkLoaderStatus
-      v-if="chunkLoader.isLoading.value || cachedChunksCount > 0"
-      :is-loading="chunkLoader.isLoading.value"
-      :is-paused="chunkLoader.isPaused.value"
-      :progress="Math.round(((cachedChunksCount + chunkLoader.loadedCount.value) / (totalChunks || 1)) * 100)"
-      :loaded-count="cachedChunksCount + chunkLoader.loadedCount.value"
-      :total-count="totalChunks || 0"
-      title="加载中"
-      :hint="loadingHint"
-      :stats="[
-        { label: '诗词总数', value: dynamicStats.totalPoems.toLocaleString() + ' 首' },
-        { label: '平均作品', value: dynamicStats.average + ' 首/人' }
-      ]"
-      @pause="chunkLoader.pause"
-      @resume="chunkLoader.resume"
-    />
-
     <SearchContainer
       v-model="searchQuery"
-      placeholder="搜索"
-      size="large"
-      :width="300"
+      placeholder="搜索诗人..."
       :total="displayTotal"
       :query-time="searchStats.queryTime"
       :source="searchStats.source as any"
@@ -476,30 +158,17 @@ watch(searchQuery, () => {
         <NSpace>
           <NTooltip trigger="hover">
             <template #trigger>
-              <NButton
-                :type="isShuffled ? 'primary' : 'default'"
-                :ghost="!isShuffled"
-                size="medium"
-                @click="toggleShuffle"
-                :disabled="searchQuery.trim().length > 0"
-              >
-                <template #icon>
-                  <ShuffleOutline />
-                </template>
-                {{ isShuffled ? '随机' : '随机' }}
+              <NButton :type="isShuffled ? 'primary' : 'default'" :ghost="!isShuffled" :disabled="isSearchMode" @click="toggleShuffle">
+                <template #icon><ShuffleOutline /></template>
+                随机
               </NButton>
             </template>
-            切换排序方式
+            仅对当前页结果随机排序
           </NTooltip>
-          <NTooltip v-if="isShuffled" trigger="hover">
+          <NTooltip v-if="isShuffled && !isSearchMode" trigger="hover">
             <template #trigger>
-              <NButton
-                size="medium"
-                @click="shuffle"
-              >
-                <template #icon>
-                  <RefreshOutline />
-                </template>
+              <NButton @click="shuffle">
+                <template #icon><RefreshOutline /></template>
                 刷新
               </NButton>
             </template>
@@ -509,7 +178,8 @@ watch(searchQuery, () => {
       </template>
     </SearchContainer>
 
-    <NEmpty v-if="!isInitializing && loadedAuthors.length === 0" description="没有数据" />
+    <NEmpty v-if="isInitializing" description="正在加载诗人数据..." />
+    <NEmpty v-else-if="paginatedAuthors.length === 0" description="没有匹配结果" />
 
     <div v-else class="authors-list">
       <TransitionGroup name="author-item">
@@ -521,27 +191,16 @@ watch(searchQuery, () => {
           @click="goToAuthorDetail(author)"
         >
           <RankBadge :rank="author.rank" size="large" />
-
           <div class="author-info">
             <h3 class="author-name">{{ author.author }}</h3>
             <div class="author-stats">
-              <NTag type="primary" size="small">
-                {{ author.poem_count }} 首
-              </NTag>
-              <span class="top-type">
-                {{ getTopPoemType(author.poem_type_counts) }}
-              </span>
+              <NTag type="primary" size="small">{{ author.poem_count }} 首</NTag>
+              <span class="top-type">{{ getTopPoemType(author.poem_type_counts) }}</span>
             </div>
           </div>
-
           <div class="type-distribution-wrapper">
-            <TypeDistribution
-              :data="getTypeDistributionData(author.poem_type_counts)"
-              :show-percentage="false"
-              size="small"
-            />
+            <TypeDistribution :data="getTypeDistributionData(author.poem_type_counts)" :show-percentage="false" size="small" />
           </div>
-
           <ChevronForwardOutline class="arrow-icon" />
         </div>
       </TransitionGroup>
@@ -568,10 +227,6 @@ watch(searchQuery, () => {
 }
 
 .stats-grid {
-  margin-bottom: 24px;
-}
-
-.search-section {
   margin-bottom: 24px;
 }
 
@@ -618,74 +273,32 @@ watch(searchQuery, () => {
 .author-name {
   font-size: 20px;
   font-weight: 600;
-  color: var(--color-ink, #2c3e50);
-  margin: 0 0 8px 0;
+  margin: 0 0 8px;
 }
 
 .author-stats {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .top-type {
+  color: #666;
   font-size: 14px;
-  color: var(--color-ink-light, #666);
 }
 
 .type-distribution-wrapper {
   width: 200px;
-  flex-shrink: 0;
 }
 
 .arrow-icon {
-  width: 20px;
-  height: 20px;
-  opacity: 0.3;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
+  opacity: 0.45;
+  transition: all 0.2s ease;
 }
 
 .pagination-wrapper {
   margin-top: 24px;
   display: flex;
   justify-content: center;
-}
-
-.author-item-move,
-.author-item-enter-active,
-.author-item-leave-active {
-  transition: all 0.3s ease;
-}
-
-.author-item-enter-from,
-.author-item-leave-to {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.author-item-leave-active {
-  position: absolute;
-}
-
-@media (max-width: 768px) {
-  .authors-view {
-    padding: 16px;
-  }
-
-  .author-card {
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 16px;
-  }
-
-  .type-distribution-wrapper {
-    width: 100%;
-    order: 3;
-  }
-
-  .arrow-icon {
-    order: 4;
-  }
 }
 </style>
