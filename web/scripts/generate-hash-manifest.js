@@ -17,7 +17,7 @@ const DATA_DIR = path.resolve(__dirname, '../public/data')
 const MANIFEST_PATH = path.resolve(DATA_DIR, 'hash-manifest.json')
 
 // 需要计算 hash 的文件扩展名
-const INCLUDE_EXTENSIONS = ['.json', '.csv', '.txt', '.bin']
+const INCLUDE_EXTENSIONS = ['.json', '.csv', '.txt', '.bin', '.db', '.sqlite', '.sqlite3']
 // 排除的文件
 const EXCLUDE_FILES = ['hash-manifest.json', 'manifest.json']
 // 大文件阈值 (10MB)，使用流式读取

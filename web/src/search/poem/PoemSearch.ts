@@ -1,26 +1,6 @@
-/**
- * @overview
- * file: web/src/search/poem/PoemSearch.ts
- * category: search / algorithm
- * tech: TypeScript
- * summary: 诗词搜索模块，基于倒排关键词索引与若干辅助索引（作者/朝代/体裁）实现高效检索。
- *
- * Data pipeline:
- *  - 索引加载: 并行加载 `keyword_index` 分片与 poem manifest，并合并到内存的倒排索引
- *  - 辅助索引: 构建 author/dynasty/genre 索引以优化过滤查询
- *  - 查询: 优先使用倒排索引（O(1)）或最小辅助索引集合做交集操作，最后按需加载诗词摘要返回结果
- *
- * Complexity & cost:
- *  - 倒排索引查找为 O(1)；交集/过滤依赖于候选集大小，最坏为 O(n)
- *  - 加载所有索引分片和构建内存结构为 O(total_index_size)
- *
- * Potential issues & recommendations:
- *  - 合并大量 index 分片会占用内存并可能阻塞主线程，建议使用 Worker 或逐步加载并保持可序列化的持久化缓存
- *  - 为长列表结果使用分页/流式返回，避免一次性将过多详细记录加载到内存
- */
-
 import { LRUCache } from '../LRUCache'
-import type { PoemSummary, PoemFilter } from '@/composables/types'
+import type { PoemSummary } from '@/composables/types'
+import { escapeLike, queryRows, queryScalar } from '@/composables/useSQLiteDatabase'
 
 export interface PoemSearchResult {
   items: PoemSummary[]
@@ -39,36 +19,27 @@ export interface PoemSearchOptions {
   }
 }
 
+interface PoemRow {
+  id: string
+  title: string
+  author: string
+  dynasty: string
+  genre: string
+  chunk_id: number
+}
+
 class PoemSearch {
   private static instance: PoemSearch
-
-  // 倒排索引: 关键词 -> 诗词ID列表
-  private keywordIndex = new Map<string, string[]>()
-  
-  // 辅助索引
-  private authorIndex = new Map<string, string[]>()   // 作者 -> 诗词ID
-  private dynastyIndex = new Map<string, string[]>()  // 朝代 -> 诗词ID
-  private genreIndex = new Map<string, string[]>()    // 体裁 -> 诗词ID
-  
-  // 诗词数据缓存
-  private poems = new Map<string, PoemSummary>()
-  
-  // LRU 缓存
-  private searchCache = new LRUCache<PoemSearchResult>(500, 5 * 60 * 1000) // 5分钟TTL
-  
-  // 状态
+  private searchCache = new LRUCache<PoemSearchResult>(500, 5 * 60 * 1000)
   private isInitialized = false
   private isLoading = false
   private initPromise: Promise<void> | null = null
-  
-  // 统计
   private stats = {
+    totalPoems: 0,
     totalKeywords: 0,
-    loadedChunks: 0,
-    totalChunks: 13
+    loadedChunks: 1,
+    totalChunks: 1
   }
-
-  private constructor() {}
 
   static getInstance(): PoemSearch {
     if (!PoemSearch.instance) {
@@ -77,267 +48,99 @@ class PoemSearch {
     return PoemSearch.instance
   }
 
-  // ============ 初始化 ============
-
   async initialize(): Promise<void> {
     if (this.isInitialized) return
     if (this.isLoading && this.initPromise) return this.initPromise
-    
+
     this.isLoading = true
-    this.initPromise = this.doInitialize()
+    this.initPromise = (async () => {
+      this.stats.totalPoems = Number((await queryScalar<number>('SELECT COUNT(*) AS total FROM poems')) ?? 0)
+      this.isInitialized = true
+      this.isLoading = false
+    })()
+
     return this.initPromise
   }
 
-  private async doInitialize(): Promise<void> {
-    try {
-      console.log('[PoemSearch] 开始初始化...')
-      const startTime = performance.now()
-      
-      // 并行加载索引
-      await Promise.all([
-        this.loadKeywordIndex(),
-        this.loadPoemManifest()
-      ])
-      
-      this.isInitialized = true
-      const duration = Math.round(performance.now() - startTime)
-      console.log(`[PoemSearch] 初始化完成，耗时 ${duration}ms`)
-      console.log(`[PoemSearch] 索引统计: ${this.stats.totalKeywords} 关键词, ${this.poems.size} 诗词缓存`)
-    } catch (error) {
-      console.error('[PoemSearch] 初始化失败:', error)
-      throw error
-    } finally {
-      this.isLoading = false
+  private buildWhere(query: string, filters?: PoemSearchOptions['filters']) {
+    const clauses: string[] = []
+    const params: Array<string | number> = []
+
+    if (query.trim()) {
+      const likeQuery = `%${escapeLike(query.trim())}%`
+      clauses.push("(title LIKE ? ESCAPE '\\\\' OR author LIKE ? ESCAPE '\\\\' OR id LIKE ? ESCAPE '\\\\' OR sentences_text LIKE ? ESCAPE '\\\\')")
+      params.push(likeQuery, likeQuery, likeQuery, likeQuery)
+    }
+    if (filters?.dynasty) {
+      clauses.push('dynasty = ?')
+      params.push(filters.dynasty)
+    }
+    if (filters?.genre) {
+      clauses.push('genre = ?')
+      params.push(filters.genre)
+    }
+    if (filters?.author) {
+      clauses.push('author = ?')
+      params.push(filters.author)
+    }
+
+    return {
+      whereSql: clauses.length ? `WHERE ${clauses.join(' AND ')}` : '',
+      params
     }
   }
 
-  // ============ 索引加载 ============
-
-  private async loadKeywordIndex(): Promise<void> {
-    const loadPromises = []
-    for (let i = 0; i < this.stats.totalChunks; i++) {
-      loadPromises.push(this.loadKeywordChunk(i))
-    }
-    await Promise.all(loadPromises)
-  }
-
-  private async loadKeywordChunk(chunkIndex: number): Promise<void> {
-    try {
-      const chunkId = chunkIndex.toString().padStart(4, '0')
-      const response = await fetch(`${import.meta.env.BASE_URL}data/keyword_index/keyword_${chunkId}.json`)
-      
-      if (!response.ok) {
-        console.warn(`[PoemSearch] 无法加载 keyword chunk ${chunkIndex}`)
-        return
-      }
-      
-      const data: Record<string, string[]> = await response.json()
-      
-      for (const [keyword, poemIds] of Object.entries(data)) {
-        // 合并相同关键词的诗词ID
-        const existing = this.keywordIndex.get(keyword) || []
-        this.keywordIndex.set(keyword, [...new Set([...existing, ...poemIds])])
-        this.stats.totalKeywords++
-      }
-      
-      this.stats.loadedChunks++
-    } catch (error) {
-      console.warn(`[PoemSearch] 加载 keyword chunk ${chunkIndex} 失败:`, error)
+  private mapPoem(row: PoemRow): PoemSummary {
+    return {
+      id: row.id,
+      title: row.title,
+      author: row.author,
+      dynasty: row.dynasty,
+      genre: row.genre,
+      chunk_id: row.chunk_id
     }
   }
-
-  private async loadPoemManifest(): Promise<void> {
-    // 加载诗词清单的前几个 chunk 作为热数据
-    try {
-      const response = await fetch(`${import.meta.env.BASE_URL}data/poem_index/poem_index_manifest.json`)
-      if (!response.ok) return
-      
-      const manifest = await response.json()
-      const prefixes = Object.keys(manifest.prefixMap).slice(0, 20) // 只加载前20个
-      
-      await Promise.all(
-        prefixes.map(prefix => this.loadPoemChunk(manifest.prefixMap[prefix]))
-      )
-    } catch (error) {
-      console.warn('[PoemSearch] 加载 poem manifest 失败:', error)
-    }
-  }
-
-  private async loadPoemChunk(filename: string): Promise<void> {
-    try {
-      const response = await fetch(`${import.meta.env.BASE_URL}data/poem_index/${filename}`)
-      if (!response.ok) return
-      
-      const data: Record<string, PoemSummary> = await response.json()
-      
-      for (const [id, poem] of Object.entries(data)) {
-        this.poems.set(id, poem)
-        
-        // 构建辅助索引
-        this.addToIndex(this.authorIndex, poem.author, id)
-        this.addToIndex(this.dynastyIndex, poem.dynasty, id)
-        this.addToIndex(this.genreIndex, poem.genre, id)
-      }
-    } catch (error) {
-      console.warn(`[PoemSearch] 加载 poem chunk 失败:`, error)
-    }
-  }
-
-  private addToIndex(index: Map<string, string[]>, key: string, id: string): void {
-    const existing = index.get(key) || []
-    if (!existing.includes(id)) {
-      index.set(key, [...existing, id])
-    }
-  }
-
-  // ============ 搜索 API ============
 
   async search(query: string, options: PoemSearchOptions = {}): Promise<PoemSearchResult> {
     const startTime = performance.now()
     const { limit = 20, offset = 0, filters } = options
-    
-    // 1. 检查缓存
-    const cacheKey = this.buildCacheKey(query, options)
+    const cacheKey = JSON.stringify({ query, limit, offset, filters })
     const cached = this.searchCache.get(cacheKey)
     if (cached) {
-      return { ...cached, queryTime: Math.round(performance.now() - startTime) }
+      return { ...cached, queryTime: Math.round(performance.now() - startTime), source: 'cache' }
     }
-    
-    // 2. 确保初始化
+
     await this.initialize()
-    
-    // 3. 执行搜索
-    let poemIds: string[] = []
-    const hasQuery = query.trim().length > 0
-    const hasFilters = filters?.dynasty || filters?.genre || filters?.author
-    
-    if (hasQuery) {
-      // 3.1 关键词精确匹配 (O(1))
-      if (this.keywordIndex.has(query)) {
-        poemIds = this.keywordIndex.get(query)!
-      }
-      
-      // 3.2 如果没有关键词匹配，搜索标题和作者
-      if (poemIds.length === 0) {
-        poemIds = this.fuzzySearch(query)
-      }
-    } else if (hasFilters) {
-      // 3.3 无关键词但有过滤器时，从过滤器对应的索引开始
-      // 优先使用范围最小的索引作为基础集合
-      const indexSizes: Array<{ type: string; ids: string[]; size: number }> = []
-      
-      if (filters?.author) {
-        const ids = this.authorIndex.get(filters.author) || []
-        indexSizes.push({ type: 'author', ids, size: ids.length })
-      }
-      if (filters?.dynasty) {
-        const ids = this.dynastyIndex.get(filters.dynasty) || []
-        indexSizes.push({ type: 'dynasty', ids, size: ids.length })
-      }
-      if (filters?.genre) {
-        const ids = this.genreIndex.get(filters.genre) || []
-        indexSizes.push({ type: 'genre', ids, size: ids.length })
-      }
-      
-      // 使用最小的索引作为基础，减少后续交集运算量
-      indexSizes.sort((a, b) => a.size - b.size)
-      if (indexSizes.length > 0) {
-        poemIds = indexSizes[0]!.ids
-      }
-    } else {
-      // 3.4 既无关键词也无过滤器，返回所有诗词
-      poemIds = Array.from(this.poems.keys())
-    }
-    
-    // 3.5 应用过滤器（当有过滤器时，与查询结果取交集）
-    let filteredIds = poemIds
-    if (filters?.dynasty) {
-      filteredIds = this.intersect(filteredIds, this.dynastyIndex.get(filters.dynasty) || [])
-    }
-    if (filters?.genre) {
-      filteredIds = this.intersect(filteredIds, this.genreIndex.get(filters.genre) || [])
-    }
-    if (filters?.author) {
-      filteredIds = this.intersect(filteredIds, this.authorIndex.get(filters.author) || [])
-    }
-    
-    // 4. 获取诗词详情
-    const items: PoemSummary[] = []
-    for (let i = offset; i < Math.min(offset + limit, filteredIds.length); i++) {
-      const id = filteredIds[i]
-      if (!id) continue
-      
-      // 先从内存缓存获取
-      let poem = this.poems.get(id)
-      
-      // 如果没有，尝试从 usePoems 加载（这里简化处理）
-      if (!poem) {
-        poem = await this.loadPoemById(id)
-      }
-      
-      if (poem) items.push(poem)
-    }
-    
-    // 5. 构建结果
+    const { whereSql, params } = this.buildWhere(query, filters)
+    const total = Number((await queryScalar<number>(`SELECT COUNT(*) AS total FROM poems ${whereSql}`, params)) ?? 0)
+    const rows = await queryRows<PoemRow>(
+      `SELECT id, title, author, dynasty, genre, chunk_id
+       FROM poems
+       ${whereSql}
+       ORDER BY chunk_id, id
+       LIMIT ? OFFSET ?`,
+      [...params, limit, offset]
+    )
+
     const result: PoemSearchResult = {
-      items,
-      total: filteredIds.length,
+      items: rows.map(row => this.mapPoem(row)),
+      total,
       queryTime: Math.round(performance.now() - startTime),
       source: 'memory'
     }
-    
-    // 6. 缓存结果
+
     this.searchCache.set(cacheKey, result)
-    
     return result
   }
 
-  private fuzzySearch(query: string): string[] {
-    const results: string[] = []
-    const lowerQuery = query.toLowerCase()
-    
-    for (const [id, poem] of this.poems) {
-      if (poem.title.includes(query) || 
-          poem.author.includes(query) ||
-          poem.title.toLowerCase().includes(lowerQuery) ||
-          poem.author.toLowerCase().includes(lowerQuery)) {
-        results.push(id)
-      }
-    }
-    
-    return results
-  }
-
-  private intersect(a: string[], b: string[]): string[] {
-    const setB = new Set(b)
-    return a.filter(id => setB.has(id))
-  }
-
-  private async loadPoemById(id: string): Promise<PoemSummary | undefined> {
-    // 简化实现：从 poem_index 加载
-    // 实际应该调用 usePoems 的方法
-    return undefined
-  }
-
-  // ============ 辅助方法 ============
-
-  private buildCacheKey(query: string, options: PoemSearchOptions): string {
-    return `poem:${query}:${JSON.stringify(options)}`
-  }
-
   getStats() {
-    return {
-      ...this.stats,
-      poemsCached: this.poems.size,
-      cacheSize: this.searchCache.size(),
-      isInitialized: this.isInitialized
-    }
+    return { ...this.stats }
   }
 
-  clearCache(): void {
+  clearCache() {
     this.searchCache.clear()
   }
 }
 
 export const poemSearch = PoemSearch.getInstance()
-export type { PoemSearch }
+export { PoemSearch }

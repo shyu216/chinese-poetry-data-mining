@@ -67,3 +67,10 @@
 - `99_find_largest_files.py`
 - `99_ngram_frequency.py`
 - `99_wordfreq_distribution.py`
+
+
+## 7. results/sqlite
+
+目标：聚合前端所需主数据，生成浏览器可直接读取的 SQLite 数据库。
+
+- `07_build_sqlite.py`

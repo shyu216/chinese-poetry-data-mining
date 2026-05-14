@@ -28,6 +28,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: pip install flatbuffers
+
+      - name: Build SQLite artifact
+        run: python scripts/07_build_sqlite.py
+
       - name: Setup data directory (cross-platform symlink workaround)
         run: |
           # Create data directory in web/public
