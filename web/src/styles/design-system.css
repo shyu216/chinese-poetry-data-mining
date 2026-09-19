@@ -47,6 +47,30 @@
   --bg-secondary: var(--paper-cream);
   --bg-card: #FFFFFF;
   --bg-overlay: rgba(13, 13, 13, 0.6);
+
+  /* 边框色（独立色值，供组件/卡片描边使用，深浅色自动适配） */
+  --border-color: var(--ink-fog);
+  --border-color-strong: var(--ink-mist);
+  --border-color-subtle: rgba(13, 13, 13, 0.06);
+
+  /* 玻璃拟态表面（导航栏/弹层），深浅色自动适配 */
+  --glass-bg: rgba(250, 250, 248, 0.82);
+  --glass-border: rgba(13, 13, 13, 0.06);
+  --glass-blur: 12px;
+
+  /* 全屏遮罩背景 */
+  --overlay-bg: rgba(13, 13, 13, 0.45);
+
+  /* 强调色变体（背景淡色/描边，自动适配深浅色） */
+  --color-accent-soft: rgba(45, 106, 106, 0.12);
+  --color-accent-contrast: #FFFFFF;
+
+  /* 印泥红：仅作点缀语义色，非主强调（保持水墨诗韵） */
+  --color-seal: #8B2635;
+  --color-seal-soft: rgba(139, 38, 53, 0.08);
+
+  /* 进度环轨道色 */
+  --ring-track: var(--ink-fog);
   
   /* 边框 */
   --border-light: 1px solid var(--ink-fog);
@@ -149,10 +173,50 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   暗色模式 (可选)
+   暗色模式
+   · 显式选择： <html data-theme="dark">
+   · 系统跟随： 未显式设置时跟随 prefers-color-scheme
+   · 强制浅色： <html data-theme="light">
 ══════════════════════════════════════════════════════════════ */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ink-black: #F5F5F0;
+  --ink-dark: #E8E8E8;
+  --ink-medium: #A3A3A3;
+  --ink-gray: #6B6B6B;
+  --ink-light: #3D3D3D;
+  --ink-mist: #2D2D2D;
+  --ink-fog: #1A1A1A;
+  --paper-white: #0D0D0D;
+  --paper-cream: #141414;
+  --paper-xuan: #1A1A1A;
+
+  --bg-primary: #0D0D0D;
+  --bg-secondary: #141414;
+  --bg-card: #1A1A1A;
+
+  --border-color: #2D2D2D;
+  --border-color-strong: #3D3D3D;
+  --border-color-subtle: rgba(255, 255, 255, 0.08);
+
+  --glass-bg: rgba(18, 18, 18, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+
+  --color-accent-soft: rgba(61, 139, 122, 0.18);
+  --color-accent-contrast: #F5F5F0;
+  --color-seal-soft: rgba(139, 38, 53, 0.18);
+  --ring-track: #2D2D2D;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --ink-black: #F5F5F0;
     --ink-dark: #E8E8E8;
     --ink-medium: #A3A3A3;
@@ -163,11 +227,24 @@
     --paper-white: #0D0D0D;
     --paper-cream: #141414;
     --paper-xuan: #1A1A1A;
-    
+
     --bg-primary: #0D0D0D;
     --bg-secondary: #141414;
     --bg-card: #1A1A1A;
-    
+
+    --border-color: #2D2D2D;
+    --border-color-strong: #3D3D3D;
+    --border-color-subtle: rgba(255, 255, 255, 0.08);
+
+    --glass-bg: rgba(18, 18, 18, 0.78);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --overlay-bg: rgba(0, 0, 0, 0.6);
+
+    --color-accent-soft: rgba(61, 139, 122, 0.18);
+    --color-accent-contrast: #F5F5F0;
+    --color-seal-soft: rgba(139, 38, 53, 0.18);
+    --ring-track: #2D2D2D;
+
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
@@ -198,6 +275,8 @@ body {
   color: var(--ink-dark);
   background-color: var(--bg-primary);
   min-height: 100vh;
+  transition: background-color var(--duration-normal) var(--ease-out-quart),
+    color var(--duration-normal) var(--ease-out-quart);
 }
 
 /* 字体平滑过渡 */
@@ -643,6 +722,24 @@ a:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   统一组件工具类（设计语言规范化）
+══════════════════════════════════════════════════════════════ */
+/* 玻璃拟态表面（导航栏 / 弹层 / 浮动卡片），深浅色自动适配 */
+.surface-glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+/* 统一卡片网格：响应式列宽 + 与设计 token 对齐的间距，避免各页网格风格不一 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
 }
 
 /* ═══════════════════════════════════════════════════════════════

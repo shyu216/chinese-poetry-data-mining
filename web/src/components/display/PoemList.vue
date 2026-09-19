@@ -98,7 +98,7 @@ const getDynastyColor = (dynasty: string): string => {
 <template>
   <div class="poem-list">
     <!-- 网格视图 -->
-    <div v-if="gridView && poems.length > 0" class="poems-grid">
+    <div v-if="gridView && poems.length > 0" class="poems-grid card-grid">
       <article
         v-for="poem in paginatedPoems"
         :key="poem.id"
@@ -176,31 +176,31 @@ const getDynastyColor = (dynasty: string): string => {
   width: 100%;
 }
 
-/* 网格视图样式 */
+/* 网格视图样式（列宽与间距由 .card-grid 统一工具类提供，与设计 token 对齐） */
 .poems-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-4);
 }
 
 .poem-card {
-  background: var(--color-bg-paper, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   padding: 12px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .poem-card:hover {
-  border-color: var(--color-seal, #8b2635);
-  background: rgba(139, 38, 53, 0.02);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  box-shadow: var(--shadow-md);
 }
 
 .poem-card:hover .arrow-icon {
   opacity: 1;
-  color: var(--color-seal, #8b2635);
+  color: var(--color-accent);
   transform: translateX(2px);
 }
 
@@ -212,9 +212,9 @@ const getDynastyColor = (dynasty: string): string => {
 
 /* 列表视图样式 */
 .poems-list {
-  background: var(--color-bg-paper, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
 }
 
 .poem-info {
@@ -229,7 +229,7 @@ const getDynastyColor = (dynasty: string): string => {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-ink, #2c3e50);
+  color: var(--color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -240,7 +240,7 @@ const getDynastyColor = (dynasty: string): string => {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--color-ink-light, #666);
+  color: var(--color-secondary);
 }
 
 .poem-meta {
@@ -252,25 +252,25 @@ const getDynastyColor = (dynasty: string): string => {
 
 .author {
   font-size: 13px;
-  color: var(--color-ink-light, #666);
+  color: var(--color-secondary);
 }
 
 .divider {
-  color: var(--color-border, #d9d9d9);
+  color: var(--border-color);
 }
 
 .arrow-icon {
   flex-shrink: 0;
   width: 16px;
   height: 16px;
-  color: var(--color-ink-light, #999);
+  color: var(--color-secondary);
   opacity: 0;
   transition: all 0.2s ease;
 }
 
 .poems-list :deep(.n-list-item):hover .arrow-icon {
   opacity: 1;
-  color: var(--color-seal, #8b2635);
+  color: var(--color-accent);
   transform: translateX(2px);
 }
 
@@ -278,9 +278,9 @@ const getDynastyColor = (dynasty: string): string => {
   display: flex;
   justify-content: center;
   padding: 16px;
-  background: var(--color-bg-paper, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
   margin-top: 16px;
 }
 

@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { RouterLink, RouterView, useRoute } from 'vue-router'
 import type { RouteLocationNormalized } from 'vue-router'
+import { darkTheme } from 'naive-ui'
 import {
   HomeOutline,
   BookOutline,
@@ -12,11 +13,14 @@ import {
   CloseOutline,
   SearchOutline,
   ShareSocialOutline,
-  PersonOutline
+  PersonOutline,
+  MoonOutline,
+  SunnyOutline
 } from '@vicons/ionicons5'
 
 import { usePoems } from '@/composables/usePoems'
 import { UnifiedLoading } from '@/components/feedback'
+import { useTheme } from '@/composables/useTheme'
 
 const collapsed = ref(false)
 const mobileMenuOpen = ref(false)
@@ -27,6 +31,11 @@ const scrolled = ref(false)
 
 const poems = usePoems()
 const route = useRoute()
+
+// 主题（浅色 / 深色）
+const { isDark, toggleTheme, syncFromDom } = useTheme()
+syncFromDom()
+const naiveTheme = computed(() => (isDark.value ? darkTheme : null))
 
 const formatNumber = (num: number | undefined | null): string => {
   if (num === undefined || num === null) return '--'
@@ -109,7 +118,7 @@ const currentYear = new Date().getFullYear()
 </script>
 
 <template>
-  <n-config-provider :theme-overrides="themeOverrides">
+  <n-config-provider :theme="naiveTheme" :theme-overrides="themeOverrides">
     <n-message-provider>
       <n-dialog-provider>
         <div class="app-container" :class="{ 'is-mobile': isMobile, 'is-scrolled': scrolled }">
@@ -151,7 +160,16 @@ const currentYear = new Date().getFullYear()
 
               <!-- GitHub Link -->
               <div class="nav-actions">
-                <a 
+                <button
+                  class="theme-toggle"
+                  @click="toggleTheme"
+                  :aria-label="isDark ? '切换到浅色模式' : '切换到深色模式'"
+                  :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
+                >
+                  <component :is="isDark ? SunnyOutline : MoonOutline" />
+                </button>
+
+                <a
                   href="https://github.com/shyu216/chinese-poetry-data-mining" 
                   target="_blank" 
                   rel="noopener noreferrer"
@@ -272,16 +290,16 @@ const currentYear = new Date().getFullYear()
   left: 0;
   right: 0;
   z-index: 100;
-  background: rgba(250, 250, 248, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
   border-bottom: 1px solid transparent;
   transition: all 0.3s var(--ease-out-expo);
 }
 
 .top-nav.nav-scrolled {
-  background: rgba(250, 250, 248, 0.95);
-  border-bottom-color: var(--border-light);
+  background: var(--glass-bg);
+  border-bottom-color: var(--glass-border);
   box-shadow: var(--shadow-sm);
 }
 
@@ -434,6 +452,30 @@ const currentYear = new Date().getFullYear()
 .github-icon {
   width: 24px;
   height: 24px;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--ink-gray);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s var(--ease-out-quart);
+}
+
+.theme-toggle:hover {
+  color: var(--ink-dark);
+  background: var(--ink-fog);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
 }
 
 /* ═══════════════════════════════════════════════════════════════

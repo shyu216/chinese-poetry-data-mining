@@ -105,7 +105,17 @@ export function useMetadataLoader<T = unknown>(type: MetadataType) {
         async () => {
           const response = await fetch(`${import.meta.env.BASE_URL}${config.url}`)
           if (!response.ok) {
-            throw new Error(`Failed to load ${type} metadata: ${response.status}`)
+            throw new Error(`Failed to load ${type} metadata: HTTP ${response.status}`)
+          }
+          // Defensive: dev server returns the SPA fallback (index.html) for a
+          // missing asset, which is HTML, not JSON. Surface a clear error instead
+          // of letting response.json() throw the cryptic "Unexpected token '<'".
+          const contentType = response.headers.get('content-type') || ''
+          if (!contentType.includes('json') && !contentType.includes('application/octet-stream')) {
+            throw new Error(
+              `Failed to load ${type} metadata: expected JSON but got "${contentType || 'unknown'}" ` +
+              `from ${import.meta.env.BASE_URL}${config.url} (asset missing from public/data?)`
+            )
           }
           return response.json()
         }

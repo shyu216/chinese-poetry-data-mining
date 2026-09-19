@@ -118,18 +118,18 @@ const statusType = computed(() => {
 <style scoped>
 .chunk-loader-status {
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
 }
 
 .chunk-loader-status.is-loading {
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  border-color: #86efac;
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
 }
 
 .chunk-loader-status.is-paused {
-  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
-  border-color: #fcd34d;
+  background: rgba(184, 134, 11, 0.10);
+  border-color: var(--color-warning);
 }
 
 .loader-header {
@@ -148,12 +148,12 @@ const statusType = computed(() => {
 .title-text {
   font-size: 16px;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--color-primary);
 }
 
 .loader-count {
   font-size: 14px;
-  color: #64748b;
+  color: var(--color-secondary);
   font-weight: 500;
 }
 
@@ -163,10 +163,10 @@ const statusType = computed(() => {
 
 .loader-hint {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-secondary);
   margin-bottom: 12px;
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-secondary);
   border-radius: 6px;
 }
 
@@ -175,7 +175,7 @@ const statusType = computed(() => {
   gap: 24px;
   margin-bottom: 16px;
   padding-top: 12px;
-  border-top: 1px dashed #cbd5e1;
+  border-top: 1px dashed var(--border-color);
 }
 
 .stat-item {
@@ -186,20 +186,20 @@ const statusType = computed(() => {
 
 .stat-label {
   font-size: 12px;
-  color: #94a3b8;
+  color: var(--ink-light);
 }
 
 .stat-value {
   font-size: 14px;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-primary);
 }
 
 .loader-actions {
   display: flex;
   justify-content: flex-end;
   padding-top: 12px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color);
 }
 
 @media (max-width: 768px) {
